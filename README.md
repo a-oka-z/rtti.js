@@ -72,6 +72,7 @@ However, I recommend you not to use `instanceof` for runtime type checking
 because type information of JavaScript is inherently not reliable.
 
 [Determining with absolute accuracy whether or not a JavaScript object is an array][isarray]
+
 [isarray]: https://web.mit.edu/jwalden/www/isArray.html
 
 IMHO, the only way to check type at runtime in JavaScript is object validation;
