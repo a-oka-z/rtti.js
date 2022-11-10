@@ -1,0 +1,50 @@
+{
+  "name": "rtti.js",
+  "version": "0.1.0",
+  "description": "`rtti.js` is a set of conventions which implements runtime type checking in the practical JavaScript world. ",
+  "main": "index.mjs",
+  "type": "module",
+  "exports": {
+    "./common.js": {
+      "default": "./index.cjs"
+    },
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.cjs"
+    }
+  },
+  "scripts": {
+    "test-es6": "NODE_OPTIONS='--experimental-vm-modules' jest index.test.mjs",
+    "test-cs": "                                          jest index.test.cjs",
+    "test": "npm run make; npm run test-cs; npm run test-es6",
+    "make": "node ./make.js"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "mjs",
+      "cjs",
+      "jsx",
+      "ts",
+      "tsx",
+      "json",
+      "node"
+    ],
+    "testMatch": [
+      "**/*.test.[cm]js"
+    ],
+    "verbose": true
+  },
+  "author": {
+    "name": "Atsushi Oka",
+    "url": "https://github.com/a-oka-z/rtti.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a-oka-z/rtti.js"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "sqlmacro": "^0.1.0"
+  }
+}
