@@ -36,7 +36,7 @@ const val3 = {
 console.error( t_person( val3 ) ); // true
 ```
 
-Every function that is defined in **rtti** is merely a factory to create a
+Every function that is defined in **rtti** is merely a factory to create an
 evaluator; you can create evaluators manually. For example, the following
 example also works properly:
 
