@@ -162,4 +162,4 @@ The following example implements a null checker.
 That's all. Thank you very much.
 
 
-[comment]:# vim: sw=2 sts=2 ts=2 s
+<!-- vim: set sw=2 sts=2 ts=2: -->
