@@ -118,3 +118,28 @@ test('CHECK Array',()=>{
 });
 
 
+test('test', ()=>{
+  const t_person = rtti.object({
+    name    : rtti.string(),
+    age     : rtti.number(),
+    visited : rtti.boolean(),
+    since   : (o)=>o instanceof Date,
+  });
+
+  const val4 = {
+    name    :'John',
+    age     : 42,
+    visited : true,
+    since   : new Date('24 Jan 1986 17:58:24 -0700'),
+  };
+
+  const val5 = {
+    name    :'John',
+    age     : 42,
+    visited : true,
+    since   : { is_wrong_date  : true }
+  };
+
+  console.error( t_person( val4 ) ); // true
+  console.error( t_person( val5 ) ); // true
+});

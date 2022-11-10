@@ -72,7 +72,11 @@ const rtti = {
     (...defs)=>(o)=>! defs[0]( o ),
   ),
   "object"    : mkrtti(
-    (...defs)=>{},
+    (...defs)=>{
+      if ( ! defs.every(e=> e!==null && e!==undefined && typeof e === 'object' )) {
+        throw new TypeError( 'invalid argument' );
+      }
+    },
     (...defs)=>{
       return defs.reduce(
         (accum,arg)=>({
