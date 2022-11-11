@@ -1,4 +1,4 @@
 params: body
-import  { INFO, rtti, makeValiFactory, createTemplate, standardValis } from './index.mjs' ;
+import  { INFO, rtti, makeValiFactory, newRtti, standardValis } from './index.mjs' ;
 
 <%=body %>

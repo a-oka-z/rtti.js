@@ -1,22 +1,19 @@
  rtti.js
 =====================
 
-**rtti.js** is a convention to implement object validation in JavaScript. The
-idea behind this convention is simple:
+**rtti.js** is a convention to accomplish object validation in JavaScript. The
+idea behind **rtti.js** is simple:
 
 ```javascript
 import  { rtti } from './index.mjs';
 
-const val1 =  42;
-const val2 = '42';
-
-console.error( rtti.string()( val1 )); // false
-console.error( rtti.string()( val2 )); // true
-console.error( rtti.number()( val1 )); // true
-console.error( rtti.number()( val2 )); // false
+console.error( rtti.string()(  42  )); // false
+console.error( rtti.string()( '42' )); // true
+console.error( rtti.number()(  42  )); // true
+console.error( rtti.number()( '42' )); // false
 ```
 
-This might not impress you; but how about below:
+Compounding these functions enables you to validate more complex objects :
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -27,18 +24,17 @@ const t_person = rtti.object({
   visited : rtti.boolean(),
 });
 
-const val3 = {
+const obj1 = {
   name    :'John',
   age     : 42,
   visited : true,
 };
-
-console.error( t_person( val3 ) ); // true
+console.error( t_person( obj1 ) ); // true
 ```
 
-Every function that is defined in **rtti** is merely a factory to create an
-evaluator; you can create evaluators manually. For example, the following
-example also works properly:
+The functions that are defined in **rtti** are merely factories of various
+validators; you can create validators manually. For example, the following
+example also works:
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -50,23 +46,29 @@ const t_person = rtti.object({
   since   : (o)=>o instanceof Date,
 });
 
-const val4 = {
+const obj1 = {
   name    :'John',
   age     : 42,
   visited : true,
   since   : new Date('24 Jan 1986 17:58:24 -0700'),
 };
+console.error( t_person( obj1 ) ); // true
 
-const val5 = {
+const obj2 = {
   name    :'John',
   age     : 42,
   visited : true,
   since   : { is_wrong_date  : true }
 };
 
-console.error( t_person( val4 ) ); // true
-console.error( t_person( val5 ) ); // false
+console.error( t_person( obj2 ) ); // false
 ```
+
+
+
+
+
+
 
 However, I recommend you not to use `instanceof` for runtime type checking
 because type information of JavaScript is inherently not reliable.
@@ -103,7 +105,7 @@ The rule 3 is a failproof; you often forget to call an evaluator generator and
 if you do, the function always returns truthy value which may confuse you. If
 you are not afraid of such mistakes, you can ignore it.
 
-The evaluators which are defined in `rtti`  conform to rule 1, rule 2 and rule 3.
+The validators which are defined in `rtti`  conform to rule 1, rule 2 and rule 3.
 `rtti.object()`  checks if the passed functions conform to rule 3 and if
 not, throw `TypeError()`.
 

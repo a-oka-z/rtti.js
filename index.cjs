@@ -179,7 +179,7 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   return -1;
 };
 
-function createTemplate() {
+function newRtti() {
   return function rttijs_template_literal(strings, ... values) {
     const input  = joinStringsAndValues( strings, values );
     const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
@@ -240,7 +240,7 @@ function createTemplate() {
 
 
 const rtti = (()=>{
-  const __rtti = createTemplate();
+  const __rtti = newRtti();
   Object.assign( __rtti, standardValis ); 
   return __rtti;
 })();
@@ -292,5 +292,5 @@ const rtti = (()=>{
 module.exports.INFO            = INFO;
 module.exports.rtti            = rtti;
 module.exports.makeValiFactory = makeValiFactory;
-module.exports.createTemplate  = createTemplate;
+module.exports.newRtti  = newRtti;
 module.exports.standardValis   = standardValis;

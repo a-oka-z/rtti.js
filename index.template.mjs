@@ -16,7 +16,7 @@ export {
   INFO,
   rtti,
   makeValiFactory,
-  createTemplate,
+  newRtti,
   standardValis,
 };
 
