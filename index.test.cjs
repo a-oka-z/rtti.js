@@ -1,4 +1,4 @@
-const { INFO, rtti } = require( './index.cjs' );
+const { INFO, rtti, makeValiFactory } = require( './index.cjs' );
 
 
 test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO        )).toBe('undefined'         ); } );

@@ -1,5 +1,4 @@
 
-
 const INFO   = Symbol.for( 'dump rtti.js information' ); 
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
@@ -9,7 +8,7 @@ const create_info_gen_from_string = ( info_gen_string )=>{
   }
 };
 
-const mk_vali_factory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
+const makeValiFactory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
   if ( typeof info_gen === 'string' ) {
     info_gen = create_info_gen_from_string( info_gen );
   }
@@ -30,15 +29,15 @@ const is_proper_vali = (func, name='unknown')=>{
 };
  
 const rtti = {
-  "undefined" : mk_vali_factory((...defs)=>(o)=>o === undefined                                        , (...defs)=>"undefined", (...def)=>{}),
-  "null"      : mk_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
-  "boolean"   : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
-  "number"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
-  "string"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
-  "bigint"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
-  "symbol"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
-  "function"  : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
-  "or"        : mk_vali_factory(
+  "undefined" : makeValiFactory((...defs)=>(o)=>o === undefined                                        , (...defs)=>"undefined", (...def)=>{}),
+  "null"      : makeValiFactory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
+  "boolean"   : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
+  "number"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
+  "string"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
+  "bigint"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
+  "symbol"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
+  "function"  : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
+  "or"        : makeValiFactory(
     (...defs)=>(o)=>defs.some( f=>f(o)),
     (...defs)=>"or",
     (...defs)=>{
@@ -50,7 +49,7 @@ const rtti = {
       }
     }, 
   ),
-  "and"       : mk_vali_factory(
+  "and"       : makeValiFactory(
     (...defs)=>(o)=>defs.every(f=>f(o)),
     (...defs)=>"and"      ,
     (...defs)=>{
@@ -62,7 +61,7 @@ const rtti = {
       }
     }, 
   ),
-  "not"       : mk_vali_factory(
+  "not"       : makeValiFactory(
     (...defs)=>(o)=>! defs[0]( o ),
     (...defs)=>"not",
     (...defs)=>{
@@ -74,7 +73,7 @@ const rtti = {
       }
     },
   ),
-  "object"    : mk_vali_factory(
+  "object"    : makeValiFactory(
     (...defs)=>{
       return (
         (o)=>{
@@ -109,7 +108,7 @@ const rtti = {
       }
     }
   ),
-  "array"    : mk_vali_factory(
+  "array"    : makeValiFactory(
     (...defs)=>{
       return (
         (o)=>{

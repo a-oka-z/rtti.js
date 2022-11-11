@@ -14,7 +14,7 @@ function inspect(s) {
 
 export {
   INFO,
-  mk_vali_factory,
+  makeValiFactory,
   rtti,
 };
 
