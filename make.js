@@ -18,5 +18,3 @@ asyncProc( 'index.template.cjs',      'index.js',      'index.cjs'      ).then(v
 asyncProc( 'index.template.mjs',      'index.js',      'index.mjs'      ).then(v=>console.log(v)).catch(v=>console.error(v));
 asyncProc( 'index.test.template.cjs', 'index.test.js', 'index.test.cjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
 asyncProc( 'index.test.template.mjs', 'index.test.js', 'index.test.mjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
-asyncProc( 'index.test.template.cjs', 'compiler.test.js', 'compiler.test.cjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
-asyncProc( 'index.test.template.mjs', 'compiler.test.js', 'compiler.test.mjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
