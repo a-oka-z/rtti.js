@@ -129,7 +129,8 @@ can create your own to avoid conflict.
 ```javascript
 import  { rtti, newRtti } from './index.mjs';
 
-const rtti2 = newRtti();
+const rtti2 = Object.assign( newRtti(), rtti);
+
 rtti2.Foo = (o)=>typeof o ==='number';
 rtti2.Bar = (o)=>typeof o ==='string';
 
@@ -235,8 +236,8 @@ runtime type checking. Since **rtti.js** is not a framework, you can use
  Conclusion
 --------------------------------------------------------------------------------
 This documentation is not perfect and there are still a lot of things which
-should  be on this; I will try to find time to write further more.
+should be on this document.
 
-Thank you very much for your patience with my English.
+Thank you very much for your attention. I will be seeing you.
 
 <!-- vim: set sw=2 sts=2 ts=2: -->
