@@ -68,7 +68,7 @@ Basic concept of this convention is quit simple and with this convention, you
 can accomplish validation in most cases without these complicated frameworks.
 
 
- Create Validators via a Template Literal
+ Create Validators via a Template Literal Validator Builder
 --------------------------------------------------------------------------------
 The `rtti` object is also a function which can be used as a template literal:
 
@@ -93,8 +93,14 @@ const v2 = {
 console.error( type( v2 ) ); // false;
 ```
 
-You can add types by setting your validator as a property on the `rtti`
-function:
+I hope the syntax of the validator builder is simple enough to appear obvious
+to you. The validator builder save you some of your finger power.
+
+
+ Extending Template Literal Validator Builder
+--------------------------------------------------------------------------------
+You can add your own validators by setting them as a property on the template
+literal function:
 
 ```javascript
 const type = rtti`
@@ -115,7 +121,7 @@ const v = {
 console.error( type( v ) ); // true;
 ```
 
- Create Your Own `rtti` Object
+ Create Your Own Template Literal Validator Builder
 --------------------------------------------------------------------------------
 You usually find yourself to avoid setting on the global `rtti` function; you
 can create your own to avoid conflict.
@@ -150,27 +156,6 @@ const type1 = rtti`
 console.error( type1( v ) ); // error;
 ```
 
-
- About Avoiding `instanceof` 
---------------------------------------------------------------------------------
-IMHO, you should avoid to perform type checking by using
-`instanceof` because type information of JavaScript is inherently not reliable.
-
-[Determining with absolute accuracy whether or not a JavaScript object is an array][isarray]
-
-[isarray]: https://web.mit.edu/jwalden/www/isArray.html
-
-IMHO, the only way to check type at runtime in JavaScript is duck typing AKA
-object validation; that is, just checking all property are set as expected.
-
-
-**rtti.js** is not a framework; this is merely a convention which implements
-runtime type checking. Since **rtti.js** is not a framework, you can use
-`rtti.js` even without the npm package.
-
-
-
-
  `makeValiFactory()`
 --------------------------------------------------------------------------------
 `makeValiFactory` is a helper function to create reliable validator functions:
@@ -201,9 +186,9 @@ runtime type checking. Since **rtti.js** is not a framework, you can use
 #### The Definition of the Parameters ####
 
 - `vali_gen` is a function to create the evaluator.
-- `info_gen` is a function to create a string value to express the type name; can also be a string.
+- `info_gen` is a function to create a string value to express the type name;
+  can also be a string.
 - `chk_args` is a function which offers a chance to check the arguments.
-
 
 #### Example ####
 
@@ -227,9 +212,31 @@ The following example implements a null checker.
 ```
 
 
+ About Avoiding `instanceof` 
+--------------------------------------------------------------------------------
+IMHO, you should avoid to perform type checking by using
+`instanceof` because type information of JavaScript is inherently not reliable.
+
+[Determining with absolute accuracy whether or not a JavaScript object is an array][isarray]
+
+[isarray]: https://web.mit.edu/jwalden/www/isArray.html
+
+IMHO, the only way to check type at runtime in JavaScript is duck typing AKA
+object validation; that is, just checking all property are set as expected.
+
+
+**rtti.js** is not a framework; this is merely a convention which implements
+runtime type checking. Since **rtti.js** is not a framework, you can use
+`rtti.js` even without the npm package.
+
+
+
+
  Conclusion
 --------------------------------------------------------------------------------
-That's all. Thank you very much.
+This documentation is not perfect and there are still a lot of things which
+should  be on this; I will try to find time to write further more.
 
+Thank you very much for your patience with my English.
 
 <!-- vim: set sw=2 sts=2 ts=2: -->
