@@ -13,8 +13,7 @@ function inspect(s) {
 <%=body %>
 
 
-module.exports.RTTI    = RTTI;
-module.exports.INFO    = INFO;
-module.exports.mkrtti  = mkrtti;
-module.exports.rtti    = rtti;
+module.exports.INFO            = INFO;
+module.exports.mk_vali_factory = mk_vali_factory;
+module.exports.rtti            = rtti;
 

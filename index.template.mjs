@@ -13,9 +13,8 @@ function inspect(s) {
 
 
 export {
-  RTTI,
   INFO,
-  mkrtti,
+  mk_vali_factory,
   rtti,
 };
 

@@ -1,4 +1,4 @@
 params: body
-import  { RTTI,INFO,mkrtti,rtti } from './index.mjs' ;
+import  { INFO, rtti } from './index.mjs' ;
 
 <%=body %>

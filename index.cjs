@@ -10,57 +10,72 @@ function inspect(s) {
 }
 
 
-const RTTI   = Symbol.for( 'rtti.js' ); 
+
 const INFO   = Symbol.for( 'dump rtti.js information' ); 
-const mkrtti = 
-  (chkArgs, infoGen, funcGen)=>(
-    (...defs)=>{
-      check_if_all_rtti_conformed(...defs);
-      chkArgs(...defs);
-      const func = funcGen(...defs);
-      const info = infoGen(...defs);
-      return (...args)=>args.length<1 ? info : 1<args.length ? RTTI : func(args[0]);
-    }
-  );
-const check_if_rtti_conformed = (func, name='unknown')=>{
-  if (! ( (typeof func === 'function') && (func(0,0,0)===RTTI ) )) {
-    throw new TypeError( name + ' is not a non-rtti conformed object' );
+const create_info_gen_from_string = ( info_gen_string )=>{
+  if ( typeof info_gen_string === 'string' ) {
+    return ()=>info_gen_string;
+  } else {
+    throw new TypeError('found an invalid argument');
   }
 };
-const check_if_all_rtti_conformed = (...defs)=>{
-  return defs.every(
-    arg=>Object.entries(arg).every(
-      ([key,value])=>check_if_rtti_conformed( value, key )));
-};
 
+const mk_vali_factory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
+  if ( typeof info_gen === 'string' ) {
+    info_gen = create_info_gen_from_string( info_gen );
+  }
+  return (...defs)=>{
+    chk_args(...defs);
+    const vali = vali_gen(...defs);
+    const info = info_gen(...defs);
+    return (o)=>o=== INFO ? info : vali(o);
+  }
+};
+const is_proper_vali = (func, name='unknown')=>{
+  try {
+    return ( typeof func === 'function' ) && ( typeof func(false)==='boolean' );
+  } catch (e){
+    console.error('WARNING : is_proper_vali: detect error thrown and ignored it',e);
+    return false;
+  }
+};
+ 
 const rtti = {
-  "undefined" : mkrtti((...def)=>{}, (...defs)=>"undefined", (...defs)=>(o)=>o === undefined         ),
-  "null"      : mkrtti((...def)=>{}, (...defs)=>"null"     , (...defs)=>(o)=>o === null              ),
-  "boolean"   : mkrtti((...def)=>{}, (...defs)=>"boolean"  , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  ),
-  "number"    : mkrtti((...def)=>{}, (...defs)=>"number"   , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   ),
-  "string"    : mkrtti((...def)=>{}, (...defs)=>"string"   , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   ),
-  "bigint"    : mkrtti((...def)=>{}, (...defs)=>"bigint"   , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   ),
-  "symbol"    : mkrtti((...def)=>{}, (...defs)=>"symbol"   , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   ),
-  "function"  : mkrtti((...def)=>{}, (...defs)=>"function" , (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" ),
-  "or"        : mkrtti(
-    (...defs)=>{
-      if (defs.length===0) {
-        throw new RangeError( 'no definition was specified' );
-      }
-    }, 
+  "undefined" : mk_vali_factory((...defs)=>(o)=>o === undefined                                        , (...defs)=>"undefined", (...def)=>{}),
+  "null"      : mk_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
+  "boolean"   : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
+  "number"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
+  "string"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
+  "bigint"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
+  "symbol"    : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
+  "function"  : mk_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
+  "or"        : mk_vali_factory(
+    (...defs)=>(o)=>defs.some( f=>f(o)),
     (...defs)=>"or",
-    (...defs)=>(o)=>defs.some( f=>f(o))     
-  ),
-  "and"       : mkrtti(
     (...defs)=>{
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified' );
       }
+      if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
+        throw new TypeError( 'found an invalid argument' );
+      }
     }, 
-    (...defs)=>"and"      ,
-    (...defs)=>(o)=>defs.every(f=>f(o))     
   ),
-  "not"       : mkrtti(
+  "and"       : mk_vali_factory(
+    (...defs)=>(o)=>defs.every(f=>f(o)),
+    (...defs)=>"and"      ,
+    (...defs)=>{
+      if (defs.length===0) {
+        throw new RangeError( 'no definition was specified' );
+      }
+      if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
+        throw new TypeError( 'found an invalid argument' );
+      }
+    }, 
+  ),
+  "not"       : mk_vali_factory(
+    (...defs)=>(o)=>! defs[0]( o ),
+    (...defs)=>"not",
     (...defs)=>{
       if (defs.length < 1) {
         throw new RangeError( 'no definition was specified' );
@@ -68,15 +83,23 @@ const rtti = {
       if (1<defs.length) {
         throw new RangeError( 'too many definitions were specified' );
       }
-    }, 
-    (...defs)=>"not",
-    (...defs)=>(o)=>! defs[0]( o ),
+    },
   ),
-  "object"    : mkrtti(
+  "object"    : mk_vali_factory(
     (...defs)=>{
-      if ( ! defs.every(e=> e!==null && e!==undefined && typeof e === 'object' )) {
-        throw new TypeError( 'invalid argument' );
-      }
+      return (
+        (o)=>{
+          if ( o === null || o === undefined ) {
+            return false;
+          }
+          if ( typeof o !== 'object' ) {
+            return false;
+          }
+          return defs.every(
+            def=>Object.entries(def).every(
+              ([key,value])=>value( o[key])))
+        }
+      )
     },
     (...defs)=>{
       return defs.reduce(
@@ -92,30 +115,12 @@ const rtti = {
         ,{})
     },
     (...defs)=>{
-      return (
-        (o)=>{
-          if ( o === null || o === undefined ) {
-            return false;
-          }
-          if ( typeof o !== 'object' ) {
-            return false;
-          }
-          return defs.every(
-            def=>Object.entries(def).every(
-              ([key,value])=>value( o[key])))
-        }
-      )
-    }),
-  "array"    : mkrtti(
-    (...defs)=>{
-      if ( ! defs.every(def=>( ( 'of' in def ) || typeof def.of === 'function' ))) {
-        throw new TypeError( "'of' property was missing in the specified definition" );
+      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>is_proper_vali(ee))))) {
+        throw new TypeError( 'found an invalid argument' );
       }
-    },
-    (...defs)=>{
-      const def = defs.shift();
-      return def.of(INFO) + '[]';
-    },
+    }
+  ),
+  "array"    : mk_vali_factory(
     (...defs)=>{
       return (
         (o)=>{
@@ -129,6 +134,15 @@ const rtti = {
             (def)=>o.every(e=>def.of(e)));
         }
       )
+    },
+    (...defs)=>{
+      const def = defs.shift();
+      return def.of(INFO) + '[]';
+    },
+    (...defs)=>{
+      if ( ! defs.every(def=>(typeof def==='object') && ( 'of' in def ) && (is_proper_vali( def.of )))) {
+        throw new TypeError( "'of' property was missing or improperly set" );
+      }
     }
   ),
 };
@@ -173,7 +187,6 @@ const rtti = {
 
 
 
-module.exports.RTTI    = RTTI;
-module.exports.INFO    = INFO;
-module.exports.mkrtti  = mkrtti;
-module.exports.rtti    = rtti;
+module.exports.INFO            = INFO;
+module.exports.mk_vali_factory = mk_vali_factory;
+module.exports.rtti            = rtti;

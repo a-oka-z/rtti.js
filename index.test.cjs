@@ -1,17 +1,17 @@
-const { RTTI,INFO,mkrtti,rtti } = require( './index.cjs' );
+const { INFO, rtti } = require( './index.cjs' );
 
 
-test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(            )).toBe('undefined'         ); } );
-test('INFO null'       , ()=>{  expect( rtti.null      (              )(            )).toBe('null'              ); } );
-test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(            )).toBe('boolean'           ); } );
-test('INFO number'     , ()=>{  expect( rtti.number    (              )(            )).toBe('number'            ); } );
-test('INFO string'     , ()=>{  expect( rtti.string    (              )(            )).toBe('string'            ); } );
-test('INFO bigint'     , ()=>{  expect( rtti.bigint    (              )(            )).toBe('bigint'            ); } );
-test('INFO symbol'     , ()=>{  expect( rtti.symbol    (              )(            )).toBe('symbol'            ); } );
-test('INFO function'   , ()=>{  expect( rtti.function  (              )(            )).toBe('function'          ); } );
-test('INFO not'        , ()=>{  expect( rtti.not       (rtti.boolean())(            )).toBe('not'               ); } );
-test('INFO or'         , ()=>{  expect( rtti.or        (rtti.boolean())(            )).toBe('or'                ); } );
-test('INFO and'        , ()=>{  expect( rtti.and       (rtti.boolean())(            )).toBe('and'               ); } );
+test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO        )).toBe('undefined'         ); } );
+test('INFO null'       , ()=>{  expect( rtti.null      (              )(INFO        )).toBe('null'              ); } );
+test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(INFO        )).toBe('boolean'           ); } );
+test('INFO number'     , ()=>{  expect( rtti.number    (              )(INFO        )).toBe('number'            ); } );
+test('INFO string'     , ()=>{  expect( rtti.string    (              )(INFO        )).toBe('string'            ); } );
+test('INFO bigint'     , ()=>{  expect( rtti.bigint    (              )(INFO        )).toBe('bigint'            ); } );
+test('INFO symbol'     , ()=>{  expect( rtti.symbol    (              )(INFO        )).toBe('symbol'            ); } );
+test('INFO function'   , ()=>{  expect( rtti.function  (              )(INFO        )).toBe('function'          ); } );
+test('INFO not'        , ()=>{  expect( rtti.not       (rtti.boolean())(INFO        )).toBe('not'               ); } );
+test('INFO or'         , ()=>{  expect( rtti.or        (rtti.boolean())(INFO        )).toBe('or'                ); } );
+test('INFO and'        , ()=>{  expect( rtti.and       (rtti.boolean())(INFO        )).toBe('and'               ); } );
 
 test('CHECK undefined' , ()=>{  expect( rtti.undefined (              )(undefined   )).toBe(true                ); } );
 test('CHECK null'      , ()=>{  expect( rtti.null      (              )(null        )).toBe(true                ); } );
