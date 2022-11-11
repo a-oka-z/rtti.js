@@ -1,8 +1,8 @@
  rtti.js
 =====================
 
-**rtti.js** is a convention to accomplish object validation in JavaScript. The
-idea behind **rtti.js** is simple:
+**rtti.js** is a non-opinionated simple convention to accomplish object
+validation in JavaScript. The idea behind **rtti.js** is simple:
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -33,8 +33,8 @@ console.error( t_person( obj1 ) ); // true
 ```
 
 The functions that are defined in **rtti** are merely factories of various
-validators; you can create validators manually. For example, the following
-example also works:
+validators. They are only utilities and not requirement; you can create
+validators on the fly. For example, the following example works, too:
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -64,75 +64,145 @@ const obj2 = {
 console.error( t_person( obj2 ) ); // false
 ```
 
+Basic concept of this convention is quit simple and with this convention, you
+can accomplish validation in most cases without these complicated frameworks.
 
 
+ Create Validators via a Template Literal
+--------------------------------------------------------------------------------
+The `rtti` object is also a function which can be used as a template literal:
+
+```javascript
+const type = rtti`
+  object(
+    foo : number(),
+    bar : string(),
+  )
+`();
+
+const v = {
+  foo:42,
+  bar:'hello',
+};
+console.error( type( v ) ); // true;
+
+const v2 = {
+  foo: false,
+  bar: BigInt(1),
+};
+console.error( type( v2 ) ); // false;
+```
+
+You can add types by setting your validator as a property on the `rtti`
+function:
+
+```javascript
+const type = rtti`
+  object(
+    foo : Foo(),
+    bar : Bar(),
+  )
+`();
+
+rtti.Foo = (o)=>typeof o ==='number';
+rtti.Bar = (o)=>typeof o ==='string';
 
 
+const v = {
+  foo:42,
+  bar:'hello',
+};
+console.error( type( v ) ); // true;
+```
+
+ Create Your Own `rtti` Object
+--------------------------------------------------------------------------------
+You usually find yourself to avoid setting on the global `rtti` function; you
+can create your own to avoid conflict.
+
+```javascript
+import  { rtti, newRtti } from './index.mjs';
+
+const rtti2 = newRtti();
+rtti2.Foo = (o)=>typeof o ==='number';
+rtti2.Bar = (o)=>typeof o ==='string';
+
+const type2 = rtti2`
+  object(
+    foo : Foo(),
+    bar : Bar(),
+  )
+`();
+
+const v = {
+  foo:42,
+  bar:'hello',
+};
+console.error( type2( v ) ); // true;
 
 
-However, I recommend you not to use `instanceof` for runtime type checking
-because type information of JavaScript is inherently not reliable.
+const type1 = rtti`
+  object(
+    foo : Foo(),
+    bar : Bar(),
+  )
+`();
+console.error( type1( v ) ); // error;
+```
+
+
+ About Avoiding `instanceof` 
+--------------------------------------------------------------------------------
+IMHO, you should avoid to perform type checking by using
+`instanceof` because type information of JavaScript is inherently not reliable.
 
 [Determining with absolute accuracy whether or not a JavaScript object is an array][isarray]
 
 [isarray]: https://web.mit.edu/jwalden/www/isArray.html
 
-IMHO, the only way to check type at runtime in JavaScript is object validation;
-that is, to check every property are set as expected.
+IMHO, the only way to check type at runtime in JavaScript is duck typing AKA
+object validation; that is, just checking all property are set as expected.
 
 
-As you may seen above, **rtti.js** is not a framework; this is merely a
-convention which implements runtime type checking in the practical world. Since
-**rtti.js** is not a framework, you can use `rtti.js` even without the npm
-package. **rtti.js** is merely an utility function set to implement
-**rtti.js**.
+**rtti.js** is not a framework; this is merely a convention which implements
+runtime type checking. Since **rtti.js** is not a framework, you can use
+`rtti.js` even without the npm package.
 
 
- The Convention of Evaluators
+
+
+ `makeValiFactory()`
 --------------------------------------------------------------------------------
-The convention define some rules; rules that every evaluator should follow is
-following :
-
-1. When the number of argument is one, examine the given value. Return `true` if
-  the value is valid as the type you want; return `false` otherwise.
-2. When the number of argument is less than or equals to zero, return the name
-  of the type; if you are not interested in displaying contents of types, you
-  can ignore this behavior.
-3. When the number of argument is greater than or equals to two, return the symbol
-  which you can get by the `Symbol.for('RTTI')`.
-
-The rule 3 is a failproof; you often forget to call an evaluator generator and
-if you do, the function always returns truthy value which may confuse you. If
-you are not afraid of such mistakes, you can ignore it.
-
-The validators which are defined in `rtti`  conform to rule 1, rule 2 and rule 3.
-`rtti.object()`  checks if the passed functions conform to rule 3 and if
-not, throw `TypeError()`.
-
-
-
- `mkrtti()`
---------------------------------------------------------------------------------
-`mkrtti` is a helper function to that make those functions to conform the three
-rules above. Its implementation is following:
+`makeValiFactory` is a helper function to create reliable validator functions:
 
 ```javascript
-  (chkArgs, infoGen, funcGen)=>(
-    (...defs)=>{
-      check_if_all_rtti_conformed(...defs);
-      chkArgs(...defs);
-      const func = funcGen(...defs);
-      const info = infoGen(...defs);
-      return (...args)=>args.length<1 ? info : 1<args.length ? RTTI : func(args[0]);
+  const INFO   = Symbol.for( 'dump rtti.js information' ); 
+  const create_info_gen_from_string = ( info_gen_string )=>{
+    if ( typeof info_gen_string === 'string' ) {
+      return ()=>info_gen_string;
+    } else {
+      throw new TypeError('found an invalid argument');
     }
-  );
+  };
+
+  const makeValiFactory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
+    if ( typeof info_gen === 'string' ) {
+      info_gen = create_info_gen_from_string( info_gen );
+    }
+    return (...defs)=>{
+      chk_args(...defs);
+      const vali = vali_gen(...defs);
+      const info = info_gen(...defs);
+      return (o)=>o=== INFO ? info : vali(o);
+    }
+  };
 ```
 
 #### The Definition of the Parameters ####
 
-- `chkArgs` is a function which offers a chance to check the arguments.
-- `infoGen` is a function to create a string value to express the type name.
-- `funcGen` is a function to create the evaluator.
+- `vali_gen` is a function to create the evaluator.
+- `info_gen` is a function to create a string value to express the type name; can also be a string.
+- `chk_args` is a function which offers a chance to check the arguments.
 
 
 #### Example ####
@@ -140,23 +210,21 @@ rules above. Its implementation is following:
 The following example implements a null checker.
 
 ```javascript
-  const null_checker = mkrtti(
+  const null_checker = makeValiFactory(
+    // a closure that does the evaluation
+    (...defs)=>(o)=>o === null 
+
+    // a closure that returns the name of the type
+    (...defs)=>"null",
+
     // null checker takes no argument
     (...defs)=>{
       if ( defs.length !== 0 ) {
         throw new RangeError( 'no definition can be specified' );
       }
     }, 
-
-    // a closure that returns the name of the type
-    (...defs)=>"null",
-
-    // a closure that does the evaluation
-    (...defs)=>(o)=>o === null 
   );
 ```
-
-
 
 
  Conclusion
