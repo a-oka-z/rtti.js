@@ -13,6 +13,8 @@ function inspect(s) {
 
 
 module.exports.INFO            = INFO;
-module.exports.makeValiFactory = makeValiFactory;
 module.exports.rtti            = rtti;
+module.exports.makeValiFactory = makeValiFactory;
+module.exports.createTemplate  = createTemplate;
+module.exports.standardValis   = standardValis;
 

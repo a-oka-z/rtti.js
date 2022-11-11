@@ -14,7 +14,9 @@ function inspect(s) {
 
 export {
   INFO,
-  makeValiFactory,
   rtti,
+  makeValiFactory,
+  createTemplate,
+  standardValis,
 };
 
