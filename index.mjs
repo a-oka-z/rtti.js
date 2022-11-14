@@ -164,7 +164,6 @@ const standardValis = {
  *
  *
  */
-
 const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('').trim();
 const adjacent_token_is_colon = (tokens,idx)=>{
   for ( let i=idx;i<tokens.length; i++ ) {
@@ -230,6 +229,12 @@ function newRtti() {
     })();
 
     const result = (...args)=>{
+      /* 
+       * This is the reference to this function itself.  This functionarity is
+       * designed to accomplish recursive calls in closures. In this part, it
+       * is applied as a closure which can be accessed from outside the
+       * closure.
+       */
       return compiled_script(rttijs_template_literal,...args);
     };
 

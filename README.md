@@ -33,7 +33,7 @@ console.error( t_person( obj1 ) ); // true
 ```
 
 The functions that are defined in **rtti** are merely factories of various
-validators. They are only utilities and not requirement; you can create
+validators. They are merely utilities and not requirement; you can create
 validators on the fly. For example, the following example works, too:
 
 ```javascript
