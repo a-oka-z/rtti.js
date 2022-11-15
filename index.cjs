@@ -39,7 +39,7 @@ const is_proper_vali = (func, name='unknown')=>{
 };
  
 const standardValis = {
-  "undefined" : makeValiFactory((...defs)=>(o)=>o === undefined                                        , (...defs)=>"undefined", (...def)=>{}),
+  "undefined" : makeValiFactory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
   "null"      : makeValiFactory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
   "boolean"   : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
   "number"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
@@ -142,6 +142,20 @@ const standardValis = {
         throw new TypeError( "'of' property was missing or improperly set" );
       }
     }
+  ),
+  "equals"    : makeValiFactory(
+    (val)=>(o)=>o === val,
+    (val)=>val,
+    (...defs)=>{
+      if ( defs.length < 1 ) {
+        throw new RangeError( 'no definition was specified' );
+      }
+    }
+  ),
+  "uuid"    : makeValiFactory(
+    (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
+    (...defs)=>"uuid",
+    (...defs)=>{}
   ),
 };
 

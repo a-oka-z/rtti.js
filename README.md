@@ -68,6 +68,181 @@ Basic concept of this convention is quit simple and with this convention, you
 can accomplish validation in most cases without these complicated frameworks.
 
 
+
+ Basic Validators
+--------------------------------------------------------------------------------
+`rtti.js` offers some basic validators as default. These validators are there
+only for your convenience; again, it is not mandatory to use them.
+
+Available validators are:
+
+- undefined()
+- null()
+- boolean()
+- number()
+- string()
+- bigint()
+- symbol()
+- function()
+- or()
+- and()
+- not()
+- object()
+- array()
+- equals()
+- uuid()
+
+Their usage may be self-descriptive; though, some of them should be explaind.
+
+
+#### undefined() ####
+Returns `true` if `typeof` operator to the given value returns `undefined`; otherwise returns `false`.
+```javascript
+undefined()
+```
+
+#### null() ####
+Returns `true` if the given value is strictly equal to `null` value; otherwise returns `false`.
+```javascript
+null()
+```
+
+#### boolean() ####
+Returns `true` if `typeof` operator to the given value returns `boolean`; otherwise returns `false`.
+```javascript
+boolean()
+```
+
+#### number() ####
+Returns `true` if `typeof` operator to the given value returns `number`; otherwise returns `false`.
+```javascript
+number()
+```
+
+#### string() ####
+Returns `true` if `typeof` operator to the given value returns `string`; otherwise returns `false`.
+```javascript
+string()
+```
+
+#### bigint() ####
+Returns `true` if `typeof` operator to the given value returns `bigint`; otherwise returns `false`.
+```javascript
+bigint()
+```
+
+#### symbol() ####
+Returns `true` if `typeof` operator to the given value returns `symbol`; otherwise returns `false`.
+```javascript
+symbol()
+```
+
+#### function() ####
+Returns `true` if `typeof` operator to the given value returns `function`; otherwise returns `false`.
+```javascript
+function()(()=>{}) // returns true
+```
+
+#### or() ####
+`or()` calls specified validators from left to right and returns `true` if at
+least one of the validators return `true`.  
+```javascript
+or( string(), number())( '123' );  // returns true
+or( string(), number())(  123  );  // returns true
+or( string(), number())( true  );  // returns false
+```
+
+#### and() ####
+`and()` calls specified validators from left to right and return `true` if and only if 
+all of the specified validators return `true`; otherwise returns `false`.
+```javascript
+and( number() , (v)=>100<v )( 200 ); // returns true
+and( number() , (v)=>100<v )(  50 ); // returns false
+```
+
+#### not() ####
+`not()` negates the result of the specified validator.
+```javascript
+not( number() )(  100  ); // returns false
+not( number() )( '100' ); // returns true
+```
+
+#### object() ####
+`object()` checks the validity of the given object. `object()` receives objects
+as its parameters and takes them as definition of the object properties and
+create a validator.
+
+The definition objects should contain validators as their properties and these
+validators are to be called when the validator performs comparison.
+
+The validator will scan all properties which defined in the definition objects,
+then call them with corresponding property values on the object to be compared.
+
+the validator returns `true` if and only if all of the validators returns `true`;
+otherwise, returns `false`.
+
+```javascript
+const t = object({
+  foo : number(),
+  bar : string(),
+});
+
+t({
+}); // returns false
+
+t({
+  foo: 100,
+  bar: "100",
+}); // returns true
+
+```
+
+#### array() ####
+`array()` checks if all of the elements of the given array object conform to a
+specified validator. `array()` receives a validator and call it with the all of
+the elements on the specified array object. Return `true` if all elements conform
+to the validator; otherwise return `false`.
+
+```javascript
+array(number())([1,2,3]); // return true
+array(number())([1,2,'3']); // return false
+array(or( string(), number()))([1,2,'3']); // return true
+```
+
+#### equals() ####
+`equals()` takes a parameter as a target value and creates a validator which
+compares with the target value. The validator returns `true` if and only if
+the given value is strictly equal to the target value.
+```javascript
+equals(1)(1); // true
+equals(1)('1'); // false
+```
+
+#### uuid() ####
+`uuid()` checks if the given value conforms to the specification of [uuid][].
+
+[uuid]: https://en.wikipedia.org/wiki/Universally_unique_identifier
+
+```javascript
+rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) // true
+rtti.uuid()( 'hello' ) // false
+rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) // false
+rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) // false
+rtti.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) // false
+```
+
+`uuid()` checks if the given value is a string; returns `false` if the given
+value is not a string.
+
+```javascript
+rtti.uuid()( 1  ) // false
+rtti.uuid()( false ) // false
+```
+
+
+
+
+
  Create Validators via a Template Literal Validator Builder
 --------------------------------------------------------------------------------
 The `rtti` object is also a function which can be used as a template literal:
@@ -213,23 +388,10 @@ The following example implements a null checker.
 ```
 
 
- About Avoiding `instanceof` 
+  History
 --------------------------------------------------------------------------------
-IMHO, you should avoid to perform type checking by using
-`instanceof` because type information of JavaScript is inherently not reliable.
-
-[Determining with absolute accuracy whether or not a JavaScript object is an array][isarray]
-
-[isarray]: https://web.mit.edu/jwalden/www/isArray.html
-
-IMHO, the only way to check type at runtime in JavaScript is duck typing AKA
-object validation; that is, just checking all property are set as expected.
-
-
-**rtti.js** is not a framework; this is merely a convention which implements
-runtime type checking. Since **rtti.js** is not a framework, you can use
-`rtti.js` even without the npm package.
-
+- v0.1.0 released
+- v0.1.1 added `uuid()` `equals()`
 
 
 

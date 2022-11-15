@@ -229,9 +229,28 @@ test('COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti`and   (rtti.number() )
 
 
 
+test('equals',()=>{
+  expect( rtti.equals( 'hello' )( 'hello'    ) ).toBe( true );
+  expect( rtti.equals( 'hello' )( 'NO hello' ) ).toBe( false );
+  expect( rtti.equals( 123 )( '123' ) ).toBe( false );
+  expect( rtti.equals( false )( 'false' ) ).toBe( false );
+  expect( rtti.equals( false )( false ) ).toBe( true );
+  expect( rtti.equals( null )( undefined ) ).toBe( false );
+  expect( rtti.equals( null )( null  ) ).toBe( true );
+});
 
+test('uuid',()=>{
+  expect( rtti.uuid()( 'hello'    ) ).toBe( false );
+  expect( rtti.uuid()( 'NO hello' ) ).toBe( false );
+  expect( rtti.uuid()( '123'   ) ).toBe( false );
+  expect( rtti.uuid()( 'false' ) ).toBe( false );
+  expect( rtti.uuid()( false   ) ).toBe( false );
+  expect( rtti.uuid()( undefined ) ).toBe( false );
+  expect( rtti.uuid()( null     ) ).toBe( false );
+  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) ).toBe( true );
+  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) ).toBe( false );
+  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) ).toBe( false );
+  expect( rtti.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) ).toBe( false );
 
-
-
-
+});
 
