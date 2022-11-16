@@ -41,6 +41,7 @@ const is_proper_vali = (func, name='unknown')=>{
 };
 
 const standardValis = {
+  "any"       : makeValiFactory((...defs)=>(o)=>true                                                   , (...defs)=>"any"      , (...def)=>{}),
   "undefined" : makeValiFactory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
   "null"      : makeValiFactory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
   "boolean"   : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),

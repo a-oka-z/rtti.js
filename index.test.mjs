@@ -352,3 +352,18 @@ test('equals',()=>{
 });
 
 
+
+/*
+ * any()
+ */
+
+test( 'ANY undefined'  , ()=>{ expect( rtti.any()( undefined       )).toBe(true); } );
+test( 'ANY null'       , ()=>{ expect( rtti.any()( null            )).toBe(true); } );
+test( 'ANY boolean'    , ()=>{ expect( rtti.any()( false           )).toBe(true); } );
+test( 'ANY number'     , ()=>{ expect( rtti.any()( 1               )).toBe(true); } );
+test( 'ANY string'     , ()=>{ expect( rtti.any()( '1'             )).toBe(true); } );
+test( 'ANY bigint'     , ()=>{ expect( rtti.any()( BigInt(1)       )).toBe(true); } );
+test( 'ANY symbol'     , ()=>{ expect( rtti.any()( Symbol.for('1') )).toBe(true); } );
+test( 'ANY function'   , ()=>{ expect( rtti.any()( ()=>{}          )).toBe(true); } );
+
+
