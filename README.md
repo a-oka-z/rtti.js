@@ -263,10 +263,10 @@ rtti.uuid()( false ) // false
 
 
 
- Create Validators via a Template Literal Validator Builder
+ Create Validators via Statement Compiler
 --------------------------------------------------------------------------------
-The `rtti` offers a template literal function which is a helper function to
-build various validators:
+The `rtti` offers a template literal function which is called statement
+compiler.  Statement compiler helps to build various validators:
 
 ```javascript
 const type = rtti.statement`
@@ -289,14 +289,39 @@ const v2 = {
 console.error( type( v2 ) ); // false;
 ```
 
-I hope the syntax of the validator builder is simple enough to appear obvious
-to you. The validator builder save you some of your finger power.
+I hope the syntax of statement compiler is simple enough to appear obvious to
+you. The statement compiler helps you to build your validators with less
+boilerplate.
 
 **a note for backward compatibility** : former to v0.1.2, `rtti` object can be
 used as a template literal function. This behavior is deprecated. Though it is
 still available to be used as a template literal, this will be removed in the
 future version. The new project should not rely on this behavior.
 
+
+ JavaScript Values in Statement Compiler
+--------------------------------------------------------------------------------
+In the statemet string, regions surrounded by `<<` and `>>`` are treated as 
+raw JavaScript values.
+
+For example,
+
+```javascript
+const type = rtti.statement`
+  object(
+    foo : equals( <<  42  >> ),
+    bar : equals( << '42' >> ),
+  )
+`;
+
+is loosely compiled to
+
+```javascript
+const type = rtti.object({
+  foo : rtti.equals(  42  ),
+  bar : rtti.equals( '42' ),
+})
+```
 
  Extending Template Literal Validator Builder
 --------------------------------------------------------------------------------
@@ -422,6 +447,7 @@ The following example implements a null checker.
 - v0.1.1 added `uuid()` `equals()`
 - v0.1.2 added `clone()`; the template literal function as `rtti.statement`
 - v0.1.3 added `any()`
+- v0.1.4 added << >> blocks.
 
 
  Conclusion

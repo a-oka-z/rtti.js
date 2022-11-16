@@ -369,3 +369,105 @@ test( 'ANY symbol'     , ()=>{ expect( rtti.any()( Symbol.for('1') )).toBe(true)
 test( 'ANY function'   , ()=>{ expect( rtti.any()( ()=>{}          )).toBe(true); } );
 
 
+
+/**
+ *
+ * JavaScript Blocks in the Statement Compiler 
+ *
+ */
+
+test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
+  const factory = rtti.statement`
+    object(
+      name : string(),
+      age  : number(),
+      field : or( number(), string() ),
+      attrs : object(
+        foo: equals( << "hello world" >> ),
+        bar: number(),
+      ),
+      arr_test : array(
+        not( number()),
+      ),
+    )
+  `;
+
+  expect( factory.script ).toBe(`
+    rtti.object({
+      name : rtti.string(),
+      age  : rtti.number(),
+      field : rtti.or( rtti.number(), rtti.string() ),
+      attrs : rtti.object({
+        foo: rtti.equals(  "hello world"  ),
+        bar: rtti.number(),
+      }),
+      arr_test : rtti.array(
+        rtti.not( rtti.number()),
+      ),
+    })
+  `.trim());
+
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+
+
+test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
+  const factory = rtti.statement`
+    object(
+      name : equals( << "John Coltrane" >> ),
+      age  : number(),
+      field : or( number(), string() ),
+      attrs : object(
+        foo: equals( << "hello world" >> ),
+        bar: number(),
+      ),
+      arr_test : array(
+        not( number()),
+      ),
+    )
+  `;
+
+  expect( factory.script ).toBe(`
+    rtti.object({
+      name : rtti.equals(  "John Coltrane"  ),
+      age  : rtti.number(),
+      field : rtti.or( rtti.number(), rtti.string() ),
+      attrs : rtti.object({
+        foo: rtti.equals(  "hello world"  ),
+        bar: rtti.number(),
+      }),
+      arr_test : rtti.array(
+        rtti.not( rtti.number()),
+      ),
+    })
+  `.trim());
+
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+test('STATEMENT COMPILER JavaScript Blocks No.3', ()=>{
+  const factory = rtti.statement`equals(<<10>>)`;
+  expect( factory.script ).toBe(`rtti.equals(10)`.trim());
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+test('STATEMENT COMPILER JavaScript Blocks No.4', ()=>{
+  const factory = rtti.statement`number(<<>>)`;
+  expect( factory.script ).toBe(`rtti.number()`.trim());
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+
+test('STATEMENT COMPILER JavaScript Blocks No.5', ()=>{
+  const factory = rtti.statement`number(<<1 + >><<2 + >><<3>>)`;
+  expect( factory.script ).toBe(`rtti.number(1 + 2 + 3)`.trim());
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+

@@ -201,7 +201,29 @@ function rttijs_standard_template_literal(strings, ... values) {
     throw new TypeError( 'the array of the first argument contains a non-string value' );
   }
 
-  const input  = joinStringsAndValues( strings, values );
+  const escaped_blocks = [];
+
+  function escape_blocks( s ) {
+    return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
+      const c = escaped_blocks.length;
+      const id = '__RTTIJS_ESCAPED_SEQUENCE_NO_' + ( c ) + '__';
+      escaped_blocks.push( p1 );
+      return id; 
+    });
+  }
+
+  function unescape_blocks( input ) {
+    let output = input;
+    output = output.replaceAll( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/g, function(match,p1) {
+      return escaped_blocks[p1];
+    })
+    return output;
+  }
+
+  const input  = 
+    escape_blocks( 
+      joinStringsAndValues( strings, values ));
+
   const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
   const o_tokens = [ ...i_tokens ];
   const prefix = 'rtti.';
@@ -211,6 +233,7 @@ function rttijs_standard_template_literal(strings, ... values) {
   let last_keyword = null;
   for ( let i=0; i<i_tokens.length; i++ ) {
     const curr_t = i_tokens[i];
+    // if (curr_t.trim() !== '' ){ console.error( curr_t ) };
     if ( false ) {
     } else if ( curr_t === '(' ) {
       if (false) {
@@ -232,15 +255,21 @@ function rttijs_standard_template_literal(strings, ... values) {
       last_keyword = null;
     } else if ( curr_t.match( /\s+/ ) ) {
       // last_keyword = null;
+    } else if ( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/.test( curr_t ) ) {
+        // do nothing
+        o_tokens[i] = o_tokens[i];
     } else {
       if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
         o_tokens[i] = prefix + o_tokens[i] ;
       }
-      last_keyword = i_tokens[i];
+      last_keyword = i_tokens[i]; // is this proper? (Wed, 16 Nov 2022 17:28:53 +0900)
     }
   }
 
-  const script = o_tokens.join('');
+  const script = 
+    unescape_blocks(
+      o_tokens.join(''));
+
   const compiled_script = (()=>{
     try {
       return new Function( 'rtti', 'return ' + script);;
