@@ -84,6 +84,7 @@ Available validators are:
 - bigint()
 - symbol()
 - function()
+- any()
 - or()
 - and()
 - not()
@@ -98,73 +99,94 @@ Their usage may be self-descriptive; though, some of them should be explaind.
 #### undefined() ####
 Returns `true` if `typeof` operator to the given value returns `undefined`; otherwise returns `false`.
 ```javascript
-undefined()
+rtti.undefined()( undefined ) // returns true
+rtti.undefined()( null      ) // returns false
 ```
 
 #### null() ####
 Returns `true` if the given value is strictly equal to `null` value; otherwise returns `false`.
 ```javascript
-null()
+rtti.null()( null ) // returns true
+rtti.null()( 1    ) // returns false
 ```
 
 #### boolean() ####
 Returns `true` if `typeof` operator to the given value returns `boolean`; otherwise returns `false`.
 ```javascript
-boolean()
+rtti.boolean()( false  ) // returns true
+rtti.boolean()( true   ) // returns true
+rtti.boolean()( 'true' ) // returns false
 ```
 
 #### number() ####
 Returns `true` if `typeof` operator to the given value returns `number`; otherwise returns `false`.
 ```javascript
-number()
+rtti.number()( 42 ) // returns true
+rtti.number()('42') // returns false
 ```
 
 #### string() ####
 Returns `true` if `typeof` operator to the given value returns `string`; otherwise returns `false`.
 ```javascript
-string()
+rtti.string()( '42' ) // returns true
+rtti.string()(  42  ) // returns false
 ```
 
 #### bigint() ####
 Returns `true` if `typeof` operator to the given value returns `bigint`; otherwise returns `false`.
 ```javascript
-bigint()
+rtti.bigint()( BigInt(42) ) // returns true
+rtti.bigint()(        42  ) // returns false
 ```
 
 #### symbol() ####
 Returns `true` if `typeof` operator to the given value returns `symbol`; otherwise returns `false`.
 ```javascript
-symbol()
+rtti.symbol()( Symbol('hello')     ) // returns true
+rtti.symbol()( Symbol.for('hello') ) // returns true
+rtti.symbol()(            'hello'  ) // returns false
 ```
 
 #### function() ####
 Returns `true` if `typeof` operator to the given value returns `function`; otherwise returns `false`.
 ```javascript
-function()(()=>{}) // returns true
+rtti.function()( ()=>{}        ) // returns true
+rtti.function()( function(){}  ) // returns true
+rtti.function()( new Function()) // returns true
+rtti.function()( 'function'    ) // returns false
+```
+
+#### any() ####
+`any()` always return `true` no matter which type of a value is specified as a
+parameter.
+```javascript
+rtti.any()( '123' );  // returns true
+rtti.any()(  123  );  // returns true
+rtti.any()( true  );  // returns true
 ```
 
 #### or() ####
 `or()` calls specified validators from left to right and returns `true` if at
 least one of the validators return `true`.  
 ```javascript
-or( string(), number())( '123' );  // returns true
-or( string(), number())(  123  );  // returns true
-or( string(), number())( true  );  // returns false
+rtti.or( string(), number())( '123' );  // returns true
+rtti.or( string(), number())(  123  );  // returns true
+rtti.or( string(), number())( true  );  // returns false
 ```
 
 #### and() ####
 `and()` calls specified validators from left to right and return `true` if and only if 
 all of the specified validators return `true`; otherwise returns `false`.
 ```javascript
-and( number() , (v)=>100<v )( 200 ); // returns true
-and( number() , (v)=>100<v )(  50 ); // returns false
+rtti.and( number() , (v)=>100<v )( 200 ); // returns true
+rtti.and( number() , (v)=>100<v )(  50 ); // returns false
 ```
 
 #### not() ####
 `not()` negates the result of the specified validator.
 ```javascript
-not( number() )(  100  ); // returns false
-not( number() )( '100' ); // returns true
+rtti.not( number() )(  100  ); // returns false
+rtti.not( number() )( '100' ); // returns true
 ```
 
 #### object() ####
@@ -182,7 +204,7 @@ the validator returns `true` if and only if all of the validators returns `true`
 otherwise, returns `false`.
 
 ```javascript
-const t = object({
+const t = rtti.object({
   foo : number(),
   bar : string(),
 });
@@ -204,9 +226,9 @@ the elements on the specified array object. Return `true` if all elements confor
 to the validator; otherwise return `false`.
 
 ```javascript
-array(number())([1,2,3]); // return true
-array(number())([1,2,'3']); // return false
-array(or( string(), number()))([1,2,'3']); // return true
+rtti.array(number())([1,2,3]); // return true
+rtti.array(number())([1,2,'3']); // return false
+rtti.array(or( string(), number()))([1,2,'3']); // return true
 ```
 
 #### equals() ####
@@ -214,8 +236,8 @@ array(or( string(), number()))([1,2,'3']); // return true
 compares with the target value. The validator returns `true` if and only if
 the given value is strictly equal to the target value.
 ```javascript
-equals(1)(1); // true
-equals(1)('1'); // false
+rtti.equals(1)(1); // true
+rtti.equals(1)('1'); // false
 ```
 
 #### uuid() ####
@@ -238,8 +260,6 @@ value is not a string.
 rtti.uuid()( 1  ) // false
 rtti.uuid()( false ) // false
 ```
-
-
 
 
 

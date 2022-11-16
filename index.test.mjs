@@ -1,33 +1,35 @@
 import  { INFO, rtti, makeValiFactory, newRtti, standardValis } from './index.mjs' ;
 
 
-test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO        )).toBe('undefined'         ); } );
-test('INFO null'       , ()=>{  expect( rtti.null      (              )(INFO        )).toBe('null'              ); } );
-test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(INFO        )).toBe('boolean'           ); } );
-test('INFO number'     , ()=>{  expect( rtti.number    (              )(INFO        )).toBe('number'            ); } );
-test('INFO string'     , ()=>{  expect( rtti.string    (              )(INFO        )).toBe('string'            ); } );
-test('INFO bigint'     , ()=>{  expect( rtti.bigint    (              )(INFO        )).toBe('bigint'            ); } );
-test('INFO symbol'     , ()=>{  expect( rtti.symbol    (              )(INFO        )).toBe('symbol'            ); } );
-test('INFO function'   , ()=>{  expect( rtti.function  (              )(INFO        )).toBe('function'          ); } );
-test('INFO not'        , ()=>{  expect( rtti.not       (rtti.boolean())(INFO        )).toBe('not'               ); } );
-test('INFO or'         , ()=>{  expect( rtti.or        (rtti.boolean())(INFO        )).toBe('or'                ); } );
-test('INFO and'        , ()=>{  expect( rtti.and       (rtti.boolean())(INFO        )).toBe('and'               ); } );
+test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO            )).toBe('undefined'         ); } );
+test('INFO null'       , ()=>{  expect( rtti.null      (              )(INFO            )).toBe('null'              ); } );
+test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(INFO            )).toBe('boolean'           ); } );
+test('INFO number'     , ()=>{  expect( rtti.number    (              )(INFO            )).toBe('number'            ); } );
+test('INFO string'     , ()=>{  expect( rtti.string    (              )(INFO            )).toBe('string'            ); } );
+test('INFO bigint'     , ()=>{  expect( rtti.bigint    (              )(INFO            )).toBe('bigint'            ); } );
+test('INFO symbol'     , ()=>{  expect( rtti.symbol    (              )(INFO            )).toBe('symbol'            ); } );
+test('INFO function'   , ()=>{  expect( rtti.function  (              )(INFO            )).toBe('function'          ); } );
+test('INFO not'        , ()=>{  expect( rtti.not       (rtti.boolean())(INFO            )).toBe('not'               ); } );
+test('INFO or'         , ()=>{  expect( rtti.or        (rtti.boolean())(INFO            )).toBe('or'                ); } );
+test('INFO and'        , ()=>{  expect( rtti.and       (rtti.boolean())(INFO            )).toBe('and'               ); } );
 
-test('CHECK undefined' , ()=>{  expect( rtti.undefined (              )(undefined   )).toBe(true                ); } );
-test('CHECK null'      , ()=>{  expect( rtti.null      (              )(null        )).toBe(true                ); } );
-test('CHECK boolean 1' , ()=>{  expect( rtti.boolean   (              )(true        )).toBe(true                ); } );
-test('CHECK boolean 2' , ()=>{  expect( rtti.boolean   (              )(false       )).toBe(true                ); } );
-test('CHECK number'    , ()=>{  expect( rtti.number    (              )(100000      )).toBe(true                ); } );
-test('CHECK string'    , ()=>{  expect( rtti.string    (              )("fooo"      )).toBe(true                ); } );
-test('CHECK bigint'    , ()=>{  expect( rtti.bigint    (              )(BigInt(1)   )).toBe(true                ); } );
-test('CHECK symbol'    , ()=>{  expect( rtti.symbol    (              )(Symbol('1') )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( rtti.function  (              )(()=>{}      )).toBe(true                ); } );
-test('CHECK not ERR'   , ()=>{  expect( ()=>rtti.not   (              )(            )).toThrow(     RangeError  ); } );
-test('CHECK or ERR'    , ()=>{  expect( ()=>rtti.or    (              )(            )).toThrow(     RangeError  ); } );
-test('CHECK and ERR'   , ()=>{  expect( ()=>rtti.and   (              )(            )).toThrow(     RangeError  ); } );
-test('CHECK not OK'    , ()=>{  expect( ()=>rtti.not   (rtti.number() )(            )).not.toThrow( RangeError  ); } );
-test('CHECK or OK'     , ()=>{  expect( ()=>rtti.or    (rtti.number() )(            )).not.toThrow( RangeError  ); } );
-test('CHECK and OK'    , ()=>{  expect( ()=>rtti.and   (rtti.number() )(            )).not.toThrow( RangeError  ); } );
+test('CHECK undefined' , ()=>{  expect( rtti.undefined (              )(undefined       )).toBe(true                ); } );
+test('CHECK null'      , ()=>{  expect( rtti.null      (              )(null            )).toBe(true                ); } );
+test('CHECK boolean 1' , ()=>{  expect( rtti.boolean   (              )(true            )).toBe(true                ); } );
+test('CHECK boolean 2' , ()=>{  expect( rtti.boolean   (              )(false           )).toBe(true                ); } );
+test('CHECK number'    , ()=>{  expect( rtti.number    (              )(100000          )).toBe(true                ); } );
+test('CHECK string'    , ()=>{  expect( rtti.string    (              )("fooo"          )).toBe(true                ); } );
+test('CHECK bigint'    , ()=>{  expect( rtti.bigint    (              )(BigInt(1)       )).toBe(true                ); } );
+test('CHECK symbol'    , ()=>{  expect( rtti.symbol    (              )(Symbol('1')     )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( rtti.function  (              )(()=>{}          )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( rtti.function  (              )(function(){}    )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( rtti.function  (              )(new Function(''))).toBe(true                ); } );
+test('CHECK not ERR'   , ()=>{  expect( ()=>rtti.not   (              )(                )).toThrow(     RangeError  ); } );
+test('CHECK or ERR'    , ()=>{  expect( ()=>rtti.or    (              )(                )).toThrow(     RangeError  ); } );
+test('CHECK and ERR'   , ()=>{  expect( ()=>rtti.and   (              )(                )).toThrow(     RangeError  ); } );
+test('CHECK not OK'    , ()=>{  expect( ()=>rtti.not   (rtti.number() )(                )).not.toThrow( RangeError  ); } );
+test('CHECK or OK'     , ()=>{  expect( ()=>rtti.or    (rtti.number() )(                )).not.toThrow( RangeError  ); } );
+test('CHECK and OK'    , ()=>{  expect( ()=>rtti.and   (rtti.number() )(                )).not.toThrow( RangeError  ); } );
 
 /**
  * The primitive evaluators always return false when the given argument is
