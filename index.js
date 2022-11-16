@@ -1,6 +1,7 @@
 
 const INFO   = Symbol.for( 'dump rtti.js information' );
-const ID_STANDARD_STATEMENT_COMPILER = "statement";
+const ID_STANDARD_STATEMENT_COMPILER       = "compile";
+const ID_STANDARD_STATEMENT_COMPILER_BOUND = "statement";
 
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
@@ -29,6 +30,150 @@ const is_proper_vali = (func, name='unknown')=>{
     return false;
   }
 };
+
+
+/*
+ * example)
+ *
+ * object(
+ *   name : string(),
+ *   age  : number(),
+ *   field : or( number(), string() ),
+ *   attrs : object(
+ *     foo: string(),
+ *     bar: number(),
+ *   )
+ * )
+ * TYPE = char*( PARAMS )
+ * A_PARAM = char* ( : TYPE )
+ * PARAMS = A_PARAM ( , PARAMS )
+ *
+ *
+ */
+const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('').trim();
+const adjacent_token_is_colon = (tokens,idx)=>{
+  for ( let i=idx;i<tokens.length; i++ ) {
+    if ( tokens[i] === ':' ) {
+      return i;
+    } else if ( tokens[i].match (/\s+/ ) ){
+      continue;
+    } else {
+      return -1;
+    }
+  }
+  return -1;
+};
+
+function rttijs_clone() {
+  const __rtti = newRtti();
+  Object.assign( __rtti, this );
+  return __rtti;
+}
+
+function create_rttijs_standard_template_literal( do_bind ) {
+  function rttijs_standard_template_literal(strings, ... values) {
+    if ( ! Array.isArray( strings ) ) {
+      throw new TypeError( 'the first argument is not an array' );
+    }
+    if ( ! strings.every(e=>typeof e === 'string' ) )  {
+      throw new TypeError( 'the array of the first argument contains a non-string value' );
+    }
+
+    const escaped_blocks = [];
+
+    function escape_blocks( s ) {
+      return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
+        const c = escaped_blocks.length;
+        const id = '__RTTIJS_ESCAPED_SEQUENCE_NO_' + ( c ) + '__';
+        escaped_blocks.push( p1 );
+        return id; 
+      });
+    }
+
+    function unescape_blocks( input ) {
+      let output = input;
+      output = output.replaceAll( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/g, function(match,p1) {
+        return escaped_blocks[p1];
+      })
+      return output;
+    }
+
+    const input  = 
+      escape_blocks( 
+        joinStringsAndValues( strings, values ));
+
+    const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
+    const o_tokens = [ ...i_tokens ];
+    const prefix = 'rtti.';
+
+    const parenthesis_stack = [];
+
+    let last_keyword = null;
+    for ( let i=0; i<i_tokens.length; i++ ) {
+      const curr_t = i_tokens[i];
+      // if (curr_t.trim() !== '' ){ console.error( curr_t ) };
+      if ( false ) {
+      } else if ( curr_t === '(' ) {
+        if (false) {
+        } else if ( last_keyword === 'object' ) {
+          o_tokens[i] = '({';
+          parenthesis_stack.push( '})' );
+        } else  {
+          parenthesis_stack.push( ')' );
+        }
+
+        last_keyword = null;
+      } else if ( curr_t === ')' ) {
+        o_tokens[i] = parenthesis_stack.pop();
+
+        last_keyword = null;
+      } else if ( curr_t === ',' ) {
+        last_keyword = null;
+      } else if ( curr_t === ':' ) {
+        last_keyword = null;
+      } else if ( curr_t.match( /\s+/ ) ) {
+        // last_keyword = null;
+      } else if ( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/.test( curr_t ) ) {
+          // do nothing
+          o_tokens[i] = o_tokens[i];
+      } else {
+        if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
+          o_tokens[i] = prefix + o_tokens[i] ;
+        }
+        last_keyword = i_tokens[i]; // is this proper? (Wed, 16 Nov 2022 17:28:53 +0900)
+      }
+    }
+
+    const script = 
+      unescape_blocks(
+        o_tokens.join(''));
+
+    /*
+     * This is just for trapping errors; this simply returns the function.
+     */
+    const compiled_script = (()=>{
+      try {
+        return new Function( '...args', 'const rtti = this;\nreturn ' + script );
+      } catch (e) {
+        throw new SyntaxError( e.message += '\n' + script, {cause:e} );
+      }
+    })();
+
+    const result = do_bind ?  compiled_script.bind( this ) : compiled_script;
+    result.script = script;
+    result.bind_org = ()=>result;
+    return result;
+  };
+
+  return rttijs_standard_template_literal;
+}
+
+const rttijs_standard_template_literal       = create_rttijs_standard_template_literal(false);
+const rttijs_standard_template_literal_bound = create_rttijs_standard_template_literal(true);
+
+
+
+
 
 const standardValis = {
   "any"       : makeValiFactory((...defs)=>(o)=>true                                                   , (...defs)=>"any"      , (...def)=>{}),
@@ -150,156 +295,26 @@ const standardValis = {
     (...defs)=>"uuid",
     (...defs)=>{}
   ),
-  [ID_STANDARD_STATEMENT_COMPILER] : rttijs_standard_template_literal,
+  [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
+  [ID_STANDARD_STATEMENT_COMPILER_BOUND] : rttijs_standard_template_literal_bound,
   "clone" : rttijs_clone,
 };
 
 
-/*
- * example)
- *
- * object(
- *   name : string(),
- *   age  : number(),
- *   field : or( number(), string() ),
- *   attrs : object(
- *     foo: string(),
- *     bar: number(),
- *   )
- * )
- * TYPE = char*( PARAMS )
- * A_PARAM = char* ( : TYPE )
- * PARAMS = A_PARAM ( , PARAMS )
- *
- *
- */
-const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('').trim();
-const adjacent_token_is_colon = (tokens,idx)=>{
-  for ( let i=idx;i<tokens.length; i++ ) {
-    if ( tokens[i] === ':' ) {
-      return i;
-    } else if ( tokens[i].match (/\s+/ ) ){
-      continue;
-    } else {
-      return -1;
-    }
-  }
-  return -1;
-};
 
-function rttijs_clone() {
-  const __rtti = newRtti();
-  Object.assign( __rtti, this );
-  return __rtti;
-}
 
-function rttijs_standard_template_literal(strings, ... values) {
-  if ( ! Array.isArray( strings ) ) {
-    throw new TypeError( 'the first argument is not an array' );
-  }
-  if ( ! strings.every(e=>typeof e === 'string' ) )  {
-    throw new TypeError( 'the array of the first argument contains a non-string value' );
-  }
-
-  const escaped_blocks = [];
-
-  function escape_blocks( s ) {
-    return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
-      const c = escaped_blocks.length;
-      const id = '__RTTIJS_ESCAPED_SEQUENCE_NO_' + ( c ) + '__';
-      escaped_blocks.push( p1 );
-      return id; 
-    });
-  }
-
-  function unescape_blocks( input ) {
-    let output = input;
-    output = output.replaceAll( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/g, function(match,p1) {
-      return escaped_blocks[p1];
-    })
-    return output;
-  }
-
-  const input  = 
-    escape_blocks( 
-      joinStringsAndValues( strings, values ));
-
-  const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
-  const o_tokens = [ ...i_tokens ];
-  const prefix = 'rtti.';
-
-  const parenthesis_stack = [];
-
-  let last_keyword = null;
-  for ( let i=0; i<i_tokens.length; i++ ) {
-    const curr_t = i_tokens[i];
-    // if (curr_t.trim() !== '' ){ console.error( curr_t ) };
-    if ( false ) {
-    } else if ( curr_t === '(' ) {
-      if (false) {
-      } else if ( last_keyword === 'object' ) {
-        o_tokens[i] = '({';
-        parenthesis_stack.push( '})' );
-      } else  {
-        parenthesis_stack.push( ')' );
-      }
-
-      last_keyword = null;
-    } else if ( curr_t === ')' ) {
-      o_tokens[i] = parenthesis_stack.pop();
-
-      last_keyword = null;
-    } else if ( curr_t === ',' ) {
-      last_keyword = null;
-    } else if ( curr_t === ':' ) {
-      last_keyword = null;
-    } else if ( curr_t.match( /\s+/ ) ) {
-      // last_keyword = null;
-    } else if ( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/.test( curr_t ) ) {
-        // do nothing
-        o_tokens[i] = o_tokens[i];
-    } else {
-      if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
-        o_tokens[i] = prefix + o_tokens[i] ;
-      }
-      last_keyword = i_tokens[i]; // is this proper? (Wed, 16 Nov 2022 17:28:53 +0900)
-    }
-  }
-
-  const script = 
-    unescape_blocks(
-      o_tokens.join(''));
-
-  const compiled_script = (()=>{
-    try {
-      return new Function( 'rtti', 'return ' + script);;
-    } catch (e) {
-      throw new SyntaxError( e.message += '\n' + script, {cause:e} );
-    }
-  })();
-
-  /*
-   * Note that in arrow functions, you can safely refer `this` value of the
-   * outside scope.
-   */
-  const result = (...args)=>{
-    return compiled_script(this,...args);
-  };
-
-  result.script = script;
-  return result;
-};
 
 function newRtti() {
-  // create a thunk
+  // Create a thunk for backward compatibility. This should create a normal
+  // object.
   function rtti(...args) {
    /*
-    * This is the reference to this function itself.  This functionarity is
+    * `rtti` is the reference to this function itself.  This functionality is
     * designed to accomplish recursive calls in closures. In this part, it
     * is applied as a closure which can be accessed from outside the
     * closure.
     */
-    return rtti[ID_STANDARD_STATEMENT_COMPILER].apply( rtti, args );
+    return rtti[ID_STANDARD_STATEMENT_COMPILER_BOUND].apply( rtti, args );
   }
   return rtti;
 }
