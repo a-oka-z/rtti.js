@@ -1,5 +1,5 @@
 
-const INFO   = Symbol.for( 'dump rtti.js information' ); 
+const INFO   = Symbol.for( 'dump rtti.js information' );
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
     return ()=>info_gen_string;
@@ -27,7 +27,7 @@ const is_proper_vali = (func, name='unknown')=>{
     return false;
   }
 };
- 
+
 const standardValis = {
   "undefined" : makeValiFactory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
   "null"      : makeValiFactory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
@@ -47,7 +47,7 @@ const standardValis = {
       if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
         throw new TypeError( 'found an invalid argument' );
       }
-    }, 
+    },
   ),
   "and"       : makeValiFactory(
     (...defs)=>(o)=>defs.every(f=>f(o)),
@@ -59,7 +59,7 @@ const standardValis = {
       if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
         throw new TypeError( 'found an invalid argument' );
       }
-    }, 
+    },
   ),
   "not"       : makeValiFactory(
     (...defs)=>(o)=>! defs[0]( o ),
@@ -147,6 +147,7 @@ const standardValis = {
     (...defs)=>"uuid",
     (...defs)=>{}
   ),
+  "statement" : rttijs_standard_template_literal,
 };
 
 
@@ -182,83 +183,97 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   return -1;
 };
 
-function newRtti() {
-  return function rttijs_template_literal(strings, ... values) {
-    const input  = joinStringsAndValues( strings, values );
-    const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
-    const o_tokens = [ ...i_tokens ];
-    const prefix = 'rtti.';
-
-    const parenthesis_stack = [];
-
-    let last_keyword = null;
-    for ( let i=0; i<i_tokens.length; i++ ) {
-      const curr_t = i_tokens[i];
-      if ( false ) {
-      } else if ( curr_t === '(' ) {
-        if (false) {
-        } else if ( last_keyword === 'object' ) {
-          o_tokens[i] = '({';
-          parenthesis_stack.push( '})' );
-        } else  {
-          parenthesis_stack.push( ')' );
-        }
-
-        last_keyword = null;
-      } else if ( curr_t === ')' ) {
-        o_tokens[i] = parenthesis_stack.pop();
-
-        last_keyword = null;
-      } else if ( curr_t === ',' ) {
-        last_keyword = null;
-      } else if ( curr_t === ':' ) {
-        last_keyword = null;
-      } else if ( curr_t.match( /\s+/ ) ) {
-        // last_keyword = null;
-      } else {
-        if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
-          o_tokens[i] = prefix + o_tokens[i] ;
-        }
-        last_keyword = i_tokens[i];
-      }
-    }
-
-    const script = o_tokens.join('');
-    const compiled_script = (()=>{
-      try {
-        return new Function( 'rtti', 'return ' + script);;
-      } catch (e) {
-        throw new SyntaxError( e.message += '\n' + script, {cause:e} );
-      }
-    })();
-
-    const result = (...args)=>{
-      /* 
-       * This is the reference to this function itself.  This functionarity is
-       * designed to accomplish recursive calls in closures. In this part, it
-       * is applied as a closure which can be accessed from outside the
-       * closure.
-       */
-      return compiled_script(rttijs_template_literal,...args);
-    };
-
-    result.script = script;
-    return result;
+function rttijs_standard_template_literal(strings, ... values) {
+  if ( ! Array.isArray( strings ) ) {
+    throw new TypeError( 'the first argument is not an array' );
   }
+  if ( ! strings.every(e=>typeof e === 'string' ) )  {
+    throw new TypeError( 'the array of the first argument contains a non-string value' );
+  }
+
+  const input  = joinStringsAndValues( strings, values );
+  const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
+  const o_tokens = [ ...i_tokens ];
+  const prefix = 'rtti.';
+
+  const parenthesis_stack = [];
+
+  let last_keyword = null;
+  for ( let i=0; i<i_tokens.length; i++ ) {
+    const curr_t = i_tokens[i];
+    if ( false ) {
+    } else if ( curr_t === '(' ) {
+      if (false) {
+      } else if ( last_keyword === 'object' ) {
+        o_tokens[i] = '({';
+        parenthesis_stack.push( '})' );
+      } else  {
+        parenthesis_stack.push( ')' );
+      }
+
+      last_keyword = null;
+    } else if ( curr_t === ')' ) {
+      o_tokens[i] = parenthesis_stack.pop();
+
+      last_keyword = null;
+    } else if ( curr_t === ',' ) {
+      last_keyword = null;
+    } else if ( curr_t === ':' ) {
+      last_keyword = null;
+    } else if ( curr_t.match( /\s+/ ) ) {
+      // last_keyword = null;
+    } else {
+      if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
+        o_tokens[i] = prefix + o_tokens[i] ;
+      }
+      last_keyword = i_tokens[i];
+    }
+  }
+
+  const script = o_tokens.join('');
+  const compiled_script = (()=>{
+    try {
+      return new Function( 'rtti', 'return ' + script);;
+    } catch (e) {
+      throw new SyntaxError( e.message += '\n' + script, {cause:e} );
+    }
+  })();
+
+  /*
+   * Note that in arrow functions, you can safely refer `this` value of the
+   * outside scope.
+   */
+  const result = (...args)=>{
+    return compiled_script(this,...args);
+  };
+
+  result.script = script;
+  return result;
+};
+
+function newRtti() {
+  // create a thunk
+  function rtti(...args) {
+   /*
+    * This is the reference to this function itself.  This functionarity is
+    * designed to accomplish recursive calls in closures. In this part, it
+    * is applied as a closure which can be accessed from outside the
+    * closure.
+    */
+    return rttijs_standard_template_literal.apply( rtti, args );
+  }
+  return rtti;
 }
 
 
 const rtti = (()=>{
   const __rtti = newRtti();
-  Object.assign( __rtti, standardValis ); 
+  Object.assign( __rtti, standardValis );
   return __rtti;
 })();
 
 
 
-
-
- 
 // // console.error( rtti.null()() );
 // console.error( rtti.null()(null) );
 // console.error( rtti.null()(1) );
@@ -273,7 +288,7 @@ const rtti = (()=>{
 //   a:true,
 //   b:1,
 // }));
-// 
+//
 // console.error( rtti.object({
 //   a:rtti.boolean(),
 //   b:rtti.number(),
@@ -281,17 +296,17 @@ const rtti = (()=>{
 //   a:true,
 //   b:true,
 // }));
-// 
+//
 // console.error( rtti.object({
 //   a:rtti.boolean(),
 //   b:rtti.number(),
 // })());
-// 
-// 
+//
+//
 // console.error( rtti.array({ of: rtti.number() })());
 // console.error( rtti.array({ of: rtti.array({ of: rtti.number() } )})());
 // console.error( JSON.stringify( rtti.object({a: rtti.array({of:rtti.number()})})(), null,2));
 // console.error( rtti.array({ of: rtti.number() })([1]));
 // console.error( rtti.array({ of: rtti.number() })(["string"]));
 // console.error( rtti.array({ of: rtti.array({ of: rtti.number() } )})([[1]]));
-// 
+//

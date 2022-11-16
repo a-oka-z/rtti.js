@@ -248,7 +248,7 @@ rtti.uuid()( false ) // false
 The `rtti` object is also a function which can be used as a template literal:
 
 ```javascript
-const type = rtti`
+const type = rtti.statement`
   object(
     foo : number(),
     bar : string(),
@@ -278,7 +278,7 @@ You can add your own validators by setting them as a property on the template
 literal function:
 
 ```javascript
-const type = rtti`
+const type = rtti.statement`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -323,7 +323,7 @@ const v = {
 console.error( type2( v ) ); // true;
 
 
-const type1 = rtti`
+const type1 = rtti.statement`
   object(
     foo : Foo(),
     bar : Bar(),

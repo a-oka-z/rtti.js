@@ -146,12 +146,93 @@ test('test', ()=>{
 
 
 
+/*
+ *
+ */
+
+/*
+ * the standard statement compiler ( v2 )
+ */
+test('STATEMENT COMPILER test basic 1', ()=>{
+  const factory = rtti.statement`
+    object(
+      name : string(),
+      age  : number(),
+      field : or( number(), string() ),
+      attrs : object(
+        foo: string(),
+        bar: number(),
+      ),
+      arr_test : array(
+        not( number()),
+      ),
+    )
+  `;
+
+  expect( factory.script ).toBe(`
+    rtti.object({
+      name : rtti.string(),
+      age  : rtti.number(),
+      field : rtti.or( rtti.number(), rtti.string() ),
+      attrs : rtti.object({
+        foo: rtti.string(),
+        bar: rtti.number(),
+      }),
+      arr_test : rtti.array(
+        rtti.not( rtti.number()),
+      ),
+    })
+  `.trim());
+
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+test('STATEMENT COMPILER test basic 2', ()=>{
+  expect( rtti.statement`string()`()(INFO) ).toBe( 'string' );
+  expect( rtti.statement`number()`()(INFO) ).toBe( 'number' );
+
+  expect( rtti.statement`string()`()('hello') ).toBe( true  );
+  expect( rtti.statement`string()`()( 123   ) ).toBe( false );
+  expect( rtti.statement`number()`()( 123   ) ).toBe( true  );
+  expect( rtti.statement`number()`()('hello') ).toBe( false );
+});
+
+test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( rtti.statement`undefined ()` (              )(INFO        )).toBe('undefined'         ); } );
+test('STATEMENT COMPILER INFO null'       , ()=>{  expect( rtti.statement`null      ()` (              )(INFO        )).toBe('null'              ); } );
+test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( rtti.statement`boolean   ()` (              )(INFO        )).toBe('boolean'           ); } );
+test('STATEMENT COMPILER INFO number'     , ()=>{  expect( rtti.statement`number    ()` (              )(INFO        )).toBe('number'            ); } );
+test('STATEMENT COMPILER INFO string'     , ()=>{  expect( rtti.statement`string    ()` (              )(INFO        )).toBe('string'            ); } );
+test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( rtti.statement`bigint    ()` (              )(INFO        )).toBe('bigint'            ); } );
+test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( rtti.statement`symbol    ()` (              )(INFO        )).toBe('symbol'            ); } );
+test('STATEMENT COMPILER INFO function'   , ()=>{  expect( rtti.statement`function  ()` (              )(INFO        )).toBe('function'          ); } );
+test('STATEMENT COMPILER INFO not'        , ()=>{  expect( rtti.statement`not       (boolean())`(      )(INFO        )).toBe('not'               ); } );
+test('STATEMENT COMPILER INFO or'         , ()=>{  expect( rtti.statement`or        (boolean())`(      )(INFO        )).toBe('or'                ); } );
+test('STATEMENT COMPILER INFO and'        , ()=>{  expect( rtti.statement`and       (boolean())`(      )(INFO        )).toBe('and'               ); } );
+
+test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( rtti.statement`undefined ()` (              )(undefined   )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( rtti.statement`null      ()` (              )(null        )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( rtti.statement`boolean   ()` (              )(true        )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( rtti.statement`boolean   ()` (              )(false       )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( rtti.statement`number    ()` (              )(100000      )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( rtti.statement`string    ()` (              )("fooo"      )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( rtti.statement`bigint    ()` (              )(BigInt(1)   )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( rtti.statement`symbol    ()` (              )(Symbol('1') )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( rtti.statement`function  ()` (              )(()=>{}      )).toBe(true                ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toThrow(     RangeError   ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toThrow(     RangeError   ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toThrow(     RangeError   ); } );
+test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti.statement`not   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
+test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti.statement`or    (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
+test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`and   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
 
 
 
 
-
-test('compiler test basic 1', ()=>{
+/*
+ * the standard statement compiler ( for backward compatibility )
+ */
+test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
   const factory = rtti`
     object(
       name : string(),
@@ -186,7 +267,7 @@ test('compiler test basic 1', ()=>{
   console.error({factory,vali});
 });
 
-test('compiler test basic 2', ()=>{
+test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
   expect( rtti`string()`()(INFO) ).toBe( 'string' );
   expect( rtti`number()`()(INFO) ).toBe( 'number' );
 
@@ -196,36 +277,16 @@ test('compiler test basic 2', ()=>{
   expect( rtti`number()`()('hello') ).toBe( false );
 });
 
-test('COMPILER INFO undefined'  , ()=>{  expect( rtti`undefined ()` (              )(INFO        )).toBe('undefined'         ); } );
-test('COMPILER INFO null'       , ()=>{  expect( rtti`null      ()` (              )(INFO        )).toBe('null'              ); } );
-test('COMPILER INFO boolean'    , ()=>{  expect( rtti`boolean   ()` (              )(INFO        )).toBe('boolean'           ); } );
-test('COMPILER INFO number'     , ()=>{  expect( rtti`number    ()` (              )(INFO        )).toBe('number'            ); } );
-test('COMPILER INFO string'     , ()=>{  expect( rtti`string    ()` (              )(INFO        )).toBe('string'            ); } );
-test('COMPILER INFO bigint'     , ()=>{  expect( rtti`bigint    ()` (              )(INFO        )).toBe('bigint'            ); } );
-test('COMPILER INFO symbol'     , ()=>{  expect( rtti`symbol    ()` (              )(INFO        )).toBe('symbol'            ); } );
-test('COMPILER INFO function'   , ()=>{  expect( rtti`function  ()` (              )(INFO        )).toBe('function'          ); } );
-test('COMPILER INFO not'        , ()=>{  expect( rtti`not       (boolean())`(      )(INFO        )).toBe('not'               ); } );
-test('COMPILER INFO or'         , ()=>{  expect( rtti`or        (boolean())`(      )(INFO        )).toBe('or'                ); } );
-test('COMPILER INFO and'        , ()=>{  expect( rtti`and       (boolean())`(      )(INFO        )).toBe('and'               ); } );
-
-test('COMPILER CHECK undefined' , ()=>{  expect( rtti`undefined ()` (              )(undefined   )).toBe(true                ); } );
-test('COMPILER CHECK null'      , ()=>{  expect( rtti`null      ()` (              )(null        )).toBe(true                ); } );
-test('COMPILER CHECK boolean 1' , ()=>{  expect( rtti`boolean   ()` (              )(true        )).toBe(true                ); } );
-test('COMPILER CHECK boolean 2' , ()=>{  expect( rtti`boolean   ()` (              )(false       )).toBe(true                ); } );
-test('COMPILER CHECK number'    , ()=>{  expect( rtti`number    ()` (              )(100000      )).toBe(true                ); } );
-test('COMPILER CHECK string'    , ()=>{  expect( rtti`string    ()` (              )("fooo"      )).toBe(true                ); } );
-test('COMPILER CHECK bigint'    , ()=>{  expect( rtti`bigint    ()` (              )(BigInt(1)   )).toBe(true                ); } );
-test('COMPILER CHECK symbol'    , ()=>{  expect( rtti`symbol    ()` (              )(Symbol('1') )).toBe(true                ); } );
-test('COMPILER CHECK function'  , ()=>{  expect( rtti`function  ()` (              )(()=>{}      )).toBe(true                ); } );
-test('COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti`not   (              )`()(            )).toThrow(     RangeError   ); } );
-test('COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti`or    (              )`()(            )).toThrow(     RangeError   ); } );
-test('COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti`and   (              )`()(            )).toThrow(     RangeError   ); } );
-test('COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti`not   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
-test('COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti`or    (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
-test('COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti`and   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
 
 
 
+
+
+
+
+/*
+ * equals() and uuid()
+ */
 
 test('equals',()=>{
   expect( rtti.equals( 'hello' )( 'hello'    ) ).toBe( true );
