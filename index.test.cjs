@@ -315,3 +315,40 @@ test('uuid',()=>{
 
 });
 
+
+
+/*
+ * clone()
+ */
+test('equals',()=>{
+  // 0. clone the standard `rtti` object.
+  const rtti1 = rtti.clone();
+  const hello = (o)=>o==='hello';
+  const world = (o)=>o==='world';
+  const value = 'world';
+
+  // 1. set constructor `hello` to the first cloned object.
+  rtti1.hello = hello;
+  expect( 'hello' in rtti1 ).toBe( true );
+  expect( ()=>rtti1.statement`hello()`( value ) ).not.toThrow();
+
+  // 2. clone again and confirm if the constructor `hello` is available on the
+  //    second cloned object.
+  const rtti2 = rtti1.clone();
+  expect( 'hello' in rtti2 ).toBe( true );
+  expect( ()=>rtti2.statement`hello()`( value ) ).not.toThrow();
+
+  // 3.  confirm that setting `hello` does not affect to the original rtti
+  //     object.
+  expect( 'hello' in rtti ).toBe( false );
+  expect( ()=>rtti.statement`hello()`( value ) ).toThrow();
+
+  // 4.  set constructor `world to the second cloned object.
+  rtti2.world = world;
+  expect( 'world' in rtti2 ).toBe( true );
+  expect( 'world' in rtti1 ).toBe( false );
+  expect( ()=>rtti2.statement`world()`( value ) ).not.toThrow();
+  expect( ()=>rtti1.statement`world()`( value ) ).toThrow();
+});
+
+

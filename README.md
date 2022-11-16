@@ -245,7 +245,8 @@ rtti.uuid()( false ) // false
 
  Create Validators via a Template Literal Validator Builder
 --------------------------------------------------------------------------------
-The `rtti` object is also a function which can be used as a template literal:
+The `rtti` offers a template literal function which is a helper function to
+build various validators:
 
 ```javascript
 const type = rtti.statement`
@@ -271,11 +272,15 @@ console.error( type( v2 ) ); // false;
 I hope the syntax of the validator builder is simple enough to appear obvious
 to you. The validator builder save you some of your finger power.
 
+**a note for backward compatibility** : former to v0.1.2, `rtti` object can be
+used as a template literal function. This behavior is deprecated. Though it is
+still available to be used as a template literal, this will be removed in the
+future version. The new project should not rely on this behavior.
+
 
  Extending Template Literal Validator Builder
 --------------------------------------------------------------------------------
-You can add your own validators by setting them as a property on the template
-literal function:
+You can add your own validators by setting them as properties on the `rtti` object.
 
 ```javascript
 const type = rtti.statement`
@@ -288,7 +293,6 @@ const type = rtti.statement`
 rtti.Foo = (o)=>typeof o ==='number';
 rtti.Bar = (o)=>typeof o ==='string';
 
-
 const v = {
   foo:42,
   bar:'hello',
@@ -296,20 +300,23 @@ const v = {
 console.error( type( v ) ); // true;
 ```
 
+
  Create Your Own Template Literal Validator Builder
 --------------------------------------------------------------------------------
-You usually find yourself to avoid setting on the global `rtti` function; you
-can create your own to avoid conflict.
+You usually don't want to set your own evaluators to the global `rtti` object
+because setting to the global `rtti` object causes id confliction with the
+other projects. In order to avoid confliction, you can create your own `rtti`
+object by `clone()` method.
 
 ```javascript
-import  { rtti, newRtti } from './index.mjs';
+import  { rtti } from './index.mjs';
 
-const rtti2 = Object.assign( newRtti(), rtti);
+const rtti2 = rtti.clone();
 
 rtti2.Foo = (o)=>typeof o ==='number';
 rtti2.Bar = (o)=>typeof o ==='string';
 
-const type2 = rtti2`
+const type2 = rtti2.statement`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -332,9 +339,10 @@ const type1 = rtti.statement`
 console.error( type1( v ) ); // error;
 ```
 
+
  `makeValiFactory()`
 --------------------------------------------------------------------------------
-`makeValiFactory` is a helper function to create reliable validator functions:
+`makeValiFactory` is a helper function to create a reliable validator function:
 
 ```javascript
   const INFO   = Symbol.for( 'dump rtti.js information' ); 
@@ -392,7 +400,7 @@ The following example implements a null checker.
 --------------------------------------------------------------------------------
 - v0.1.0 released
 - v0.1.1 added `uuid()` `equals()`
-
+- v0.1.2 added `clone()`; the template literal function as `rtti.statement`
 
 
  Conclusion
@@ -400,6 +408,6 @@ The following example implements a null checker.
 This documentation is not perfect and there are still a lot of things which
 should be on this document.
 
-Thank you very much for your attention. I will be seeing you.
+Thank you very much for your attention.
 
 <!-- vim: set sw=2 sts=2 ts=2: -->

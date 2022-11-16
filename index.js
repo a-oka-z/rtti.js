@@ -1,5 +1,7 @@
 
 const INFO   = Symbol.for( 'dump rtti.js information' );
+const ID_STANDARD_STATEMENT_COMPILER = "statement";
+
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
     return ()=>info_gen_string;
@@ -147,7 +149,8 @@ const standardValis = {
     (...defs)=>"uuid",
     (...defs)=>{}
   ),
-  "statement" : rttijs_standard_template_literal,
+  [ID_STANDARD_STATEMENT_COMPILER] : rttijs_standard_template_literal,
+  "clone" : rttijs_clone,
 };
 
 
@@ -182,6 +185,12 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   }
   return -1;
 };
+
+function rttijs_clone() {
+  const __rtti = newRtti();
+  Object.assign( __rtti, this );
+  return __rtti;
+}
 
 function rttijs_standard_template_literal(strings, ... values) {
   if ( ! Array.isArray( strings ) ) {
@@ -260,7 +269,7 @@ function newRtti() {
     * is applied as a closure which can be accessed from outside the
     * closure.
     */
-    return rttijs_standard_template_literal.apply( rtti, args );
+    return rtti[ID_STANDARD_STATEMENT_COMPILER].apply( rtti, args );
   }
   return rtti;
 }
