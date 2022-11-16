@@ -321,7 +321,7 @@ console.error( type( v ) ); // true;
 ```
 
 
- Create Your Own Template Literal Validator Builder
+ Create Your Own Namespace for `rtti.js` 
 --------------------------------------------------------------------------------
 You usually don't want to set your own evaluators to the global `rtti` object
 because setting to the global `rtti` object causes id confliction with the
@@ -421,6 +421,7 @@ The following example implements a null checker.
 - v0.1.0 released
 - v0.1.1 added `uuid()` `equals()`
 - v0.1.2 added `clone()`; the template literal function as `rtti.statement`
+- v0.1.3 added `any()`
 
 
  Conclusion
