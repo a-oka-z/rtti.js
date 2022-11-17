@@ -290,6 +290,30 @@ const standardValis = {
       }
     }
   ),
+  "array_of"    : make_vali_factory(
+    (...defs)=>{
+      return (
+        (o)=>{
+          if ( o === null || o === undefined ) {
+            return false;
+          }
+          if ( ! Array.isArray( o ) ) {
+            return false;
+          }
+          return defs.every( (def,i)=>def( o[i] ) );
+        }
+      )
+    },
+    (...defs)=>{
+      const def = defs.shift();
+      return def(INFO) + '[]';
+    },
+    (...defs)=>{
+      if ( ! defs.every(def=>(is_proper_vali( def )))) {
+        throw new TypeError( "'of' property was missing or improperly set" );
+      }
+    }
+  ),
   "equals"    : make_vali_factory(
     (val)=>(o)=>o === val,
     (val)=>val,

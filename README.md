@@ -169,24 +169,24 @@ rtti.any()( true  );  // returns true
 `or()` calls specified validators from left to right and returns `true` if at
 least one of the validators return `true`.  
 ```javascript
-rtti.or( string(), number())( '123' );  // returns true
-rtti.or( string(), number())(  123  );  // returns true
-rtti.or( string(), number())( true  );  // returns false
+rtti.or( rtti.string(), rtti.number())( '123' );  // returns true
+rtti.or( rtti.string(), rtti.number())(  123  );  // returns true
+rtti.or( rtti.string(), rtti.number())( true  );  // returns false
 ```
 
 #### and() ####
 `and()` calls specified validators from left to right and return `true` if and only if 
 all of the specified validators return `true`; otherwise returns `false`.
 ```javascript
-rtti.and( number() , (v)=>100<v )( 200 ); // returns true
-rtti.and( number() , (v)=>100<v )(  50 ); // returns false
+rtti.and( rtti.number() , (v)=>100<v )( 200 ); // returns true
+rtti.and( rtti.number() , (v)=>100<v )(  50 ); // returns false
 ```
 
 #### not() ####
 `not()` negates the result of the specified validator.
 ```javascript
-rtti.not( number() )(  100  ); // returns false
-rtti.not( number() )( '100' ); // returns true
+rtti.not( rtti.number() )(  100  ); // returns false
+rtti.not( rtti.number() )( '100' ); // returns true
 ```
 
 #### object() ####
@@ -205,8 +205,8 @@ otherwise, returns `false`.
 
 ```javascript
 const t = rtti.object({
-  foo : number(),
-  bar : string(),
+  foo : rtti.number(),
+  bar : rtti.string(),
 });
 
 t({
@@ -226,9 +226,9 @@ the elements on the specified array object. Return `true` if all elements confor
 to the validator; otherwise return `false`.
 
 ```javascript
-rtti.array(number())([1,2,3]); // return true
-rtti.array(number())([1,2,'3']); // return false
-rtti.array(or( string(), number()))([1,2,'3']); // return true
+rtti.array(rtti.number())([1,2,3]); // return true
+rtti.array(rtti.number())([1,2,'3']); // return false
+rtti.array(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
 ```
 
 #### equals() ####
@@ -261,12 +261,37 @@ rtti.uuid()( 1  ) // false
 rtti.uuid()( false ) // false
 ```
 
+#### array\_of() ####
+`array_of()` takes a number of validators as the parameters, then, at the
+validation, invoke each validator with the corresponding element in the target
+array object.  If the all validators return `true`, `array_of()` returns
+`true`.
+
+If the number of elements in the target array is greater than the number of the
+specified validators, `array_of()` ignores the remaining elements.
+
+If the number of elements in the target array object is less than the number of
+validators given in the parameter, this validator returns `false`.
+
+```javascript
+  const validator = rtti.statement`
+    array_of(
+      equals( <<'a'>> ),
+      equals( <<'b'>> ),
+      equals( <<'c'>> ),
+      )`();
+
+  console.log( validator(['a','b','c']) ); // true 
+  console.log( validator(['a','b','d']) ); // false 
+  console.log( validator(['a','b','c', 'd' ])); //true 
+  console.log( validator(['a','b'          ])); // false 
+```
 
 
- Create Validators via Statement Compiler
+ Create Validators via RTTI Statement Script Compiler
 --------------------------------------------------------------------------------
-The `rtti` offers a template literal function which is called statement
-compiler.  Statement compiler helps to build various validators:
+The `rtti` offers a template literal function which is called RTTI Statement
+Script Compiler.  Statement compiler helps to build various validators:
 
 ```javascript
 const type = rtti.statement`
@@ -289,8 +314,12 @@ const v2 = {
 console.error( type( v2 ) ); // false;
 ```
 
-I hope the syntax of statement compiler is simple enough to appear obvious to
-you. The statement compiler helps you to build your validators with less
+In this document, sometimes a reference to `rtti` object is called `namespace`.
+In JavaScript, in order to build complex validators, it is necessary to specify
+a desired namespace reference everytime you refer the validator factories. In
+RTTI Statement Script, it is possible to omit the namespace specifier.
+
+The statement compiler may help you to build your validators with less
 boilerplate.
 
 **a note for backward compatibility** : former to v0.1.2, `rtti` object can be
@@ -325,7 +354,8 @@ const type = rtti.object({
 
  Extending Template Literal Validator Builder
 --------------------------------------------------------------------------------
-You can add your own validators by setting them as properties on the `rtti` object.
+You can add your own validators by setting factorys of your desired validators
+as properties on the `rtti` object.
 
 ```javascript
 const type = rtti.statement`
@@ -335,8 +365,8 @@ const type = rtti.statement`
   )
 `();
 
-rtti.Foo = (o)=>typeof o ==='number';
-rtti.Bar = (o)=>typeof o ==='string';
+rtti.Foo = (...defs)=>(o)=>typeof o ==='number';
+rtti.Bar = (...defs)=>(o)=>typeof o ==='string';
 
 const v = {
   foo:42,
@@ -344,6 +374,9 @@ const v = {
 };
 console.error( type( v ) ); // true;
 ```
+
+**Correction** in `v0.1.6`, this part has been corrected. It is necessary to
+set factories of validators, not validators themself.
 
 
  Create Your Own Namespace for `rtti.js` 
@@ -358,8 +391,8 @@ import  { rtti } from './index.mjs';
 
 const rtti2 = rtti.clone();
 
-rtti2.Foo = (o)=>typeof o ==='number';
-rtti2.Bar = (o)=>typeof o ==='string';
+rtti2.Foo = (...defs)=>(o)=>typeof o ==='number';
+rtti2.Bar = (...defs)=>(o)=>typeof o ==='string';
 
 const type2 = rtti2.statement`
   object(
@@ -457,6 +490,9 @@ projects should not use it.
 - v0.1.4 added << >> blocks.
 - v0.1.5 statement compiler switches namespaces depends on how the validator
          factory  is called.
+- v0.1.6 added `array_of()` validator.
+         some document correction is also done.
+         (Thu, 17 Nov 2022 16:44:33 +0900)
 
  Conclusion
 --------------------------------------------------------------------------------

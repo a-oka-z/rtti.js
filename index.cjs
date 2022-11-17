@@ -8,7 +8,7 @@ function inspect(s) {
 
 
 
-const INFO   = Symbol.for( 'dump rtti.js information' );
+const INFO = Symbol.for( 'dump rtti.js information' );
 const ID_STANDARD_STATEMENT_COMPILER  = "statement";
 
 const create_info_gen_from_string = ( info_gen_string )=>{
@@ -287,6 +287,30 @@ const standardValis = {
           }
           return defs.every(
             (def)=>o.every(e=>def(e)));
+        }
+      )
+    },
+    (...defs)=>{
+      const def = defs.shift();
+      return def(INFO) + '[]';
+    },
+    (...defs)=>{
+      if ( ! defs.every(def=>(is_proper_vali( def )))) {
+        throw new TypeError( "'of' property was missing or improperly set" );
+      }
+    }
+  ),
+  "array_of"    : make_vali_factory(
+    (...defs)=>{
+      return (
+        (o)=>{
+          if ( o === null || o === undefined ) {
+            return false;
+          }
+          if ( ! Array.isArray( o ) ) {
+            return false;
+          }
+          return defs.every( (def,i)=>def( o[i] ) );
         }
       )
     },

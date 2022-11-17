@@ -510,3 +510,20 @@ test( 'CLONE TEST No.1', ()=>{
   expect( factory_by_rtti2()( v ) ).toBe( true ); 
 
 });
+
+
+
+test( 'ARRAY_OF No.1', ()=>{
+  const validator = rtti.statement`
+    array_of(
+      equals( <<'a'>> ),
+      equals( <<'b'>> ),
+      equals( <<'c'>> ),
+      )`();
+
+  expect( validator(['a','b','c']) ).toBe( true );
+  expect( validator(['a','b','d']) ).toBe( false );
+  expect( validator(['a','b','c', 'd' ]) ).toBe( true );
+  expect( validator(['a','b'          ]) ).toBe( false );
+
+});
