@@ -8,6 +8,7 @@ function inspect(s) {
 
 
 
+"use strict";
 
 const INFO   = Symbol.for( 'dump rtti.js information' );
 const ID_STANDARD_STATEMENT_COMPILER       = "compile";
@@ -21,17 +22,28 @@ const create_info_gen_from_string = ( info_gen_string )=>{
   }
 };
 
-const makeValiFactory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
+function make_vali_factory(
+  vali_gen=(()=>{ throw new ReferenceError( 'vali_gen is not specified' ) } ), 
+  info_gen=(function info_gen(...defs){ return "unknown" } ),
+  chk_args=(function chk_args(...defs){ return null }) 
+) {
+  // console.log( 'make_vali_factory', this );
+  if ( this !== undefined ) throw new Error("not undefined");
+
   if ( typeof info_gen === 'string' ) {
     info_gen = create_info_gen_from_string( info_gen );
   }
-  return (...defs)=>{
-    chk_args(...defs);
-    const vali = vali_gen(...defs);
-    const info = info_gen(...defs);
+
+  return function validator(...defs) {
+    chk_args.apply( this, defs );
+    const vali = vali_gen.apply( this, defs );
+    const info = info_gen.apply( this, defs );
     return (o)=>o=== INFO ? info : vali(o);
   }
 };
+
+const makeValiFactory = make_vali_factory;
+
 const is_proper_vali = (func, name='unknown')=>{
   try {
     return ( typeof func === 'function' ) && ( typeof func(false)==='boolean' );
@@ -75,7 +87,7 @@ const adjacent_token_is_colon = (tokens,idx)=>{
 };
 
 function rttijs_clone() {
-  const __rtti = newRtti();
+  const __rtti = new_namespace();
   Object.assign( __rtti, this );
   return __rtti;
 }
@@ -114,7 +126,7 @@ function create_rttijs_standard_template_literal( do_bind ) {
 
     const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
     const o_tokens = [ ...i_tokens ];
-    const prefix = 'rtti.';
+    const PREFIX = 'rtti';
 
     const parenthesis_stack = [];
 
@@ -148,7 +160,7 @@ function create_rttijs_standard_template_literal( do_bind ) {
           o_tokens[i] = o_tokens[i];
       } else {
         if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
-          o_tokens[i] = prefix + o_tokens[i] ;
+          o_tokens[i] = PREFIX  + '.' + o_tokens[i] ;
         }
         last_keyword = i_tokens[i]; // is this proper? (Wed, 16 Nov 2022 17:28:53 +0900)
       }
@@ -163,13 +175,26 @@ function create_rttijs_standard_template_literal( do_bind ) {
      */
     const compiled_script = (()=>{
       try {
-        return new Function( '...args', 'const rtti = this;\nreturn ' + script );
+        return new Function( PREFIX , '...args' , 'return ' + script );
       } catch (e) {
         throw new SyntaxError( e.message += '\n' + script, {cause:e} );
       }
     })();
 
-    const result = do_bind ?  compiled_script.bind( this ) : compiled_script;
+    /*
+     * Switch self/this depends on the context that the function is called.
+     * For further information, see Atsushi Oka's daily on Nov 17 2022.
+     */
+    const self = this;
+    const result = function compiled_statement(...args) {
+      if ( this === undefined ) {
+        return compiled_script.apply( undefined, [ self, ...args ] );
+      } else {
+        return compiled_script.apply( undefined, [ this, ...args ] );
+      }
+    };
+
+    // const result = do_bind ?  compiled_script.bind( this ) : compiled_script;
     result.script = script;
     result.bind_org = ()=>result;
     return result;
@@ -183,19 +208,17 @@ const rttijs_standard_template_literal_bound = create_rttijs_standard_template_l
 
 
 
-
-
 const standardValis = {
-  "any"       : makeValiFactory((...defs)=>(o)=>true                                                   , (...defs)=>"any"      , (...def)=>{}),
-  "undefined" : makeValiFactory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
-  "null"      : makeValiFactory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
-  "boolean"   : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
-  "number"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
-  "string"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
-  "bigint"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
-  "symbol"    : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
-  "function"  : makeValiFactory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
-  "or"        : makeValiFactory(
+  "any"       : make_vali_factory((...defs)=>(o)=>true                                                   , (...defs)=>"any"      , (...def)=>{}),
+  "undefined" : make_vali_factory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
+  "null"      : make_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
+  "boolean"   : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
+  "number"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
+  "string"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
+  "bigint"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
+  "symbol"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
+  "function"  : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
+  "or"        : make_vali_factory(
     (...defs)=>(o)=>defs.some( f=>f(o)),
     (...defs)=>"or",
     (...defs)=>{
@@ -207,7 +230,7 @@ const standardValis = {
       }
     },
   ),
-  "and"       : makeValiFactory(
+  "and"       : make_vali_factory(
     (...defs)=>(o)=>defs.every(f=>f(o)),
     (...defs)=>"and"      ,
     (...defs)=>{
@@ -219,7 +242,7 @@ const standardValis = {
       }
     },
   ),
-  "not"       : makeValiFactory(
+  "not"       : make_vali_factory(
     (...defs)=>(o)=>! defs[0]( o ),
     (...defs)=>"not",
     (...defs)=>{
@@ -231,7 +254,7 @@ const standardValis = {
       }
     },
   ),
-  "object"    : makeValiFactory(
+  "object"    : make_vali_factory(
     (...defs)=>{
       return (
         (o)=>{
@@ -266,7 +289,7 @@ const standardValis = {
       }
     }
   ),
-  "array"    : makeValiFactory(
+  "array"    : make_vali_factory(
     (...defs)=>{
       return (
         (o)=>{
@@ -291,7 +314,7 @@ const standardValis = {
       }
     }
   ),
-  "equals"    : makeValiFactory(
+  "equals"    : make_vali_factory(
     (val)=>(o)=>o === val,
     (val)=>val,
     (...defs)=>{
@@ -300,7 +323,7 @@ const standardValis = {
       }
     }
   ),
-  "uuid"    : makeValiFactory(
+  "uuid"    : make_vali_factory(
     (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
     (...defs)=>"uuid",
     (...defs)=>{}
@@ -314,7 +337,7 @@ const standardValis = {
 
 
 
-function newRtti() {
+function new_namespace() {
   // Create a thunk for backward compatibility. This should create a normal
   // object.
   function rtti(...args) {
@@ -331,11 +354,13 @@ function newRtti() {
 
 
 const rtti = (()=>{
-  const __rtti = newRtti();
+  const __rtti = new_namespace();
   Object.assign( __rtti, standardValis );
   return __rtti;
 })();
 
+
+const newRtti = new_namespace;
 
 
 // // console.error( rtti.null()() );
