@@ -1,4 +1,6 @@
 params: body
-const { INFO, rtti, makeValiFactory, newRtti, standardValis } = require( './index.cjs' );
+'use strict';
+
+const { INFO, rtti, make_vali_factory } = require( './index.cjs' );
 
 <%=body %>

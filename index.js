@@ -1,6 +1,4 @@
-"use strict";
-
-const INFO   = Symbol.for( 'dump rtti.js information' );
+const INFO = Symbol.for( 'dump rtti.js information' );
 const ID_STANDARD_STATEMENT_COMPILER  = "statement";
 
 const create_info_gen_from_string = ( info_gen_string )=>{
@@ -75,8 +73,8 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   return -1;
 };
 
-function rttijs_clone() {
-  const __rtti = new_namespace();
+function rtti_clone() {
+  const __rtti = new_rtti();
   Object.assign( __rtti, this );
   return __rtti;
 }
@@ -307,13 +305,13 @@ const standardValis = {
     (...defs)=>{}
   ),
   [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
-  "clone" : rttijs_clone,
+  "clone" : rtti_clone,
 };
 
 
 
 
-function new_namespace() {
+function new_rtti() {
   // Create a thunk for backward compatibility. This should create a normal
   // object.
   function rtti(...args) {
@@ -330,13 +328,13 @@ function new_namespace() {
 
 
 const rtti = (()=>{
-  const __rtti = new_namespace();
+  const __rtti = new_rtti();
   Object.assign( __rtti, standardValis );
   return __rtti;
 })();
 
 
-const newRtti = new_namespace;
+const newRtti = new_rtti;
 
 
 // // console.error( rtti.null()() );

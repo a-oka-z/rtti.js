@@ -385,9 +385,9 @@ console.error( type1( v ) ); // error;
 ```
 
 
- `makeValiFactory()`
+ `make_vali_factory()`
 --------------------------------------------------------------------------------
-`makeValiFactory` is a helper function to create a reliable validator function:
+`make_vali_factory` is a helper function to create a reliable validator function:
 
 ```javascript
   const INFO   = Symbol.for( 'dump rtti.js information' ); 
@@ -399,7 +399,7 @@ console.error( type1( v ) ); // error;
     }
   };
 
-  const makeValiFactory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
+  const make_vali_factory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
     if ( typeof info_gen === 'string' ) {
       info_gen = create_info_gen_from_string( info_gen );
     }
@@ -424,7 +424,7 @@ console.error( type1( v ) ); // error;
 The following example implements a null checker.
 
 ```javascript
-  const null_checker = makeValiFactory(
+  const null_checker = make_vali_factory(
     // a closure that does the evaluation
     (...defs)=>(o)=>o === null 
 
@@ -440,6 +440,13 @@ The following example implements a null checker.
   );
 ```
 
+#### Compatibility Note ####
+
+At the version **v0.1.5** `makeValiFactory()` was renamed to
+`make_vali_factory()`. Even though  `makeValiFactory()` is still available, new
+projects should not use it.
+
+
 
   History
 --------------------------------------------------------------------------------
@@ -448,7 +455,8 @@ The following example implements a null checker.
 - v0.1.2 added `clone()`; the template literal function as `rtti.statement`
 - v0.1.3 added `any()`
 - v0.1.4 added << >> blocks.
-
+- v0.1.5 statement compiler switches namespaces depends on how the validator
+         factory  is called.
 
  Conclusion
 --------------------------------------------------------------------------------

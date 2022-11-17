@@ -8,8 +8,6 @@ function inspect(s) {
 
 
 
-"use strict";
-
 const INFO   = Symbol.for( 'dump rtti.js information' );
 const ID_STANDARD_STATEMENT_COMPILER  = "statement";
 
@@ -85,8 +83,8 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   return -1;
 };
 
-function rttijs_clone() {
-  const __rtti = new_namespace();
+function rtti_clone() {
+  const __rtti = new_rtti();
   Object.assign( __rtti, this );
   return __rtti;
 }
@@ -317,13 +315,13 @@ const standardValis = {
     (...defs)=>{}
   ),
   [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
-  "clone" : rttijs_clone,
+  "clone" : rtti_clone,
 };
 
 
 
 
-function new_namespace() {
+function new_rtti() {
   // Create a thunk for backward compatibility. This should create a normal
   // object.
   function rtti(...args) {
@@ -340,13 +338,13 @@ function new_namespace() {
 
 
 const rtti = (()=>{
-  const __rtti = new_namespace();
+  const __rtti = new_rtti();
   Object.assign( __rtti, standardValis );
   return __rtti;
 })();
 
 
-const newRtti = new_namespace;
+const newRtti = new_rtti;
 
 
 // // console.error( rtti.null()() );
@@ -388,8 +386,9 @@ const newRtti = new_namespace;
 
 
 
-module.exports.INFO            = INFO;
-module.exports.rtti            = rtti;
-module.exports.makeValiFactory = makeValiFactory;
-module.exports.newRtti         = newRtti;
-module.exports.standardValis   = standardValis;
+module.exports.INFO              = INFO;
+module.exports.rtti              = rtti;
+module.exports.make_vali_factory = make_vali_factory;
+
+module.exports.makeValiFactory   = makeValiFactory;
+module.exports.newRtti           = newRtti;

@@ -469,3 +469,42 @@ test('STATEMENT COMPILER JavaScript Blocks No.5', ()=>{
 });
 
 
+
+test( 'CLONE TEST No.1', ()=>{
+  const v = 'HELLO';
+
+  // create namespace1.
+  const rtti1 = rtti.clone();
+
+  // set a validator factory as `hello`.
+  rtti1.hello = make_vali_factory( ()=>(o)=>o === 'hello' );
+
+  // this should be false.
+  expect( rtti1.statement`hello()`()( v ) ).toBe( false );
+
+  // create namespace2.
+  const rtti2 = rtti.clone();
+
+  // override `hello` as a different factory.
+  rtti2.hello = make_vali_factory( ()=>(o)=>o === 'HELLO' );
+
+  // `hello` should refer different factories depends on which namespace it is
+  // called with.
+  expect( rtti1.statement`hello()`()( v ) ).toBe( false );
+  expect( rtti2.statement`hello()`()( v ) ).toBe( true );
+
+  // this looks like it refers `rtti2.hello`
+  const factory_by_rtti2 = rtti2.statement`hello()`;
+
+  // set its namespace to `rtti1`
+  rtti1.hello2 = factory_by_rtti2;
+
+  // factory_by_rtti2 is called in the context of rtti1; this should refer
+  // `rtti1.hello`; so this should be false.
+  expect( rtti1.hello2()( v ) ).toBe( false ); 
+
+  // if `factory_by_rtti2` is called without namespace, it refers the `rtti2`
+  // where `factory_by_rtti2` comes from.
+  expect( factory_by_rtti2()( v ) ).toBe( true ); 
+
+});
