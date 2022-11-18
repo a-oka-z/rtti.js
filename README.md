@@ -262,10 +262,10 @@ rtti.uuid()( false ) // false
 ```
 
 #### array\_of() ####
-`array_of()` takes a number of validators as the parameters, then, at the
-validation, invoke each validator with the corresponding element in the target
-array object.  If the all validators return `true`, `array_of()` returns
-`true`.
+`array_of()` takes a number of validators as arguments, then, at the validation,
+invokes each validator with its corresponding element in the target array
+object.  If the all validators return `true`, `array_of()` returns `true`;
+otherwise returns `false`.
 
 If the number of elements in the target array is greater than the number of the
 specified validators, `array_of()` ignores the remaining elements.
