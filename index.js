@@ -199,10 +199,10 @@ const standardValis = {
     (...defs)=>"or",
     (...defs)=>{
       if (defs.length===0) {
-        throw new RangeError( 'no definition was specified' );
+        throw new RangeError( 'no definition was specified in `or`' );
       }
       if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
-        throw new TypeError( 'found an invalid argument' );
+        throw new TypeError( 'found an invalid argument in `or`' );
       }
     },
   ),
@@ -214,7 +214,7 @@ const standardValis = {
         throw new RangeError( 'no definition was specified' );
       }
       if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
-        throw new TypeError( 'found an invalid argument' );
+        throw new TypeError( 'found an invalid argument in `and`' );
       }
     },
   ),
@@ -223,10 +223,10 @@ const standardValis = {
     (...defs)=>"not",
     (...defs)=>{
       if (defs.length < 1) {
-        throw new RangeError( 'no definition was specified' );
+        throw new RangeError( 'no definition was specified in `not`' );
       }
       if (1<defs.length) {
-        throw new RangeError( 'too many definitions were specified' );
+        throw new RangeError( 'too many definitions were specified in `not`' );
       }
     },
   ),
@@ -261,7 +261,7 @@ const standardValis = {
     },
     (...defs)=>{
       if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>is_proper_vali(ee))))) {
-        throw new TypeError( 'found an invalid argument' );
+        throw new TypeError( 'found an invalid argument in `object`' );
       }
     }
   ),
@@ -286,7 +286,7 @@ const standardValis = {
     },
     (...defs)=>{
       if ( ! defs.every(def=>(is_proper_vali( def )))) {
-        throw new TypeError( "'of' property was missing or improperly set" );
+        throw new TypeError( "found an invalid argument `array`" );
       }
     }
   ),
@@ -310,7 +310,7 @@ const standardValis = {
     },
     (...defs)=>{
       if ( ! defs.every(def=>(is_proper_vali( def )))) {
-        throw new TypeError( "'of' property was missing or improperly set" );
+        throw new TypeError( "found an invalid argument `array_of`" );
       }
     }
   ),
@@ -319,7 +319,7 @@ const standardValis = {
     (val)=>val,
     (...defs)=>{
       if ( defs.length < 1 ) {
-        throw new RangeError( 'no definition was specified' );
+        throw new RangeError( 'no definition was specified in `equals`' );
       }
     }
   ),

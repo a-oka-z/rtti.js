@@ -493,6 +493,9 @@ projects should not use it.
 - v0.1.6 added `array_of()` validator.
          some document correction is also done.
          (Thu, 17 Nov 2022 16:44:33 +0900)
+- v0.1.7 more informative error messages
+         (Fri, 18 Nov 2022 11:56:11 +0900)
+        
 
  Conclusion
 --------------------------------------------------------------------------------
