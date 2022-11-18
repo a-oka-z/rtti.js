@@ -78,7 +78,7 @@ const check_if_proper_vali = (func, name='unknown')=>{
  *
  *
  */
-const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('').trim();
+const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
 const adjacent_token_is_colon = (tokens,idx)=>{
   for ( let i=idx;i<tokens.length; i++ ) {
     if ( tokens[i] === ':' ) {
@@ -180,7 +180,7 @@ function rttijs_standard_template_literal(strings, ... values) {
    */
   const compiled_script = (()=>{
     try {
-      return new Function( PREFIX , '...args' , 'return ' + script );
+      return new Function( PREFIX , '...args' , 'return (\n' + script + '\n);' );
     } catch (e) {
       throw new SyntaxError( e.message += '\n' + script, {cause:e} );
     }
@@ -199,8 +199,9 @@ function rttijs_standard_template_literal(strings, ... values) {
         return compiled_script.apply( undefined, [ this, ...args ] );
       }
     } catch (e) {
-      console.error( 'error occured ; origin of the error was ', e, 'jest does not like {cause:e}'  );
-      throw new SyntaxError( 'an error was occured in \n' + script,  {cause:e} );
+      e.message = e.message + '\n' + script;
+      throw e;
+      // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
     }
   };
   result.script = script;
@@ -225,7 +226,7 @@ const standardValis = {
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified in `or`' );
       }
-      if ( ! defs.every( e=>check_if_proper_vali( e ) ) ) {
+      if ( ! defs.every( e=>check_if_proper_vali( e, 'or' ) ) ) {
         throw new TypeError( 'found an invalid argument in `or`' );
       }
     },
@@ -237,7 +238,7 @@ const standardValis = {
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified' );
       }
-      if ( ! defs.every( e=>check_if_proper_vali( e ) ) ) {
+      if ( ! defs.every( e=>check_if_proper_vali( e, 'and' ) ) ) {
         throw new TypeError( 'found an invalid argument in `and`' );
       }
     },
@@ -284,7 +285,7 @@ const standardValis = {
         ,{})
     },
     (...defs)=>{
-      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>check_if_proper_vali(ee))))) {
+      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>check_if_proper_vali(ee,'object'))))) {
         throw new TypeError( 'found an invalid argument in `object`' );
       }
     }
@@ -309,7 +310,7 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def )))) {
+      if ( ! defs.every(def=>(check_if_proper_vali( def,'array' )))) {
         throw new TypeError( "found an invalid argument `array`" );
       }
     }
@@ -333,7 +334,7 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def )))) {
+      if ( ! defs.every(def=>(check_if_proper_vali( def, 'array_of' )))) {
         throw new TypeError( "found an invalid argument `array_of`" );
       }
     }

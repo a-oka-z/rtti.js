@@ -49,6 +49,7 @@ expect.extend({
     try {
       returned = received();
     } catch( e ) {
+      console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
       return {
         message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
         pass: false,
@@ -316,7 +317,7 @@ test('STATEMENT COMPILER test basic 1', ()=>{
         rtti.not( rtti.number()),
       ),
     })
-  `.trim());
+  `);
 
   const vali = factory();
   console.error({factory,vali});
@@ -353,9 +354,9 @@ test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( rtti.statement`string
 test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( rtti.statement`bigint    ()`              ()(BigInt(1)   )).toBe(true                 ); } );
 test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( rtti.statement`symbol    ()`              ()(Symbol('1') )).toBe(true                 ); } );
 test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( rtti.statement`function  ()`              ()(()=>{}      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
-test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
-test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
 test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti.statement`not   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
 test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti.statement`or    (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
 test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`and   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
@@ -396,7 +397,7 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
         rtti.not( rtti.number()),
       ),
     })
-  `.trim());
+  `);
 
   const vali = factory();
   console.error({factory,vali});
@@ -536,7 +537,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
         rtti.not( rtti.number()),
       ),
     })
-  `.trim());
+  `);
 
   const vali = factory();
   console.error({factory,vali});
@@ -573,7 +574,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
         rtti.not( rtti.number()),
       ),
     })
-  `.trim());
+  `);
 
   const vali = factory();
   console.error({factory,vali});
@@ -658,3 +659,38 @@ test( 'ARRAY_OF No.1', ()=>{
   expect( validator(['a','b'          ]) ).toBe( false );
 
 });
+
+
+
+test( 'object with undefined No.1', ()=>{
+  expect( rtti.statement`
+    object(
+      a: or(
+        undefined(),
+        string()
+      )
+    )`()(
+      {
+      }
+    )).toBe( true );
+  expect( rtti.statement`
+    object(
+      a: string()
+    )`()(
+      {
+      }
+    )).toBe( false );
+});
+
+
+test( 'informative error message No.1 ', ()=>{
+  expect( ()=>rtti.statement`
+    object(
+      a: string
+    )`()(
+      {
+      }
+    )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    rtti.object({\n      a: rtti.string\n    })" );
+});
+
+

@@ -495,7 +495,11 @@ projects should not use it.
          (Thu, 17 Nov 2022 16:44:33 +0900)
 - v0.1.7 more informative error messages
          (Fri, 18 Nov 2022 11:56:11 +0900)
+- v0.1.8 more informative error messages
+         (Fri, 18 Nov 2022 17:32:01 +0900)
         
+
+  
 
  Conclusion
 --------------------------------------------------------------------------------
@@ -503,5 +507,10 @@ This documentation is not perfect and there are still a lot of things which
 should be on this document.
 
 Thank you very much for your attention.
+
+[Atsushi Oka][] / I'm from Tokyo. For further information, see my github account.
+
+[Atsushi Oka]: https://github.com/a-oka-z/
+
 
 <!-- vim: set sw=2 sts=2 ts=2: -->
