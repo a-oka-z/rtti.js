@@ -31,13 +31,22 @@ function make_vali_factory(
 
 const makeValiFactory = make_vali_factory;
 
-const is_proper_vali = (func, name='unknown')=>{
-  try {
-    return ( typeof func === 'function' ) && ( typeof func(false)==='boolean' );
-  } catch (e){
-    console.error('WARNING : is_proper_vali: detect error thrown and ignored it',e);
-    return false;
+const check_if_proper_vali = (func, name='unknown')=>{
+  if ( func === null ) {
+    throw new ReferenceError( `the specified validator was null in \`${name}\`` );
+  } else if ( func === undefined ) {
+    throw new ReferenceError( `the specified validator was null in \`${name}\`` );
+  } else if ( typeof func !== `function` ) {
+    throw new ReferenceError( `the specified validator was not a function in \`${name}\`` );
+  } else {
+    const result = func(false);
+    if ( typeof result === 'function' ) {
+      throw new TypeError( `the specified validator returned a function not a boolean in \`${name}\`; probably you forgot to call your factory generator?` );
+    } else if ( typeof result !== 'boolean' ) {
+      throw new TypeError( `the specified validator returned neither a boolean nor a function in \`${name}\`` );
+    }
   }
+  return true;
 };
 
 
@@ -173,10 +182,15 @@ function rttijs_standard_template_literal(strings, ... values) {
    */
   const self = this;
   const result = function compiled_statement(...args) {
-    if ( this === undefined ) {
-      return compiled_script.apply( undefined, [ self, ...args ] );
-    } else {
-      return compiled_script.apply( undefined, [ this, ...args ] );
+    try {
+      if ( this === undefined ) {
+        return compiled_script.apply( undefined, [ self, ...args ] );
+      } else {
+        return compiled_script.apply( undefined, [ this, ...args ] );
+      }
+    } catch (e) {
+      console.error( 'error occured ; origin of the error was ', e, 'jest does not like {cause:e}'  );
+      throw new SyntaxError( 'an error was occured in \n' + script,  {cause:e} );
     }
   };
   result.script = script;
@@ -201,7 +215,7 @@ const standardValis = {
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified in `or`' );
       }
-      if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
+      if ( ! defs.every( e=>check_if_proper_vali( e ) ) ) {
         throw new TypeError( 'found an invalid argument in `or`' );
       }
     },
@@ -213,7 +227,7 @@ const standardValis = {
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified' );
       }
-      if ( ! defs.every( e=>e !== null && e !==undefined && is_proper_vali( e ) ) ) {
+      if ( ! defs.every( e=>check_if_proper_vali( e ) ) ) {
         throw new TypeError( 'found an invalid argument in `and`' );
       }
     },
@@ -260,7 +274,7 @@ const standardValis = {
         ,{})
     },
     (...defs)=>{
-      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>is_proper_vali(ee))))) {
+      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>check_if_proper_vali(ee))))) {
         throw new TypeError( 'found an invalid argument in `object`' );
       }
     }
@@ -285,7 +299,7 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(is_proper_vali( def )))) {
+      if ( ! defs.every(def=>(check_if_proper_vali( def )))) {
         throw new TypeError( "found an invalid argument `array`" );
       }
     }
@@ -309,7 +323,7 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(is_proper_vali( def )))) {
+      if ( ! defs.every(def=>(check_if_proper_vali( def )))) {
         throw new TypeError( "found an invalid argument `array_of`" );
       }
     }

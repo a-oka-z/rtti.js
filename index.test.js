@@ -1,4 +1,136 @@
 
+function getStackFromError(o) {
+  if ( o == null ) {
+    return o;
+  } else if ( typeof o === 'object' ) {
+    if ( 'stack' in o ) {
+      if ( Array.isArray( o.stack ) ) {
+        return o.stack;
+      } else {
+        if ( typeof o.stack === 'string' ) {
+          return o.stack.split('\n');
+        } else {
+          // 1. this could be erroneous value but we ignore it.
+          // 2. ensure it to be an array.
+          return [ o.stack] ;
+        }
+      }
+    } else {
+      // ensure the result is an array.
+      return [];
+    }
+  } else {
+    // cannot retrieve stack; but we have to ensure it to be an array.
+    return [];
+  }
+}
+
+function filterErrorToJSONFriendly(o) {
+  if ( o instanceof Error ) {
+    return {
+      message : o.message,
+      stack   : getStackFromError( o ),
+      cause   : filterErrorToJSONFriendly( o.cause ),
+    };
+  } else if ( o === null ) {
+    return null;
+  } else if ( o === undefined ) {
+    return undefined;
+  } else if ( typeof o === 'object' ) {
+    return Object.assign( Array.isArray( o ) ? [] : {}, ... Object.keys(o).map(k=>({[k]:filterErrorToJSONFriendly(o[k])})));
+  } else {
+    return o;
+  }
+}
+
+expect.extend({
+  toProperlyReturn( received, expected ) {
+    let returned  = null;
+    try {
+      returned = received();
+    } catch( e ) {
+      return {
+        message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
+        pass: false,
+      };
+    }
+
+    try {
+      const wasExpected = expected( returned );
+      if ( wasExpected ) {
+        return {
+          message: () => `Successed`,
+          pass: true,
+        };
+      } else {
+        return {
+          message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
+          pass: false,
+        };
+      }
+    } catch ( e ) {
+      return {
+        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+        pass: false,
+      };
+    }
+  },
+  toProperlyThrow( received, expected ) {
+    let thrown  = null;
+    try {
+      received();
+      return {
+        message: () => `the function did not throw`,
+        pass: false,
+      };
+    } catch( e ) {
+      thrown = e;
+    }
+
+    try {
+      const wasExpected = expected( thrown );
+      if ( wasExpected ) {
+        return {
+          message: () => `Successed`,
+          pass: true,
+        };
+      } else {
+        return {
+          message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
+          pass: false,
+        };
+      }
+    } catch ( e ) {
+      return {
+        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+        pass: false,
+      };
+    }
+  },
+});
+
+/*
+ * test('test test true',()=>{
+ *   expect( ()=>'foo' ).toProperlyReturn( (v)=>v==='foo' );
+ * });
+ * test('test test false',()=>{
+ *   expect( ()=>'foo' ).toProperlyReturn( (v)=>v!=='foo' );
+ * });
+ * test('test test thrown',()=>{
+ *   expect( ()=>'foo' ).toProperlyReturn( (v)=>{throw new Error( 'foo', {cause: new Error('bar', {cause:new RangeError()})})});
+ * });
+ * 
+ * test('test test toProperlyThrow throw',()=>{
+ *   expect( ()=>{ throw 'foo' } ).toProperlyThrow( (v)=>true );
+ * });
+ * test('test test toProperlyThrow not throw ',()=>{
+ *   expect( ()=>{             } ).toProperlyThrow( (v)=>true );
+ * });
+ * test('test test toProperlyThrow throw and throw',()=>{
+ *   expect( ()=>{ throw 'foo' } ).toProperlyThrow( (v)=>{throw new Error( 'foo', {cause: new Error('bar', {cause:new RangeError()})})});
+ * });
+ */
+
 test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO            )).toBe('undefined'         ); } );
 test('INFO null'       , ()=>{  expect( rtti.null      (              )(INFO            )).toBe('null'              ); } );
 test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(INFO            )).toBe('boolean'           ); } );
@@ -22,12 +154,12 @@ test('CHECK symbol'    , ()=>{  expect( rtti.symbol    (              )(Symbol('
 test('CHECK function'  , ()=>{  expect( rtti.function  (              )(()=>{}          )).toBe(true                ); } );
 test('CHECK function'  , ()=>{  expect( rtti.function  (              )(function(){}    )).toBe(true                ); } );
 test('CHECK function'  , ()=>{  expect( rtti.function  (              )(new Function(''))).toBe(true                ); } );
-test('CHECK not ERR'   , ()=>{  expect( ()=>rtti.not   (              )(                )).toThrow(     RangeError  ); } );
-test('CHECK or ERR'    , ()=>{  expect( ()=>rtti.or    (              )(                )).toThrow(     RangeError  ); } );
-test('CHECK and ERR'   , ()=>{  expect( ()=>rtti.and   (              )(                )).toThrow(     RangeError  ); } );
-test('CHECK not OK'    , ()=>{  expect( ()=>rtti.not   (rtti.number() )(                )).not.toThrow( RangeError  ); } );
-test('CHECK or OK'     , ()=>{  expect( ()=>rtti.or    (rtti.number() )(                )).not.toThrow( RangeError  ); } );
-test('CHECK and OK'    , ()=>{  expect( ()=>rtti.and   (rtti.number() )(                )).not.toThrow( RangeError  ); } );
+test('CHECK not ERR'   , ()=>{  expect( ()=>rtti.not   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK or ERR'    , ()=>{  expect( ()=>rtti.or    (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK and ERR'   , ()=>{  expect( ()=>rtti.and   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK not OK'    , ()=>{  expect( ()=>rtti.not   (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK or OK'     , ()=>{  expect( ()=>rtti.or    (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK and OK'    , ()=>{  expect( ()=>rtti.and   (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
 
 /**
  * The primitive evaluators always return false when the given argument is
@@ -221,12 +353,13 @@ test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( rtti.statement`string
 test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( rtti.statement`bigint    ()`              ()(BigInt(1)   )).toBe(true                 ); } );
 test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( rtti.statement`symbol    ()`              ()(Symbol('1') )).toBe(true                 ); } );
 test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( rtti.statement`function  ()`              ()(()=>{}      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toThrow(     RangeError   ); } );
-test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toThrow(     RangeError   ); } );
-test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toThrow(     RangeError   ); } );
-test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti.statement`not   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
-test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti.statement`or    (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
-test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`and   (rtti.number() )`()(            )).not.toThrow( RangeError   ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof SyntaxError   ); } );
+test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti.statement`not   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti.statement`or    (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`and   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+
 
 
 
