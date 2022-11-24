@@ -309,11 +309,9 @@ invokes each validator with its corresponding element in the target array
 object.  If the all validators return `true`, `array()` returns `true`;
 otherwise returns `false`.
 
-If the number of elements in the target array is greater than the number of the
-specified validators, `array()` ignores the remaining elements.
+If the number of elements in the target array is not equal to the number of
+specified validators, this validator returns `false`.  **v1.0.0**
 
-If the number of elements in the target array object is less than the number of
-validators given in the parameter, this validator returns `false`.
 
 ```javascript
   const validator = rtti.statement`
@@ -329,6 +327,17 @@ validators given in the parameter, this validator returns `false`.
   console.log( validator(['a','b'          ])); // false 
 ```
 
+##### Compatibility Note #####
+
+1. Prior to **v1.0.0**, this validator was refererred  as `array_of()`.
+2. Prior to **v1.0.0**, this validator did not check the number of elements : 
+
+> If the number of elements in the target array is greater than the number of the
+> specified validators, `array()` ignores the remaining elements.
+> 
+> If the number of elements in the target array object is less than the number of
+> validators given in the parameter, this validator returns `false`.
+ 
 #### `array_of()` ####
 `array_of()` checks if all of the elements of the given array object conform to a
 specified validator. `array_of()` receives a validator and call it with the all of
