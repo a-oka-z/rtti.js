@@ -13,7 +13,7 @@ console.error( rtti.number()(  42  )); // true
 console.error( rtti.number()( '42' )); // false
 ```
 
-Compounding these functions enables you to validate more complex objects :
+Combining these functions enables you to validate more complex objects :
 
 ```javascript
 import  { rtti } from './index.mjs';
