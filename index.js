@@ -315,6 +315,9 @@ const standardValis = {
           if ( ! Array.isArray( o ) ) {
             return false;
           }
+          if ( ! o.length != defs.length ) {
+            return false;
+          }
           return defs.every( (def,i)=>def( o[i] ) );
         }
       )
