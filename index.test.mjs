@@ -242,8 +242,8 @@ test('CHECK Object',()=>{
 });
 
 
-test('CHECK Array',()=>{
-  const def = rtti.array(
+test('CHECK ARRAY_OF',()=>{
+  const def = rtti.array_of(
     rtti.number(),
   );
   expect( def([0,         1,   2,       3,    4,    5])).toBe( true  );
@@ -300,7 +300,7 @@ test('STATEMENT COMPILER test basic 1', ()=>{
         foo: string(),
         bar: number(),
       ),
-      arr_test : array(
+      arr_test : array_of(
         not( number()),
       ),
     )
@@ -315,7 +315,7 @@ test('STATEMENT COMPILER test basic 1', ()=>{
         foo: rtti.string(),
         bar: rtti.number(),
       }),
-      arr_test : rtti.array(
+      arr_test : rtti.array_of(
         rtti.not( rtti.number()),
       ),
     })
@@ -380,7 +380,7 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
         foo: string(),
         bar: number(),
       ),
-      arr_test : array(
+      arr_test : array_of(
         not( number()),
       ),
     )
@@ -395,7 +395,7 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
         foo: rtti.string(),
         bar: rtti.number(),
       }),
-      arr_test : rtti.array(
+      arr_test : rtti.array_of(
         rtti.not( rtti.number()),
       ),
     })
@@ -520,7 +520,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
         foo: equals( << "hello world" >> ),
         bar: number(),
       ),
-      arr_test : array(
+      arr_test : array_of(
         not( number()),
       ),
     )
@@ -535,7 +535,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
         foo: rtti.equals(  "hello world"  ),
         bar: rtti.number(),
       }),
-      arr_test : rtti.array(
+      arr_test : rtti.array_of(
         rtti.not( rtti.number()),
       ),
     })
@@ -557,7 +557,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
         foo: equals( << "hello world" >> ),
         bar: number(),
       ),
-      arr_test : array(
+      arr_test : array_of(
         not( number()),
       ),
     )
@@ -572,7 +572,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
         foo: rtti.equals(  "hello world"  ),
         bar: rtti.number(),
       }),
-      arr_test : rtti.array(
+      arr_test : rtti.array_of(
         rtti.not( rtti.number()),
       ),
     })
@@ -647,9 +647,9 @@ test( 'CLONE TEST No.1', ()=>{
 
 
 
-test( 'ARRAY_OF No.1', ()=>{
+test( 'ARRAY No.1', ()=>{
   const validator = rtti.statement`
-    array_of(
+    array(
       equals( <<'a'>> ),
       equals( <<'b'>> ),
       equals( <<'c'>> ),
@@ -694,4 +694,5 @@ test( 'informative error message No.1 ', ()=>{
       }
     )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    rtti.object({\n      a: rtti.string\n    })" );
 });
+
 

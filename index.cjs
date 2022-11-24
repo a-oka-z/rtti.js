@@ -290,7 +290,7 @@ const standardValis = {
       }
     }
   ),
-  "array"    : make_vali_factory(
+  "array_of"    : make_vali_factory(
     (...defs)=>{
       return (
         (o)=>{
@@ -310,12 +310,12 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def,'array' )))) {
-        throw new TypeError( "found an invalid argument `array`" );
+      if ( ! defs.every(def=>(check_if_proper_vali( def,'array_of' )))) {
+        throw new TypeError( "found an invalid argument `array_of`" );
       }
     }
   ),
-  "array_of"    : make_vali_factory(
+  "array"    : make_vali_factory(
     (...defs)=>{
       return (
         (o)=>{
@@ -334,8 +334,8 @@ const standardValis = {
       return def(INFO) + '[]';
     },
     (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def, 'array_of' )))) {
-        throw new TypeError( "found an invalid argument `array_of`" );
+      if ( ! defs.every(def=>(check_if_proper_vali( def, 'array' )))) {
+        throw new TypeError( "found an invalid argument `array`" );
       }
     }
   ),
@@ -415,12 +415,12 @@ const newRtti = new_rtti;
 // })());
 //
 //
-// console.error( rtti.array({ of: rtti.number() })());
-// console.error( rtti.array({ of: rtti.array({ of: rtti.number() } )})());
-// console.error( JSON.stringify( rtti.object({a: rtti.array({of:rtti.number()})})(), null,2));
-// console.error( rtti.array({ of: rtti.number() })([1]));
-// console.error( rtti.array({ of: rtti.number() })(["string"]));
-// console.error( rtti.array({ of: rtti.array({ of: rtti.number() } )})([[1]]));
+// console.error( rtti.array_of({ of: rtti.number() })());
+// console.error( rtti.array_of({ of: rtti.array_of({ of: rtti.number() } )})());
+// console.error( JSON.stringify( rtti.object({a: rtti.array_of({of:rtti.number()})})(), null,2));
+// console.error( rtti.array_of({ of: rtti.number() })([1]));
+// console.error( rtti.array_of({ of: rtti.number() })(["string"]));
+// console.error( rtti.array_of({ of: rtti.array_of({ of: rtti.number() } )})([[1]]));
 //
 
 

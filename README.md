@@ -1,8 +1,8 @@
  rtti.js
 =====================
 
-**rtti.js** is a non-opinionated simple convention to accomplish object
-validation in JavaScript. The idea behind **rtti.js** is simple:
+**rtti.js** is a non-opinionated simple convention to determine a type of an
+object in JavaScript. 
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -33,8 +33,11 @@ console.error( t_person( obj1 ) ); // true
 ```
 
 The functions that are defined in **rtti** are merely factories of various
-validators. They are merely utilities and not requirement; you can create
-validators on the fly. For example, the following example works, too:
+validators. In the example above, `rtti.string` and `rtti.number` are factories
+of validators.
+
+They are merely utilities and not requirement; you can create a validator
+manually on the fly. For example, the following example works, too:
 
 ```javascript
 import  { rtti } from './index.mjs';
@@ -68,11 +71,92 @@ Basic concept of this convention is quit simple and with this convention, you
 can accomplish validation in most cases without these complicated frameworks.
 
 
+ Design Goal of `rtti.js`
+--------------------------------------------------------------------------------
+
+The desigin concept of **rtti.js** is based on my hypothesis explains that in
+JavaScript, it is impossible to precisely determine a type of an object via its
+run-time type information and `duck typing` is the only way to accomplish it.
+
+A Type in JavaScript is merely the least expectation to an object. For example,
+if you get an object, you might expect that there is a property which name is
+`product_id` and as long as there is the property, your code will work as you
+expected; otherwise it won't. That is the least expectation to an object.
+
+Its design goal is to exhaustively determine a type of an object in the sense
+of described above, with the maximum coverage of those various corner cases
+which occur caused via ambiguously defined JavaScript type system.
+
+Especially the first concern of `rtti.js` is by no means readability; if you
+expect those sweet syntax suger with function chaining, this is not for you.
+
+
+ The Basic Rules of the Convention of `rtti.js`
+--------------------------------------------------------------------------------
+
+The convention of `rtti.js` recommends the type determinors are formed by the
+following three elements.
+
+```javascript
+  rtti.string()('value')
+   1      2       3
+```
+
+1. `Namespace` ... We call this part `Namespace` . A namespace object keeps a
+   number of `Factory` which is explained in 2.
+2. `Factory` ... We call this part `Factory`. A `Factory` is a function to create
+   a `Validator` which is explained in 3.
+3. `Validator` ... We call this part `Validator`. A `Validator` is a function
+   which returns `true` if the given value is as expected; otherwise returns
+   `false`.
+
+If you define a factory of a validator as following :
+```javascript
+  rtti.hello_validator = ()=>(o)=>o === 'hello';
+```
+
+you can use the validator as following:
+
+```javascript
+  rtti.hello_validator()( 'hello' ) // returns true 
+```
+
+
+  `prevent-undefined`
+--------------------------------------------------------------------------------
+
+[prevent-undefined][] is a debugging tool that prevents generating `undefined`
+values via accessing properties by incorrect property names.
+`prevent-undefined` supports the convention of `rtti.js`.
+
+The way to use [prevent-undefined][] with **rtti.js** is as following:
+
+```javascript
+const t_person_info = rtti.object({
+  name    : rtti.string(),
+  age     : rtti.number(),
+});
+
+const preventUndefined = require('prevent-undefined');
+const personInfo = getPersonInfoFromSomewhere();
+
+const protectedPersonInfo = preventUndefined( personInfo, t_person_info() );
+
+console.error( protectedPersonInfo.non_existent_prop  ); // throws an error
+
+protectedPersonInfo.age = 'an invalid number' ; // throws an error
+```
+
+For further information, see [prevent-undefined][].
+
+[prevent-undefined]:  https://www.npmjs.com/package/prevent-undefined
+
 
  Basic Validators
 --------------------------------------------------------------------------------
 `rtti.js` offers some basic validators as default. These validators are there
-only for your convenience; again, it is not mandatory to use them.
+only for your convenience; again, it is not mandatory to use them as long as
+the functions you offer are following the `rtti.js`'s convention.
 
 Available validators are:
 
@@ -219,16 +303,42 @@ t({
 
 ```
 
-#### array() ####
-`array()` checks if all of the elements of the given array object conform to a
-specified validator. `array()` receives a validator and call it with the all of
+#### `array()` ####
+`array()` takes a number of validators as arguments, then, at the validation,
+invokes each validator with its corresponding element in the target array
+object.  If the all validators return `true`, `array()` returns `true`;
+otherwise returns `false`.
+
+If the number of elements in the target array is greater than the number of the
+specified validators, `array()` ignores the remaining elements.
+
+If the number of elements in the target array object is less than the number of
+validators given in the parameter, this validator returns `false`.
+
+```javascript
+  const validator = rtti.statement`
+    array(
+      equals( <<'a'>> ),
+      equals( <<'b'>> ),
+      equals( <<'c'>> ),
+      )`();
+
+  console.log( validator(['a','b','c']) ); // true 
+  console.log( validator(['a','b','d']) ); // false 
+  console.log( validator(['a','b','c', 'd' ])); //true 
+  console.log( validator(['a','b'          ])); // false 
+```
+
+#### `array_of()` ####
+`array_of()` checks if all of the elements of the given array object conform to a
+specified validator. `array_of()` receives a validator and call it with the all of
 the elements on the specified array object. Return `true` if all elements conform
 to the validator; otherwise return `false`.
 
 ```javascript
-rtti.array(rtti.number())([1,2,3]); // return true
-rtti.array(rtti.number())([1,2,'3']); // return false
-rtti.array(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
+rtti.array_of(rtti.number())([1,2,3]); // return true
+rtti.array_of(rtti.number())([1,2,'3']); // return false
+rtti.array_of(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
 ```
 
 #### equals() ####
@@ -259,32 +369,6 @@ value is not a string.
 ```javascript
 rtti.uuid()( 1  ) // false
 rtti.uuid()( false ) // false
-```
-
-#### array\_of() ####
-`array_of()` takes a number of validators as arguments, then, at the validation,
-invokes each validator with its corresponding element in the target array
-object.  If the all validators return `true`, `array_of()` returns `true`;
-otherwise returns `false`.
-
-If the number of elements in the target array is greater than the number of the
-specified validators, `array_of()` ignores the remaining elements.
-
-If the number of elements in the target array object is less than the number of
-validators given in the parameter, this validator returns `false`.
-
-```javascript
-  const validator = rtti.statement`
-    array_of(
-      equals( <<'a'>> ),
-      equals( <<'b'>> ),
-      equals( <<'c'>> ),
-      )`();
-
-  console.log( validator(['a','b','c']) ); // true 
-  console.log( validator(['a','b','d']) ); // false 
-  console.log( validator(['a','b','c', 'd' ])); //true 
-  console.log( validator(['a','b'          ])); // false 
 ```
 
 
@@ -475,9 +559,17 @@ The following example implements a null checker.
 
 #### Compatibility Note ####
 
+
+##### `makeValiFactory()` #####
 At the version **v0.1.5** `makeValiFactory()` was renamed to
 `make_vali_factory()`. Even though  `makeValiFactory()` is still available, new
 projects should not use it.
+
+
+##### Renamed `array()` and `array_of()`  #####
+At the version **v1.0.0** the identifiers `array()` and `array_of()` are
+renamed so that `array_of` becomes `array` and `array()` becomes `array_of()`
+for the sake of naming consistency.
 
 
 
@@ -497,7 +589,9 @@ projects should not use it.
          (Fri, 18 Nov 2022 11:56:11 +0900)
 - v0.1.8 more informative error messages
          (Fri, 18 Nov 2022 17:32:01 +0900)
-        
+- v1.0.0 The identifiers `array()` and `array_of()` are swapped. Now `array()`
+  is called `array_of()` while `array_of()` is called `array()`. This breaks
+  backward compatibility.
 
   
 

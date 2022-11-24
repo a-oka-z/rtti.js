@@ -1,6 +1,6 @@
 {
   "name": "rtti.js",
-  "version": "0.1.8",
+  "version": "1.0.0",
   "description": "`rtti.js` is a conventions which implements runtime type checking in the practical JavaScript world.",
   "main": "index.mjs",
   "type": "module",
