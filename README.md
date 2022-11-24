@@ -180,21 +180,21 @@ Available validators are:
 Their usage may be self-descriptive; though, some of them should be explaind.
 
 
-#### undefined() ####
+#### `undefined()` ####
 Returns `true` if `typeof` operator to the given value returns `undefined`; otherwise returns `false`.
 ```javascript
 rtti.undefined()( undefined ) // returns true
 rtti.undefined()( null      ) // returns false
 ```
 
-#### null() ####
+#### `null()` ####
 Returns `true` if the given value is strictly equal to `null` value; otherwise returns `false`.
 ```javascript
 rtti.null()( null ) // returns true
 rtti.null()( 1    ) // returns false
 ```
 
-#### boolean() ####
+#### `boolean()` ####
 Returns `true` if `typeof` operator to the given value returns `boolean`; otherwise returns `false`.
 ```javascript
 rtti.boolean()( false  ) // returns true
@@ -202,28 +202,28 @@ rtti.boolean()( true   ) // returns true
 rtti.boolean()( 'true' ) // returns false
 ```
 
-#### number() ####
+#### `number()` ####
 Returns `true` if `typeof` operator to the given value returns `number`; otherwise returns `false`.
 ```javascript
 rtti.number()( 42 ) // returns true
 rtti.number()('42') // returns false
 ```
 
-#### string() ####
+#### `string()` ####
 Returns `true` if `typeof` operator to the given value returns `string`; otherwise returns `false`.
 ```javascript
 rtti.string()( '42' ) // returns true
 rtti.string()(  42  ) // returns false
 ```
 
-#### bigint() ####
+#### `bigint()` ####
 Returns `true` if `typeof` operator to the given value returns `bigint`; otherwise returns `false`.
 ```javascript
 rtti.bigint()( BigInt(42) ) // returns true
 rtti.bigint()(        42  ) // returns false
 ```
 
-#### symbol() ####
+#### `symbol()` ####
 Returns `true` if `typeof` operator to the given value returns `symbol`; otherwise returns `false`.
 ```javascript
 rtti.symbol()( Symbol('hello')     ) // returns true
@@ -231,7 +231,7 @@ rtti.symbol()( Symbol.for('hello') ) // returns true
 rtti.symbol()(            'hello'  ) // returns false
 ```
 
-#### function() ####
+#### `function()` ####
 Returns `true` if `typeof` operator to the given value returns `function`; otherwise returns `false`.
 ```javascript
 rtti.function()( ()=>{}        ) // returns true
@@ -240,7 +240,7 @@ rtti.function()( new Function()) // returns true
 rtti.function()( 'function'    ) // returns false
 ```
 
-#### any() ####
+#### `any()` ####
 `any()` always return `true` no matter which type of a value is specified as a
 parameter.
 ```javascript
@@ -249,7 +249,7 @@ rtti.any()(  123  );  // returns true
 rtti.any()( true  );  // returns true
 ```
 
-#### or() ####
+#### `or()` ####
 `or()` calls specified validators from left to right and returns `true` if at
 least one of the validators return `true`.  
 ```javascript
@@ -258,7 +258,7 @@ rtti.or( rtti.string(), rtti.number())(  123  );  // returns true
 rtti.or( rtti.string(), rtti.number())( true  );  // returns false
 ```
 
-#### and() ####
+#### `and()` ####
 `and()` calls specified validators from left to right and return `true` if and only if 
 all of the specified validators return `true`; otherwise returns `false`.
 ```javascript
@@ -266,14 +266,14 @@ rtti.and( rtti.number() , (v)=>100<v )( 200 ); // returns true
 rtti.and( rtti.number() , (v)=>100<v )(  50 ); // returns false
 ```
 
-#### not() ####
+#### `not()` ####
 `not()` negates the result of the specified validator.
 ```javascript
 rtti.not( rtti.number() )(  100  ); // returns false
 rtti.not( rtti.number() )( '100' ); // returns true
 ```
 
-#### object() ####
+#### `object()` ####
 `object()` checks the validity of the given object. `object()` receives objects
 as its parameters and takes them as definition of the object properties and
 create a validator.
@@ -354,7 +354,7 @@ rtti.array_of(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
 1. Prior to **v1.0.0**, this validator was refererred  as `array()`.
 
 
-#### equals() ####
+#### `equals()` ####
 `equals()` takes a parameter as a target value and creates a validator which
 compares with the target value. The validator returns `true` if and only if
 the given value is strictly equal to the target value.
@@ -363,7 +363,7 @@ rtti.equals(1)(1); // true
 rtti.equals(1)('1'); // false
 ```
 
-#### uuid() ####
+#### `uuid()` ####
 `uuid()` checks if the given value conforms to the specification of [uuid][].
 
 [uuid]: https://en.wikipedia.org/wiki/Universally_unique_identifier
