@@ -350,6 +350,10 @@ rtti.array_of(rtti.number())([1,2,'3']); // return false
 rtti.array_of(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
 ```
 
+##### Compatibility Note #####
+1. Prior to **v1.0.0**, this validator was refererred  as `array()`.
+
+
 #### equals() ####
 `equals()` takes a parameter as a target value and creates a validator which
 compares with the target value. The validator returns `true` if and only if
