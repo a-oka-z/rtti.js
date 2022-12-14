@@ -1,27 +1,28 @@
- rtti.js
+ **vanilla-schema-validator**
 =====================
 
-**rtti.js** is a non-opinionated simple convention to determine a type of an
-object in JavaScript. 
+**vanilla-schema-validator** is a schema validator which is non-opinionated,
+extensible, scalable and yet simple convention to check validity of an object
+in JavaScript. 
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { schema } from 'vanilla-schema-validator';
 
-console.error( rtti.string()(  42  )); // false
-console.error( rtti.string()( '42' )); // true
-console.error( rtti.number()(  42  )); // true
-console.error( rtti.number()( '42' )); // false
+console.error( schema.string()(  42  )); // false
+console.error( schema.string()( '42' )); // true
+console.error( schema.number()(  42  )); // true
+console.error( schema.number()( '42' )); // false
 ```
 
 Combining these functions enables you to validate more complex objects :
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { schema } from 'vanilla-schema-validator';
 
-const t_person = rtti.object({
-  name    : rtti.string(),
-  age     : rtti.number(),
-  visited : rtti.boolean(),
+const t_person = schema.object({
+  name    : schema.string(),
+  age     : schema.number(),
+  visited : schema.boolean(),
 });
 
 const obj1 = {
@@ -32,20 +33,20 @@ const obj1 = {
 console.error( t_person( obj1 ) ); // true
 ```
 
-The functions that are defined in **rtti** are merely factories of various
-validators. In the example above, `rtti.string` and `rtti.number` are factories
+The functions that are defined in `schema` are merely factories of various
+validators. In the example above, `schema.string` and `schema.number` are factories
 of validators.
 
 They are merely utilities and not requirement; you can create a validator
 manually on the fly. For example, the following example works, too:
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { schema } from 'vanilla-schema-validator';
 
-const t_person = rtti.object({
-  name    : rtti.string(),
-  age     : rtti.number(),
-  visited : rtti.boolean(),
+const t_person = schema.object({
+  name    : schema.string(),
+  age     : schema.number(),
+  visited : schema.boolean(),
   since   : (o)=>o instanceof Date,
 });
 
@@ -71,10 +72,10 @@ Basic concept of this convention is quit simple and with this convention, you
 can accomplish validation in most cases without these complicated frameworks.
 
 
- Design Goal of `rtti.js`
+ Design Goal of **vanilla-schema-validator**
 --------------------------------------------------------------------------------
 
-The desigin concept of **rtti.js** is based on my hypothesis explains that in
+The desigin concept of **vanilla-schema-validator** is based on my hypothesis explains that in
 JavaScript, it is impossible to precisely determine a type of an object via its
 run-time type information and `duck typing` is the only way to accomplish it.
 
@@ -87,18 +88,18 @@ Its design goal is to exhaustively determine a type of an object in the sense
 of described above, with the maximum coverage of those various corner cases
 which occur caused via ambiguously defined JavaScript type system.
 
-Especially the first concern of `rtti.js` is by no means readability; if you
+Especially the first concern of **vanilla-schema-validator** is by no means readability; if you
 expect those sweet syntax suger with function chaining, this is not for you.
 
 
- The Basic Rules of the Convention of `rtti.js`
+ The Basic Rules of the Convention of **vanilla-schema-validator**
 --------------------------------------------------------------------------------
 
-The convention of `rtti.js` recommends the type determinors are formed by the
+The convention of **vanilla-schema-validator** recommends the type determinors are formed by the
 following three elements.
 
 ```javascript
-  rtti.string()('value')
+  schema.string()('value')
    1      2       3
 ```
 
@@ -112,13 +113,13 @@ following three elements.
 
 If you define a factory of a validator as following :
 ```javascript
-  rtti.hello_validator = ()=>(o)=>o === 'hello';
+  schema.hello_validator = ()=>(o)=>o === 'hello';
 ```
 
 you can use the validator as following:
 
 ```javascript
-  rtti.hello_validator()( 'hello' ) // returns true 
+  schema.hello_validator()( 'hello' ) // returns true 
 ```
 
 
@@ -127,14 +128,14 @@ you can use the validator as following:
 
 [prevent-undefined][] is a debugging tool that prevents generating `undefined`
 values via accessing properties by incorrect property names.
-`prevent-undefined` supports the convention of `rtti.js`.
+`prevent-undefined` supports the convention of **vanilla-schema-validator**.
 
-The way to use [prevent-undefined][] with **rtti.js** is as following:
+The way to use [prevent-undefined][] with **vanilla-schema-validator** is as following:
 
 ```javascript
-const t_person_info = rtti.object({
-  name    : rtti.string(),
-  age     : rtti.number(),
+const t_person_info = schema.object({
+  name    : schema.string(),
+  age     : schema.number(),
 });
 
 const preventUndefined = require('prevent-undefined');
@@ -154,9 +155,9 @@ For further information, see [prevent-undefined][].
 
  Basic Validators
 --------------------------------------------------------------------------------
-`rtti.js` offers some basic validators as default. These validators are there
+**vanilla-schema-validator** offers some basic validators as default. These validators are there
 only for your convenience; again, it is not mandatory to use them as long as
-the functions you offer are following the `rtti.js`'s convention.
+the functions you offer are following the **vanilla-schema-validator**'s convention.
 
 Available validators are:
 
@@ -183,94 +184,94 @@ Their usage may be self-descriptive; though, some of them should be explaind.
 #### `undefined()` ####
 Returns `true` if `typeof` operator to the given value returns `undefined`; otherwise returns `false`.
 ```javascript
-rtti.undefined()( undefined ) // returns true
-rtti.undefined()( null      ) // returns false
+schema.undefined()( undefined ) // returns true
+schema.undefined()( null      ) // returns false
 ```
 
 #### `null()` ####
 Returns `true` if the given value is strictly equal to `null` value; otherwise returns `false`.
 ```javascript
-rtti.null()( null ) // returns true
-rtti.null()( 1    ) // returns false
+schema.null()( null ) // returns true
+schema.null()( 1    ) // returns false
 ```
 
 #### `boolean()` ####
 Returns `true` if `typeof` operator to the given value returns `boolean`; otherwise returns `false`.
 ```javascript
-rtti.boolean()( false  ) // returns true
-rtti.boolean()( true   ) // returns true
-rtti.boolean()( 'true' ) // returns false
+schema.boolean()( false  ) // returns true
+schema.boolean()( true   ) // returns true
+schema.boolean()( 'true' ) // returns false
 ```
 
 #### `number()` ####
 Returns `true` if `typeof` operator to the given value returns `number`; otherwise returns `false`.
 ```javascript
-rtti.number()( 42 ) // returns true
-rtti.number()('42') // returns false
+schema.number()( 42 ) // returns true
+schema.number()('42') // returns false
 ```
 
 #### `string()` ####
 Returns `true` if `typeof` operator to the given value returns `string`; otherwise returns `false`.
 ```javascript
-rtti.string()( '42' ) // returns true
-rtti.string()(  42  ) // returns false
+schema.string()( '42' ) // returns true
+schema.string()(  42  ) // returns false
 ```
 
 #### `bigint()` ####
 Returns `true` if `typeof` operator to the given value returns `bigint`; otherwise returns `false`.
 ```javascript
-rtti.bigint()( BigInt(42) ) // returns true
-rtti.bigint()(        42  ) // returns false
+schema.bigint()( BigInt(42) ) // returns true
+schema.bigint()(        42  ) // returns false
 ```
 
 #### `symbol()` ####
 Returns `true` if `typeof` operator to the given value returns `symbol`; otherwise returns `false`.
 ```javascript
-rtti.symbol()( Symbol('hello')     ) // returns true
-rtti.symbol()( Symbol.for('hello') ) // returns true
-rtti.symbol()(            'hello'  ) // returns false
+schema.symbol()( Symbol('hello')     ) // returns true
+schema.symbol()( Symbol.for('hello') ) // returns true
+schema.symbol()(            'hello'  ) // returns false
 ```
 
 #### `function()` ####
 Returns `true` if `typeof` operator to the given value returns `function`; otherwise returns `false`.
 ```javascript
-rtti.function()( ()=>{}        ) // returns true
-rtti.function()( function(){}  ) // returns true
-rtti.function()( new Function()) // returns true
-rtti.function()( 'function'    ) // returns false
+schema.function()( ()=>{}        ) // returns true
+schema.function()( function(){}  ) // returns true
+schema.function()( new Function()) // returns true
+schema.function()( 'function'    ) // returns false
 ```
 
 #### `any()` ####
 `any()` always return `true` no matter which type of a value is specified as a
 parameter.
 ```javascript
-rtti.any()( '123' );  // returns true
-rtti.any()(  123  );  // returns true
-rtti.any()( true  );  // returns true
+schema.any()( '123' );  // returns true
+schema.any()(  123  );  // returns true
+schema.any()( true  );  // returns true
 ```
 
 #### `or()` ####
 `or()` calls specified validators from left to right and returns `true` if at
 least one of the validators return `true`.  
 ```javascript
-rtti.or( rtti.string(), rtti.number())( '123' );  // returns true
-rtti.or( rtti.string(), rtti.number())(  123  );  // returns true
-rtti.or( rtti.string(), rtti.number())( true  );  // returns false
+schema.or( schema.string(), schema.number())( '123' );  // returns true
+schema.or( schema.string(), schema.number())(  123  );  // returns true
+schema.or( schema.string(), schema.number())( true  );  // returns false
 ```
 
 #### `and()` ####
 `and()` calls specified validators from left to right and return `true` if and only if 
 all of the specified validators return `true`; otherwise returns `false`.
 ```javascript
-rtti.and( rtti.number() , (v)=>100<v )( 200 ); // returns true
-rtti.and( rtti.number() , (v)=>100<v )(  50 ); // returns false
+schema.and( schema.number() , (v)=>100<v )( 200 ); // returns true
+schema.and( schema.number() , (v)=>100<v )(  50 ); // returns false
 ```
 
 #### `not()` ####
 `not()` negates the result of the specified validator.
 ```javascript
-rtti.not( rtti.number() )(  100  ); // returns false
-rtti.not( rtti.number() )( '100' ); // returns true
+schema.not( schema.number() )(  100  ); // returns false
+schema.not( schema.number() )( '100' ); // returns true
 ```
 
 #### `object()` ####
@@ -288,9 +289,9 @@ the validator returns `true` if and only if all of the validators returns `true`
 otherwise, returns `false`.
 
 ```javascript
-const t = rtti.object({
-  foo : rtti.number(),
-  bar : rtti.string(),
+const t = schema.object({
+  foo : schema.number(),
+  bar : schema.string(),
 });
 
 t({
@@ -314,7 +315,7 @@ specified validators, this validator returns `false`.  **v1.0.0**
 
 
 ```javascript
-  const validator = rtti.statement`
+  const validator = schema.statement`
     array(
       equals( <<'a'>> ),
       equals( <<'b'>> ),
@@ -345,9 +346,9 @@ the elements on the specified array object. Return `true` if all elements confor
 to the validator; otherwise return `false`.
 
 ```javascript
-rtti.array_of(rtti.number())([1,2,3]); // return true
-rtti.array_of(rtti.number())([1,2,'3']); // return false
-rtti.array_of(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
+schema.array_of(schema.number())([1,2,3]); // return true
+schema.array_of(schema.number())([1,2,'3']); // return false
+schema.array_of(schema.or( schema.string(), schema.number()))([1,2,'3']); // return true
 ```
 
 ##### Compatibility Note #####
@@ -359,8 +360,8 @@ rtti.array_of(rtti.or( rtti.string(), rtti.number()))([1,2,'3']); // return true
 compares with the target value. The validator returns `true` if and only if
 the given value is strictly equal to the target value.
 ```javascript
-rtti.equals(1)(1); // true
-rtti.equals(1)('1'); // false
+schema.equals(1)(1); // true
+schema.equals(1)('1'); // false
 ```
 
 #### `uuid()` ####
@@ -369,29 +370,29 @@ rtti.equals(1)('1'); // false
 [uuid]: https://en.wikipedia.org/wiki/Universally_unique_identifier
 
 ```javascript
-rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) // true
-rtti.uuid()( 'hello' ) // false
-rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) // false
-rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) // false
-rtti.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) // false
+schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) // true
+schema.uuid()( 'hello' ) // false
+schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) // false
+schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) // false
+schema.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) // false
 ```
 
 `uuid()` checks if the given value is a string; returns `false` if the given
 value is not a string.
 
 ```javascript
-rtti.uuid()( 1  ) // false
-rtti.uuid()( false ) // false
+schema.uuid()( 1  ) // false
+schema.uuid()( false ) // false
 ```
 
 
  Create Validators via RTTI Statement Script Compiler
 --------------------------------------------------------------------------------
-The `rtti` offers a template literal function which is called RTTI Statement
+The `schema` offers a template literal function which is called RTTI Statement
 Script Compiler.  Statement compiler helps to build various validators:
 
 ```javascript
-const type = rtti.statement`
+const type = schema.statement`
   object(
     foo : number(),
     bar : string(),
@@ -411,7 +412,7 @@ const v2 = {
 console.error( type( v2 ) ); // false;
 ```
 
-In this document, sometimes a reference to `rtti` object is called `namespace`.
+In this document, sometimes a reference to `schema` object is called `namespace`.
 In JavaScript, in order to build complex validators, it is necessary to specify
 a desired namespace reference everytime you refer the validator factories. In
 RTTI Statement Script, it is possible to omit the namespace specifier.
@@ -419,7 +420,7 @@ RTTI Statement Script, it is possible to omit the namespace specifier.
 The statement compiler may help you to build your validators with less
 boilerplate.
 
-**a note for backward compatibility** : former to v0.1.2, `rtti` object can be
+**a note for backward compatibility** : former to v0.1.2, `schema` object can be
 used as a template literal function. This behavior is deprecated. Though it is
 still available to be used as a template literal, this will be removed in the
 future version. The new project should not rely on this behavior.
@@ -433,7 +434,7 @@ raw JavaScript values.
 For example,
 
 ```javascript
-const type = rtti.statement`
+const type = schema.statement`
   object(
     foo : equals( <<  42  >> ),
     bar : equals( << '42' >> ),
@@ -443,27 +444,27 @@ const type = rtti.statement`
 is loosely compiled to
 
 ```javascript
-const type = rtti.object({
-  foo : rtti.equals(  42  ),
-  bar : rtti.equals( '42' ),
+const type = schema.object({
+  foo : schema.equals(  42  ),
+  bar : schema.equals( '42' ),
 })
 ```
 
  Extending Template Literal Validator Builder
 --------------------------------------------------------------------------------
 You can add your own validators by setting factorys of your desired validators
-as properties on the `rtti` object.
+as properties on the `schema` object.
 
 ```javascript
-const type = rtti.statement`
+const type = schema.statement`
   object(
     foo : Foo(),
     bar : Bar(),
   )
 `();
 
-rtti.Foo = (...defs)=>(o)=>typeof o ==='number';
-rtti.Bar = (...defs)=>(o)=>typeof o ==='string';
+schema.Foo = (...defs)=>(o)=>typeof o ==='number';
+schema.Bar = (...defs)=>(o)=>typeof o ==='string';
 
 const v = {
   foo:42,
@@ -476,17 +477,17 @@ console.error( type( v ) ); // true;
 set factories of validators, not validators themself.
 
 
- Create Your Own Namespace for `rtti.js` 
+ Create Your Own Namespace for **vanilla-schema-validator** 
 --------------------------------------------------------------------------------
-You usually don't want to set your own evaluators to the global `rtti` object
-because setting to the global `rtti` object causes id confliction with the
-other projects. In order to avoid confliction, you can create your own `rtti`
+You usually don't want to set your own evaluators to the global `schema` object
+because setting to the global `schema` object causes id confliction with the
+other projects. In order to avoid confliction, you can create your own `schema`
 object by `clone()` method.
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { schema } from 'vanilla-schema-validator';
 
-const rtti2 = rtti.clone();
+const rtti2 = schema.clone();
 
 rtti2.Foo = (...defs)=>(o)=>typeof o ==='number';
 rtti2.Bar = (...defs)=>(o)=>typeof o ==='string';
@@ -505,7 +506,7 @@ const v = {
 console.error( type2( v ) ); // true;
 
 
-const type1 = rtti.statement`
+const type1 = schema.statement`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -520,7 +521,7 @@ console.error( type1( v ) ); // error;
 `make_vali_factory` is a helper function to create a reliable validator function:
 
 ```javascript
-  const INFO   = Symbol.for( 'dump rtti.js information' ); 
+  const INFO   = Symbol.for( 'dump information' ); 
   const create_info_gen_from_string = ( info_gen_string )=>{
     if ( typeof info_gen_string === 'string' ) {
       return ()=>info_gen_string;
@@ -606,8 +607,8 @@ for the sake of naming consistency.
   is called `array_of()` while `array_of()` is called `array()`. This breaks
   backward compatibility.
 
-- v1.0.1 Renamed `rtti.js`  to `vanilla-schema-validator`.  npm package
-         `rtti.js` is now deprecated.
+- v1.0.1 Renamed **rtti.js**  to **vanilla-schema-validator**.  npm package
+         **rtti.js** is now deprecated.
          (Wed, 14 Dec 2022 13:10:51 +0900)
 
  Conclusion
