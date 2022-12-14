@@ -655,7 +655,7 @@ test( 'ARRAY No.1', ()=>{
 
   expect( validator(['a','b','c']) ).toBe( true );
   expect( validator(['a','b','d']) ).toBe( false );
-  expect( validator(['a','b','c', 'd' ]) ).toBe( true );
+  expect( validator(['a','b','c', 'd' ]) ).toBe( false );
   expect( validator(['a','b'          ]) ).toBe( false );
 
 });

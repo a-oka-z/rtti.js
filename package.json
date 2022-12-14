@@ -1,7 +1,7 @@
 {
   "name": "rtti.js",
   "version": "1.0.1",
-  "description": "`rtti.js` wss renamed to `vanilla-schema-validator`. `rtti.js` is now deprecated. Use `vanilla-schema-validator`.",
+  "description": "`rtti.js` is a non-opinionated, non-framework, extensible schema validator. ",
   "main": "index.mjs",
   "type": "module",
   "exports": {

@@ -606,7 +606,9 @@ for the sake of naming consistency.
   is called `array_of()` while `array_of()` is called `array()`. This breaks
   backward compatibility.
 
-- v1.0.1 Renamed `rtti.js`  to `vanilla-schema-validator`.  npm package
+- v1.0.1 Fixed a bug that array() validator was broken.
+
+- v1.0.2 Renamed `rtti.js`  to `vanilla-schema-validator`.  npm package
          `rtti.js` is now deprecated.
          (Wed, 14 Dec 2022 13:10:51 +0900)
 
