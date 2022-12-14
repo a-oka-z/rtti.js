@@ -8,7 +8,7 @@ function inspect(s) {
 
 
 
-const INFO = Symbol.for( 'dump rtti.js information' );
+const INFO = Symbol.for( 'dump schema information' );
 const ID_STANDARD_STATEMENT_COMPILER  = "statement";
 
 const create_info_gen_from_string = ( info_gen_string )=>{
@@ -131,7 +131,7 @@ function rttijs_standard_template_literal(strings, ... values) {
 
   const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
   const o_tokens = [ ...i_tokens ];
-  const PREFIX = 'rtti';
+  const PREFIX = 'schema';
 
   const parenthesis_stack = [];
 
@@ -366,20 +366,20 @@ const standardValis = {
 function new_rtti() {
   // Create a thunk for backward compatibility. This should create a normal
   // object.
-  function rtti(...args) {
+  function schema(...args) {
    /*
-    * `rtti` is the reference to this function itself.  This functionality is
+    * `schema` is the reference to this function itself.  This functionality is
     * designed to accomplish recursive calls in closures. In this part, it
     * is applied as a closure which can be accessed from outside the
     * closure.
     */
-    return rtti[ID_STANDARD_STATEMENT_COMPILER].apply( rtti, args );
+    return schema[ID_STANDARD_STATEMENT_COMPILER].apply( schema, args );
   }
-  return rtti;
+  return schema;
 }
 
 
-const rtti = (()=>{
+const schema = (()=>{
   const __rtti = new_rtti();
   Object.assign( __rtti, standardValis );
   return __rtti;
@@ -389,47 +389,47 @@ const rtti = (()=>{
 const newRtti = new_rtti;
 
 
-// // console.error( rtti.null()() );
-// console.error( rtti.null()(null) );
-// console.error( rtti.null()(1) );
-// console.error( rtti.string()(1) );
-// console.error( rtti.or(rtti.number(), rtti.string())(false));
-// console.error( rtti.or(rtti.boolean())(false));
-// console.error( rtti.or(rtti.boolean())(1));
-// console.error( rtti.object({
-//   a:rtti.boolean(),
-//   b:rtti.number(),
+// // console.error( schema.null()() );
+// console.error( schema.null()(null) );
+// console.error( schema.null()(1) );
+// console.error( schema.string()(1) );
+// console.error( schema.or(schema.number(), schema.string())(false));
+// console.error( schema.or(schema.boolean())(false));
+// console.error( schema.or(schema.boolean())(1));
+// console.error( schema.object({
+//   a:schema.boolean(),
+//   b:schema.number(),
 // })({
 //   a:true,
 //   b:1,
 // }));
 //
-// console.error( rtti.object({
-//   a:rtti.boolean(),
-//   b:rtti.number(),
+// console.error( schema.object({
+//   a:schema.boolean(),
+//   b:schema.number(),
 // })({
 //   a:true,
 //   b:true,
 // }));
 //
-// console.error( rtti.object({
-//   a:rtti.boolean(),
-//   b:rtti.number(),
+// console.error( schema.object({
+//   a:schema.boolean(),
+//   b:schema.number(),
 // })());
 //
 //
-// console.error( rtti.array_of({ of: rtti.number() })());
-// console.error( rtti.array_of({ of: rtti.array_of({ of: rtti.number() } )})());
-// console.error( JSON.stringify( rtti.object({a: rtti.array_of({of:rtti.number()})})(), null,2));
-// console.error( rtti.array_of({ of: rtti.number() })([1]));
-// console.error( rtti.array_of({ of: rtti.number() })(["string"]));
-// console.error( rtti.array_of({ of: rtti.array_of({ of: rtti.number() } )})([[1]]));
+// console.error( schema.array_of({ of: schema.number() })());
+// console.error( schema.array_of({ of: schema.array_of({ of: schema.number() } )})());
+// console.error( JSON.stringify( schema.object({a: schema.array_of({of:schema.number()})})(), null,2));
+// console.error( schema.array_of({ of: schema.number() })([1]));
+// console.error( schema.array_of({ of: schema.number() })(["string"]));
+// console.error( schema.array_of({ of: schema.array_of({ of: schema.number() } )})([[1]]));
 //
 
 
 
 module.exports.INFO              = INFO;
-module.exports.rtti              = rtti;
+module.exports.schema            = schema;
 module.exports.make_vali_factory = make_vali_factory;
 
 module.exports.makeValiFactory   = makeValiFactory;

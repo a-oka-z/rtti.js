@@ -1,4 +1,4 @@
-import  { INFO, rtti, make_vali_factory } from './index.mjs' ;
+import  { INFO, schema, make_vali_factory } from './index.mjs' ;
 
 
 function getStackFromError(o) {
@@ -134,73 +134,73 @@ expect.extend({
  * });
  */
 
-test('INFO undefined'  , ()=>{  expect( rtti.undefined (              )(INFO            )).toBe('undefined'         ); } );
-test('INFO null'       , ()=>{  expect( rtti.null      (              )(INFO            )).toBe('null'              ); } );
-test('INFO boolean'    , ()=>{  expect( rtti.boolean   (              )(INFO            )).toBe('boolean'           ); } );
-test('INFO number'     , ()=>{  expect( rtti.number    (              )(INFO            )).toBe('number'            ); } );
-test('INFO string'     , ()=>{  expect( rtti.string    (              )(INFO            )).toBe('string'            ); } );
-test('INFO bigint'     , ()=>{  expect( rtti.bigint    (              )(INFO            )).toBe('bigint'            ); } );
-test('INFO symbol'     , ()=>{  expect( rtti.symbol    (              )(INFO            )).toBe('symbol'            ); } );
-test('INFO function'   , ()=>{  expect( rtti.function  (              )(INFO            )).toBe('function'          ); } );
-test('INFO not'        , ()=>{  expect( rtti.not       (rtti.boolean())(INFO            )).toBe('not'               ); } );
-test('INFO or'         , ()=>{  expect( rtti.or        (rtti.boolean())(INFO            )).toBe('or'                ); } );
-test('INFO and'        , ()=>{  expect( rtti.and       (rtti.boolean())(INFO            )).toBe('and'               ); } );
+test('INFO undefined'  , ()=>{  expect( schema.undefined (              )(INFO            )).toBe('undefined'         ); } );
+test('INFO null'       , ()=>{  expect( schema.null      (              )(INFO            )).toBe('null'              ); } );
+test('INFO boolean'    , ()=>{  expect( schema.boolean   (              )(INFO            )).toBe('boolean'           ); } );
+test('INFO number'     , ()=>{  expect( schema.number    (              )(INFO            )).toBe('number'            ); } );
+test('INFO string'     , ()=>{  expect( schema.string    (              )(INFO            )).toBe('string'            ); } );
+test('INFO bigint'     , ()=>{  expect( schema.bigint    (              )(INFO            )).toBe('bigint'            ); } );
+test('INFO symbol'     , ()=>{  expect( schema.symbol    (              )(INFO            )).toBe('symbol'            ); } );
+test('INFO function'   , ()=>{  expect( schema.function  (              )(INFO            )).toBe('function'          ); } );
+test('INFO not'        , ()=>{  expect( schema.not       (schema.boolean())(INFO            )).toBe('not'               ); } );
+test('INFO or'         , ()=>{  expect( schema.or        (schema.boolean())(INFO            )).toBe('or'                ); } );
+test('INFO and'        , ()=>{  expect( schema.and       (schema.boolean())(INFO            )).toBe('and'               ); } );
 
-test('CHECK undefined' , ()=>{  expect( rtti.undefined (              )(undefined       )).toBe(true                ); } );
-test('CHECK null'      , ()=>{  expect( rtti.null      (              )(null            )).toBe(true                ); } );
-test('CHECK boolean 1' , ()=>{  expect( rtti.boolean   (              )(true            )).toBe(true                ); } );
-test('CHECK boolean 2' , ()=>{  expect( rtti.boolean   (              )(false           )).toBe(true                ); } );
-test('CHECK number'    , ()=>{  expect( rtti.number    (              )(100000          )).toBe(true                ); } );
-test('CHECK string'    , ()=>{  expect( rtti.string    (              )("fooo"          )).toBe(true                ); } );
-test('CHECK bigint'    , ()=>{  expect( rtti.bigint    (              )(BigInt(1)       )).toBe(true                ); } );
-test('CHECK symbol'    , ()=>{  expect( rtti.symbol    (              )(Symbol('1')     )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( rtti.function  (              )(()=>{}          )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( rtti.function  (              )(function(){}    )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( rtti.function  (              )(new Function(''))).toBe(true                ); } );
-test('CHECK not ERR'   , ()=>{  expect( ()=>rtti.not   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK or ERR'    , ()=>{  expect( ()=>rtti.or    (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK and ERR'   , ()=>{  expect( ()=>rtti.and   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK not OK'    , ()=>{  expect( ()=>rtti.not   (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
-test('CHECK or OK'     , ()=>{  expect( ()=>rtti.or    (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
-test('CHECK and OK'    , ()=>{  expect( ()=>rtti.and   (rtti.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK undefined' , ()=>{  expect( schema.undefined (              )(undefined       )).toBe(true                ); } );
+test('CHECK null'      , ()=>{  expect( schema.null      (              )(null            )).toBe(true                ); } );
+test('CHECK boolean 1' , ()=>{  expect( schema.boolean   (              )(true            )).toBe(true                ); } );
+test('CHECK boolean 2' , ()=>{  expect( schema.boolean   (              )(false           )).toBe(true                ); } );
+test('CHECK number'    , ()=>{  expect( schema.number    (              )(100000          )).toBe(true                ); } );
+test('CHECK string'    , ()=>{  expect( schema.string    (              )("fooo"          )).toBe(true                ); } );
+test('CHECK bigint'    , ()=>{  expect( schema.bigint    (              )(BigInt(1)       )).toBe(true                ); } );
+test('CHECK symbol'    , ()=>{  expect( schema.symbol    (              )(Symbol('1')     )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (              )(()=>{}          )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (              )(function(){}    )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (              )(new Function(''))).toBe(true                ); } );
+test('CHECK not ERR'   , ()=>{  expect( ()=>schema.not   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK or ERR'    , ()=>{  expect( ()=>schema.or    (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK and ERR'   , ()=>{  expect( ()=>schema.and   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
+test('CHECK not OK'    , ()=>{  expect( ()=>schema.not   (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK or OK'     , ()=>{  expect( ()=>schema.or    (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK and OK'    , ()=>{  expect( ()=>schema.and   (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
 
 /**
  * The primitive evaluators always return false when the given argument is
  * undefined or null, unless they are either undefined() or null().
  */
 test( 'NULL CHECK ', ()=>{
-  expect( rtti.undefined()( undefined  )).toBe( true  );
-  expect( rtti.null()     ( undefined  )).toBe( false );
-  expect( rtti.undefined()( null       )).toBe( false );
-  expect( rtti.null()     ( null       )).toBe( true  );
-  expect( rtti.boolean()  ( null       )).toBe( false );
-  expect( rtti.number()   ( null       )).toBe( false );
-  expect( rtti.string()   ( null       )).toBe( false );
-  expect( rtti.bigint()   ( null       )).toBe( false );
-  expect( rtti.symbol()   ( null       )).toBe( false );
-  expect( rtti.function() ( null       )).toBe( false );
+  expect( schema.undefined()( undefined  )).toBe( true  );
+  expect( schema.null()     ( undefined  )).toBe( false );
+  expect( schema.undefined()( null       )).toBe( false );
+  expect( schema.null()     ( null       )).toBe( true  );
+  expect( schema.boolean()  ( null       )).toBe( false );
+  expect( schema.number()   ( null       )).toBe( false );
+  expect( schema.string()   ( null       )).toBe( false );
+  expect( schema.bigint()   ( null       )).toBe( false );
+  expect( schema.symbol()   ( null       )).toBe( false );
+  expect( schema.function() ( null       )).toBe( false );
 });
 
 /**
  * test `not`
  */
 test( 'CHECK2 not', ()=>{
-  expect( rtti.not( rtti.string())( false         )).toBe( true  );
-  expect( rtti.not( rtti.string())( "some string" )).toBe( false );
-  expect( rtti.not( rtti.string())( 12345 + 234   )).toBe( true  );
-  expect( rtti.not( rtti.string())( null          )).toBe( true  );
-  expect( rtti.not( rtti.string())( 1             )).toBe( true  );
-  expect( rtti.not( rtti.string())( BigInt(100)   )).toBe( true  );
+  expect( schema.not( schema.string())( false         )).toBe( true  );
+  expect( schema.not( schema.string())( "some string" )).toBe( false );
+  expect( schema.not( schema.string())( 12345 + 234   )).toBe( true  );
+  expect( schema.not( schema.string())( null          )).toBe( true  );
+  expect( schema.not( schema.string())( 1             )).toBe( true  );
+  expect( schema.not( schema.string())( BigInt(100)   )).toBe( true  );
 });
 
 test( 'CHECK2 or', ()=>{
-  expect( rtti.or( rtti.number(), rtti.string()              )( false         )).toBe( false );
-  expect( rtti.or( rtti.number(), rtti.string()              )( "some string" )).toBe( true  );
-  expect( rtti.or( rtti.number(), rtti.string()              )( 12345 + 234   )).toBe( true  );
-  expect( rtti.or( rtti.number(), rtti.string()              )( null          )).toBe( false );
-  expect( rtti.or( rtti.number(), rtti.string(), rtti.null() )( null          )).toBe( true  );
-  expect( rtti.or( rtti.number(), rtti.string(), rtti.null() )( 1             )).toBe( true  );
-  expect( rtti.or( rtti.number(), rtti.string(), rtti.null() )( BigInt(100)   )).toBe( false );
+  expect( schema.or( schema.number(), schema.string()              )( false         )).toBe( false );
+  expect( schema.or( schema.number(), schema.string()              )( "some string" )).toBe( true  );
+  expect( schema.or( schema.number(), schema.string()              )( 12345 + 234   )).toBe( true  );
+  expect( schema.or( schema.number(), schema.string()              )( null          )).toBe( false );
+  expect( schema.or( schema.number(), schema.string(), schema.null() )( null          )).toBe( true  );
+  expect( schema.or( schema.number(), schema.string(), schema.null() )( 1             )).toBe( true  );
+  expect( schema.or( schema.number(), schema.string(), schema.null() )( BigInt(100)   )).toBe( false );
 });
 
 /*
@@ -211,29 +211,29 @@ test( 'CHECK2 or', ()=>{
  * undefined or null.
  */
 test( 'CHECK2 and', ()=>{
-  expect( rtti.and( rtti.undefined(), rtti.not(rtti.null()      ))( undefined      )).toBe( true );
-  expect( rtti.and( rtti.null(),      rtti.not(rtti.undefined() ))( null           )).toBe( true );
-  expect( rtti.and( rtti.boolean(),   rtti.not(rtti.null()      ))( false          )).toBe( true );
-  expect( rtti.and( rtti.number(),    rtti.not(rtti.null()      ))( 10000          )).toBe( true );
-  expect( rtti.and( rtti.string(),    rtti.not(rtti.null()      ))( "hello"        )).toBe( true );
-  expect( rtti.and( rtti.bigint(),    rtti.not(rtti.null()      ))( BigInt(1)      )).toBe( true );
-  expect( rtti.and( rtti.symbol(),    rtti.not(rtti.null()      ))( Symbol('foo')  )).toBe( true );
-  expect( rtti.and( rtti.function(),  rtti.not(rtti.null()      ))( ()=>{}         )).toBe( true );
+  expect( schema.and( schema.undefined(), schema.not(schema.null()      ))( undefined      )).toBe( true );
+  expect( schema.and( schema.null(),      schema.not(schema.undefined() ))( null           )).toBe( true );
+  expect( schema.and( schema.boolean(),   schema.not(schema.null()      ))( false          )).toBe( true );
+  expect( schema.and( schema.number(),    schema.not(schema.null()      ))( 10000          )).toBe( true );
+  expect( schema.and( schema.string(),    schema.not(schema.null()      ))( "hello"        )).toBe( true );
+  expect( schema.and( schema.bigint(),    schema.not(schema.null()      ))( BigInt(1)      )).toBe( true );
+  expect( schema.and( schema.symbol(),    schema.not(schema.null()      ))( Symbol('foo')  )).toBe( true );
+  expect( schema.and( schema.function(),  schema.not(schema.null()      ))( ()=>{}         )).toBe( true );
 
-  expect( rtti.and( rtti.undefined(), rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.null(),      rtti.not(rtti.undefined() ))( undefined      )).toBe( false );
-  expect( rtti.and( rtti.boolean(),   rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.number(),    rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.string(),    rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.bigint(),    rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.symbol(),    rtti.not(rtti.null()      ))( null           )).toBe( false );
-  expect( rtti.and( rtti.function(),  rtti.not(rtti.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.undefined(), schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.null(),      schema.not(schema.undefined() ))( undefined      )).toBe( false );
+  expect( schema.and( schema.boolean(),   schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.number(),    schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.string(),    schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.bigint(),    schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.symbol(),    schema.not(schema.null()      ))( null           )).toBe( false );
+  expect( schema.and( schema.function(),  schema.not(schema.null()      ))( null           )).toBe( false );
 });
 
 test('CHECK Object',()=>{
-  const def = rtti.object({
-    a:rtti.boolean(),
-    b:rtti.number(),
+  const def = schema.object({
+    a:schema.boolean(),
+    b:schema.number(),
   });
   expect( def({ a:true, b:1,     })).toBe( true  );
   expect( def({ a:1,    b:1,     })).toBe( false );
@@ -243,8 +243,8 @@ test('CHECK Object',()=>{
 
 
 test('CHECK ARRAY_OF',()=>{
-  const def = rtti.array_of(
-    rtti.number(),
+  const def = schema.array_of(
+    schema.number(),
   );
   expect( def([0,         1,   2,       3,    4,    5])).toBe( true  );
   expect( def([0,         1,   2,   false,    4,    5])).toBe( false );
@@ -254,10 +254,10 @@ test('CHECK ARRAY_OF',()=>{
 
 
 test('test', ()=>{
-  const t_person = rtti.object({
-    name    : rtti.string(),
-    age     : rtti.number(),
-    visited : rtti.boolean(),
+  const t_person = schema.object({
+    name    : schema.string(),
+    age     : schema.number(),
+    visited : schema.boolean(),
     since   : (o)=>o instanceof Date,
   });
 
@@ -291,7 +291,7 @@ test('test', ()=>{
  * the standard statement compiler ( v2 )
  */
 test('STATEMENT COMPILER test basic 1', ()=>{
-  const factory = rtti.statement`
+  const factory = schema.statement`
     object(
       name : string(),
       age  : number(),
@@ -307,16 +307,16 @@ test('STATEMENT COMPILER test basic 1', ()=>{
   `;
 
   expect( factory.script ).toBe(`
-    rtti.object({
-      name : rtti.string(),
-      age  : rtti.number(),
-      field : rtti.or( rtti.number(), rtti.string() ),
-      attrs : rtti.object({
-        foo: rtti.string(),
-        bar: rtti.number(),
+    schema.object({
+      name : schema.string(),
+      age  : schema.number(),
+      field : schema.or( schema.number(), schema.string() ),
+      attrs : schema.object({
+        foo: schema.string(),
+        bar: schema.number(),
       }),
-      arr_test : rtti.array_of(
-        rtti.not( rtti.number()),
+      arr_test : schema.array_of(
+        schema.not( schema.number()),
       ),
     })
   `);
@@ -326,42 +326,42 @@ test('STATEMENT COMPILER test basic 1', ()=>{
 });
 
 test('STATEMENT COMPILER test basic 2', ()=>{
-  expect( rtti.statement`string()`()(INFO) ).toBe( 'string' );
-  expect( rtti.statement`number()`()(INFO) ).toBe( 'number' );
+  expect( schema.statement`string()`()(INFO) ).toBe( 'string' );
+  expect( schema.statement`number()`()(INFO) ).toBe( 'number' );
 
-  expect( rtti.statement`string()`()('hello') ).toBe( true  );
-  expect( rtti.statement`string()`()( 123   ) ).toBe( false );
-  expect( rtti.statement`number()`()( 123   ) ).toBe( true  );
-  expect( rtti.statement`number()`()('hello') ).toBe( false );
+  expect( schema.statement`string()`()('hello') ).toBe( true  );
+  expect( schema.statement`string()`()( 123   ) ).toBe( false );
+  expect( schema.statement`number()`()( 123   ) ).toBe( true  );
+  expect( schema.statement`number()`()('hello') ).toBe( false );
 });
 
-test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( rtti.statement`undefined ()`              ()(INFO        )).toBe('undefined'          ); } );
-test('STATEMENT COMPILER INFO null'       , ()=>{  expect( rtti.statement`null      ()`              ()(INFO        )).toBe('null'               ); } );
-test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( rtti.statement`boolean   ()`              ()(INFO        )).toBe('boolean'            ); } );
-test('STATEMENT COMPILER INFO number'     , ()=>{  expect( rtti.statement`number    ()`              ()(INFO        )).toBe('number'             ); } );
-test('STATEMENT COMPILER INFO string'     , ()=>{  expect( rtti.statement`string    ()`              ()(INFO        )).toBe('string'             ); } );
-test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( rtti.statement`bigint    ()`              ()(INFO        )).toBe('bigint'             ); } );
-test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( rtti.statement`symbol    ()`              ()(INFO        )).toBe('symbol'             ); } );
-test('STATEMENT COMPILER INFO function'   , ()=>{  expect( rtti.statement`function  ()`              ()(INFO        )).toBe('function'           ); } );
-test('STATEMENT COMPILER INFO not'        , ()=>{  expect( rtti.statement`not       (boolean())`     ()(INFO        )).toBe('not'                ); } );
-test('STATEMENT COMPILER INFO or'         , ()=>{  expect( rtti.statement`or        (boolean())`     ()(INFO        )).toBe('or'                 ); } );
-test('STATEMENT COMPILER INFO and'        , ()=>{  expect( rtti.statement`and       (boolean())`     ()(INFO        )).toBe('and'                ); } );
+test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`              ()(INFO        )).toBe('undefined'          ); } );
+test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`              ()(INFO        )).toBe('null'               ); } );
+test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`              ()(INFO        )).toBe('boolean'            ); } );
+test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`              ()(INFO        )).toBe('number'             ); } );
+test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`              ()(INFO        )).toBe('string'             ); } );
+test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`              ()(INFO        )).toBe('bigint'             ); } );
+test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`              ()(INFO        )).toBe('symbol'             ); } );
+test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`              ()(INFO        )).toBe('function'           ); } );
+test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`     ()(INFO        )).toBe('not'                ); } );
+test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`     ()(INFO        )).toBe('or'                 ); } );
+test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`     ()(INFO        )).toBe('and'                ); } );
 
-test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( rtti.statement`undefined ()`              ()(undefined   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( rtti.statement`null      ()`              ()(null        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( rtti.statement`boolean   ()`              ()(true        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( rtti.statement`boolean   ()`              ()(false       )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( rtti.statement`number    ()`              ()(100000      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( rtti.statement`string    ()`              ()("fooo"      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( rtti.statement`bigint    ()`              ()(BigInt(1)   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( rtti.statement`symbol    ()`              ()(Symbol('1') )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( rtti.statement`function  ()`              ()(()=>{}      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>rtti.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>rtti.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>rtti.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>rtti.statement`not   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
-test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>rtti.statement`or    (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
-test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`and   (rtti.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( schema.statement`undefined ()`              ()(undefined   )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( schema.statement`null      ()`              ()(null        )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( schema.statement`boolean   ()`              ()(true        )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( schema.statement`boolean   ()`              ()(false       )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( schema.statement`number    ()`              ()(100000      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( schema.statement`string    ()`              ()("fooo"      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( schema.statement`bigint    ()`              ()(BigInt(1)   )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( schema.statement`symbol    ()`              ()(Symbol('1') )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( schema.statement`function  ()`              ()(()=>{}      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>schema.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>schema.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>schema.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
+test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>schema.statement`not   (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>schema.statement`or    (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`and   (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
 
 
 
@@ -371,7 +371,7 @@ test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>rtti.statement`an
  * the standard statement compiler ( for backward compatibility )
  */
 test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
-  const factory = rtti`
+  const factory = schema`
     object(
       name : string(),
       age  : number(),
@@ -387,16 +387,16 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
   `;
 
   expect( factory.script ).toBe(`
-    rtti.object({
-      name : rtti.string(),
-      age  : rtti.number(),
-      field : rtti.or( rtti.number(), rtti.string() ),
-      attrs : rtti.object({
-        foo: rtti.string(),
-        bar: rtti.number(),
+    schema.object({
+      name : schema.string(),
+      age  : schema.number(),
+      field : schema.or( schema.number(), schema.string() ),
+      attrs : schema.object({
+        foo: schema.string(),
+        bar: schema.number(),
       }),
-      arr_test : rtti.array_of(
-        rtti.not( rtti.number()),
+      arr_test : schema.array_of(
+        schema.not( schema.number()),
       ),
     })
   `);
@@ -406,13 +406,13 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
 });
 
 test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
-  expect( rtti`string()`()(INFO) ).toBe( 'string' );
-  expect( rtti`number()`()(INFO) ).toBe( 'number' );
+  expect( schema`string()`()(INFO) ).toBe( 'string' );
+  expect( schema`number()`()(INFO) ).toBe( 'number' );
 
-  expect( rtti`string()`()('hello') ).toBe( true  );
-  expect( rtti`string()`()( 123   ) ).toBe( false );
-  expect( rtti`number()`()( 123   ) ).toBe( true  );
-  expect( rtti`number()`()('hello') ).toBe( false );
+  expect( schema`string()`()('hello') ).toBe( true  );
+  expect( schema`string()`()( 123   ) ).toBe( false );
+  expect( schema`number()`()( 123   ) ).toBe( true  );
+  expect( schema`number()`()('hello') ).toBe( false );
 });
 
 
@@ -427,27 +427,27 @@ test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
  */
 
 test('equals',()=>{
-  expect( rtti.equals( 'hello' )( 'hello'    ) ).toBe( true );
-  expect( rtti.equals( 'hello' )( 'NO hello' ) ).toBe( false );
-  expect( rtti.equals( 123     )( '123'      ) ).toBe( false );
-  expect( rtti.equals( false   )( 'false'    ) ).toBe( false );
-  expect( rtti.equals( false   )( false      ) ).toBe( true );
-  expect( rtti.equals( null    )( undefined  ) ).toBe( false );
-  expect( rtti.equals( null    )( null       ) ).toBe( true );
+  expect( schema.equals( 'hello' )( 'hello'    ) ).toBe( true );
+  expect( schema.equals( 'hello' )( 'NO hello' ) ).toBe( false );
+  expect( schema.equals( 123     )( '123'      ) ).toBe( false );
+  expect( schema.equals( false   )( 'false'    ) ).toBe( false );
+  expect( schema.equals( false   )( false      ) ).toBe( true );
+  expect( schema.equals( null    )( undefined  ) ).toBe( false );
+  expect( schema.equals( null    )( null       ) ).toBe( true );
 });
 
 test('uuid',()=>{
-  expect( rtti.uuid()( 'hello'    ) ).toBe( false );
-  expect( rtti.uuid()( 'NO hello' ) ).toBe( false );
-  expect( rtti.uuid()( '123'      ) ).toBe( false );
-  expect( rtti.uuid()( 'false'    ) ).toBe( false );
-  expect( rtti.uuid()( false      ) ).toBe( false );
-  expect( rtti.uuid()( undefined  ) ).toBe( false );
-  expect( rtti.uuid()( null       ) ).toBe( false );
-  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) ).toBe( true );
-  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) ).toBe( false );
-  expect( rtti.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) ).toBe( false );
-  expect( rtti.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) ).toBe( false );
+  expect( schema.uuid()( 'hello'    ) ).toBe( false );
+  expect( schema.uuid()( 'NO hello' ) ).toBe( false );
+  expect( schema.uuid()( '123'      ) ).toBe( false );
+  expect( schema.uuid()( 'false'    ) ).toBe( false );
+  expect( schema.uuid()( false      ) ).toBe( false );
+  expect( schema.uuid()( undefined  ) ).toBe( false );
+  expect( schema.uuid()( null       ) ).toBe( false );
+  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) ).toBe( true );
+  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) ).toBe( false );
+  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) ).toBe( false );
+  expect( schema.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) ).toBe( false );
 
 });
 
@@ -457,8 +457,8 @@ test('uuid',()=>{
  * clone()
  */
 test('equals',()=>{
-  // 0. clone the standard `rtti` object.
-  const rtti1 = rtti.clone();
+  // 0. clone the standard `schema` object.
+  const rtti1 = schema.clone();
   const hello = (o)=>o==='hello';
   const world = (o)=>o==='world';
   const value = 'world';
@@ -474,10 +474,10 @@ test('equals',()=>{
   expect( 'hello' in rtti2 ).toBe( true );
   expect( ()=>rtti2.statement`hello()`( value ) ).not.toThrow();
 
-  // 3.  confirm that setting `hello` does not affect to the original rtti
+  // 3.  confirm that setting `hello` does not affect to the original schema
   //     object.
-  expect( 'hello' in rtti ).toBe( false );
-  expect( ()=>rtti.statement`hello()`( value ) ).toThrow();
+  expect( 'hello' in schema ).toBe( false );
+  expect( ()=>schema.statement`hello()`( value ) ).toThrow();
 
   // 4.  set constructor `world to the second cloned object.
   rtti2.world = world;
@@ -493,14 +493,14 @@ test('equals',()=>{
  * any()
  */
 
-test( 'ANY undefined'  , ()=>{ expect( rtti.any()( undefined       )).toBe(true); } );
-test( 'ANY null'       , ()=>{ expect( rtti.any()( null            )).toBe(true); } );
-test( 'ANY boolean'    , ()=>{ expect( rtti.any()( false           )).toBe(true); } );
-test( 'ANY number'     , ()=>{ expect( rtti.any()( 1               )).toBe(true); } );
-test( 'ANY string'     , ()=>{ expect( rtti.any()( '1'             )).toBe(true); } );
-test( 'ANY bigint'     , ()=>{ expect( rtti.any()( BigInt(1)       )).toBe(true); } );
-test( 'ANY symbol'     , ()=>{ expect( rtti.any()( Symbol.for('1') )).toBe(true); } );
-test( 'ANY function'   , ()=>{ expect( rtti.any()( ()=>{}          )).toBe(true); } );
+test( 'ANY undefined'  , ()=>{ expect( schema.any()( undefined       )).toBe(true); } );
+test( 'ANY null'       , ()=>{ expect( schema.any()( null            )).toBe(true); } );
+test( 'ANY boolean'    , ()=>{ expect( schema.any()( false           )).toBe(true); } );
+test( 'ANY number'     , ()=>{ expect( schema.any()( 1               )).toBe(true); } );
+test( 'ANY string'     , ()=>{ expect( schema.any()( '1'             )).toBe(true); } );
+test( 'ANY bigint'     , ()=>{ expect( schema.any()( BigInt(1)       )).toBe(true); } );
+test( 'ANY symbol'     , ()=>{ expect( schema.any()( Symbol.for('1') )).toBe(true); } );
+test( 'ANY function'   , ()=>{ expect( schema.any()( ()=>{}          )).toBe(true); } );
 
 
 
@@ -511,7 +511,7 @@ test( 'ANY function'   , ()=>{ expect( rtti.any()( ()=>{}          )).toBe(true)
  */
 
 test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
-  const factory = rtti.statement`
+  const factory = schema.statement`
     object(
       name : string(),
       age  : number(),
@@ -527,16 +527,16 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
   `;
 
   expect( factory.script ).toBe(`
-    rtti.object({
-      name : rtti.string(),
-      age  : rtti.number(),
-      field : rtti.or( rtti.number(), rtti.string() ),
-      attrs : rtti.object({
-        foo: rtti.equals(  "hello world"  ),
-        bar: rtti.number(),
+    schema.object({
+      name : schema.string(),
+      age  : schema.number(),
+      field : schema.or( schema.number(), schema.string() ),
+      attrs : schema.object({
+        foo: schema.equals(  "hello world"  ),
+        bar: schema.number(),
       }),
-      arr_test : rtti.array_of(
-        rtti.not( rtti.number()),
+      arr_test : schema.array_of(
+        schema.not( schema.number()),
       ),
     })
   `);
@@ -548,7 +548,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
 
 
 test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
-  const factory = rtti.statement`
+  const factory = schema.statement`
     object(
       name : equals( << "John Coltrane" >> ),
       age  : number(),
@@ -564,16 +564,16 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
   `;
 
   expect( factory.script ).toBe(`
-    rtti.object({
-      name : rtti.equals(  "John Coltrane"  ),
-      age  : rtti.number(),
-      field : rtti.or( rtti.number(), rtti.string() ),
-      attrs : rtti.object({
-        foo: rtti.equals(  "hello world"  ),
-        bar: rtti.number(),
+    schema.object({
+      name : schema.equals(  "John Coltrane"  ),
+      age  : schema.number(),
+      field : schema.or( schema.number(), schema.string() ),
+      attrs : schema.object({
+        foo: schema.equals(  "hello world"  ),
+        bar: schema.number(),
       }),
-      arr_test : rtti.array_of(
-        rtti.not( rtti.number()),
+      arr_test : schema.array_of(
+        schema.not( schema.number()),
       ),
     })
   `);
@@ -583,23 +583,23 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
 });
 
 test('STATEMENT COMPILER JavaScript Blocks No.3', ()=>{
-  const factory = rtti.statement`equals(<<10>>)`;
-  expect( factory.script ).toBe(`rtti.equals(10)`.trim());
+  const factory = schema.statement`equals(<<10>>)`;
+  expect( factory.script ).toBe(`schema.equals(10)`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
 
 test('STATEMENT COMPILER JavaScript Blocks No.4', ()=>{
-  const factory = rtti.statement`number(<<>>)`;
-  expect( factory.script ).toBe(`rtti.number()`.trim());
+  const factory = schema.statement`number(<<>>)`;
+  expect( factory.script ).toBe(`schema.number()`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
 
 
 test('STATEMENT COMPILER JavaScript Blocks No.5', ()=>{
-  const factory = rtti.statement`number(<<1 + >><<2 + >><<3>>)`;
-  expect( factory.script ).toBe(`rtti.number(1 + 2 + 3)`.trim());
+  const factory = schema.statement`number(<<1 + >><<2 + >><<3>>)`;
+  expect( factory.script ).toBe(`schema.number(1 + 2 + 3)`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
@@ -610,7 +610,7 @@ test( 'CLONE TEST No.1', ()=>{
   const v = 'HELLO';
 
   // create namespace1.
-  const rtti1 = rtti.clone();
+  const rtti1 = schema.clone();
 
   // set a validator factory as `hello`.
   rtti1.hello = make_vali_factory( ()=>(o)=>o === 'hello' );
@@ -619,7 +619,7 @@ test( 'CLONE TEST No.1', ()=>{
   expect( rtti1.statement`hello()`()( v ) ).toBe( false );
 
   // create namespace2.
-  const rtti2 = rtti.clone();
+  const rtti2 = schema.clone();
 
   // override `hello` as a different factory.
   rtti2.hello = make_vali_factory( ()=>(o)=>o === 'HELLO' );
@@ -648,7 +648,7 @@ test( 'CLONE TEST No.1', ()=>{
 
 
 test( 'ARRAY No.1', ()=>{
-  const validator = rtti.statement`
+  const validator = schema.statement`
     array(
       equals( << 'a' >> ),
       equals( << 'b' >> ),
@@ -665,7 +665,7 @@ test( 'ARRAY No.1', ()=>{
 
 
 test( 'object with undefined No.1', ()=>{
-  expect( rtti.statement`
+  expect( schema.statement`
     object(
       a: or(
         undefined(),
@@ -675,7 +675,7 @@ test( 'object with undefined No.1', ()=>{
       {
       }
     )).toBe( true );
-  expect( rtti.statement`
+  expect( schema.statement`
     object(
       a: string()
     )`()(
@@ -686,13 +686,13 @@ test( 'object with undefined No.1', ()=>{
 
 
 test( 'informative error message No.1 ', ()=>{
-  expect( ()=>rtti.statement`
+  expect( ()=>schema.statement`
     object(
       a: string
     )`()(
       {
       }
-    )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    rtti.object({\n      a: rtti.string\n    })" );
+    )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    schema.object({\n      a: schema.string\n    })" );
 });
 
 
