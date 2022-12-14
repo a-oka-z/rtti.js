@@ -696,3 +696,18 @@ test( 'informative error message No.1 ', ()=>{
 });
 
 
+test( 'DEFINE No.1', ()=>{
+  schema.statement`
+    define(
+      new_type : object(
+        a: string()
+      )
+    )`();
+
+  expect( typeof schema.new_type ).toBe( 'function' );
+
+  expect( schema.new_type()( { a : 'string' } )) .toBe( true );
+  expect( schema.new_type()( { a : 123      } )) .toBe( false );
+  expect( schema.new_type()( { b : 'string' } )) .toBe( false );
+
+});

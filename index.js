@@ -25,7 +25,7 @@ function make_vali_factory(
     chk_args.apply( this, defs );
     const vali = vali_gen.apply( this, defs );
     const info = info_gen.apply( this, defs );
-    return (o)=>o=== INFO ? info : vali(o);
+    return (o)=>( o=== INFO ? info : vali(o) );
   }
 };
 
@@ -132,7 +132,7 @@ function rttijs_standard_template_literal(strings, ... values) {
     if ( false ) {
     } else if ( curr_t === '(' ) {
       if (false) {
-      } else if ( last_keyword === 'object' ) {
+      } else if ( last_keyword === 'object' || last_keyword === 'define' ) {
         o_tokens[i] = '({';
         parenthesis_stack.push( '})' );
       } else  {
@@ -346,10 +346,32 @@ const standardValis = {
     (...defs)=>"uuid",
     (...defs)=>{}
   ),
+
   [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
+
+  "compile" : function compile(script) {
+    return rttijs_standard_template_literal([script]);
+  },
+
+  "define"  : function define(object) {
+    if ( this === undefined ) {
+      throw new ReferenceError( '`define` function cannot be executed without `this`' );
+    } 
+    if ( typeof object !== 'object' ) {
+      throw new TypeError( 'the first argument must be an object' );
+    }
+    Object.entries( object ).forEach(([key,value])=>{
+      if ( typeof key !== 'string' ) {
+        throw new TypeError( 'the first argument must be a string value' );
+      }
+      if ( typeof value !== 'function' ) {
+        throw new TypeError( 'the second argument must be a function' );
+      }
+      this[ key ] = make_vali_factory( (...defs)=>value, (...defs)=>key, (...defs)=>{} );
+    });
+  },
   "clone" : rtti_clone,
 };
-
 
 
 
