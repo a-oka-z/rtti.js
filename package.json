@@ -1,7 +1,7 @@
 {
   "name": "rtti.js",
-  "version": "1.0.0",
-  "description": "`rtti.js` is a conventions which implements runtime type checking in the practical JavaScript world.",
+  "version": "1.0.1",
+  "description": "`rtti.js` wss renamed to `vanilla-schema-validator`. `rtti.js` is now deprecated. Use `vanilla-schema-validator`.",
   "main": "index.mjs",
   "type": "module",
   "exports": {
@@ -38,11 +38,11 @@
   },
   "author": {
     "name": "Atsushi Oka",
-    "url": "https://github.com/a-oka-z/rtti.js"
+    "url": "https://github.com/a-oka-z/vanilla-schema-validator.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/a-oka-z/rtti.js"
+    "url": "https://github.com/a-oka-z/vanilla-schema-validator.js"
   },
   "license": "ISC",
   "devDependencies": {
