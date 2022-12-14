@@ -20,6 +20,12 @@
     "test": "npm run make; npm run test-cs; npm run test-es6",
     "make": "node ./make.js"
   },
+  "files": [
+    "README.md",
+    "index.cjs",
+    "index.mjs",
+    "package.json"
+  ],
   "jest": {
     "moduleFileExtensions": [
       "js",
