@@ -5,7 +5,7 @@
 object in JavaScript. 
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { rtti } from 'rtti.js';
 
 console.error( rtti.string()(  42  )); // false
 console.error( rtti.string()( '42' )); // true
@@ -16,7 +16,7 @@ console.error( rtti.number()( '42' )); // false
 Combining these functions enables you to validate more complex objects :
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { rtti } from 'rtti.js';
 
 const t_person = rtti.object({
   name    : rtti.string(),
@@ -40,7 +40,7 @@ They are merely utilities and not requirement; you can create a validator
 manually on the fly. For example, the following example works, too:
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { rtti } from 'rtti.js';
 
 const t_person = rtti.object({
   name    : rtti.string(),
@@ -484,7 +484,7 @@ other projects. In order to avoid confliction, you can create your own `rtti`
 object by `clone()` method.
 
 ```javascript
-import  { rtti } from './index.mjs';
+import  { rtti } from 'rtti.js';
 
 const rtti2 = rtti.clone();
 
@@ -606,11 +606,10 @@ for the sake of naming consistency.
   is called `array_of()` while `array_of()` is called `array()`. This breaks
   backward compatibility.
 
-- v1.0.1 Fixed a bug that array() validator was broken.
+- v1.0.1 Fixed the broken `array()` validator .
 
-- v1.0.2 Renamed `rtti.js`  to `vanilla-schema-validator`.  npm package
-         `rtti.js` is now deprecated.
-         (Wed, 14 Dec 2022 13:10:51 +0900)
+- v1.0.2 Fixed `README.md`.
+
 
  Conclusion
 --------------------------------------------------------------------------------
