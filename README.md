@@ -432,7 +432,7 @@ future version. The new project should not rely on this behavior.
 
  JavaScript Values in Statement Compiler
 --------------------------------------------------------------------------------
-In the statemet string, regions surrounded by `<<` and `>>`` are treated as 
+In the statemet string, regions surrounded by `<<` and `>>` are treated as 
 raw JavaScript values.
 
 For example,
