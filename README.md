@@ -5,6 +5,9 @@
 extensible, scalable and yet simple convention to check validity of an object
 or/and to determine the runtime type of an specific object by duck-typing.
 
+> Note that **vanilla-schema-validator** was formerly referred as 
+> [rtti.js](https://www.npmjs.com/package/rtti.js) and renamed on Dec 27 2022.
+
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
 
