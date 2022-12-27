@@ -1,6 +1,6 @@
 'use strict';
 
-const { INFO, schema, make_vali_factory } = require( './index.cjs' );
+const { INFO, schema, rtti, make_vali_factory } = require( './index.cjs' );
 
 
 function getStackFromError(o) {
@@ -698,8 +698,8 @@ test( 'informative error message No.1 ', ()=>{
 });
 
 
-test( 'DEFINE No.1', ()=>{
-  schema.statement`
+test( 'DEFINE AND COMPILE No.1', ()=>{
+  schema.compile`
     define(
       new_type : object(
         a: string()
@@ -711,5 +711,21 @@ test( 'DEFINE No.1', ()=>{
   expect( schema.new_type()( { a : 'string' } )) .toBe( true );
   expect( schema.new_type()( { a : 123      } )) .toBe( false );
   expect( schema.new_type()( { b : 'string' } )) .toBe( false );
+
+});
+
+test( 'rtti backward compatibility test  No.1', ()=>{
+  rtti.statement`
+    define(
+      new_type : object(
+        a: string()
+      )
+    )`();
+
+  expect( typeof rtti.new_type ).toBe( 'function' );
+
+  expect( rtti.new_type()( { a : 'string' } )) .toBe( true );
+  expect( rtti.new_type()( { a : 123      } )) .toBe( false );
+  expect( rtti.new_type()( { b : 'string' } )) .toBe( false );
 
 });

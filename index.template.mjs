@@ -15,6 +15,7 @@ function inspect(s) {
 export {
   INFO,
   schema,
+  schema as rtti,
   make_vali_factory,
 
   makeValiFactory,

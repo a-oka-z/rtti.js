@@ -9,7 +9,7 @@ function inspect(s) {
 
 
 const INFO = Symbol.for( 'dump schema information' );
-const ID_STANDARD_STATEMENT_COMPILER  = "statement";
+const ID_STANDARD_STATEMENT_COMPILER  = "compiler";
 
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
@@ -358,9 +358,12 @@ const standardValis = {
   ),
 
   [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
+  "statement" : function statement(...args) {
+    return this[ID_STANDARD_STATEMENT_COMPILER](...args);
+  },
 
-  "compile" : function compile(script) {
-    return rttijs_standard_template_literal([script]);
+  "compile" : function compile(...args) {
+    return this[ID_STANDARD_STATEMENT_COMPILER](...args);
   },
 
   "define"  : function define(object) {
@@ -453,6 +456,7 @@ const newRtti = new_rtti;
 export {
   INFO,
   schema,
+  schema as rtti,
   make_vali_factory,
 
   makeValiFactory,
