@@ -1,9 +1,9 @@
  **vanilla-schema-validator**
-=====================
+================================================================================ 
 
 **vanilla-schema-validator** is a schema validator which is non-opinionated,
 extensible, scalable and yet simple convention to check validity of an object
-in JavaScript. 
+or/and to determine the runtime type of an specific object by duck-typing.
 
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
@@ -75,9 +75,10 @@ can accomplish validation in most cases without these complicated frameworks.
  Design Goal of **vanilla-schema-validator**
 --------------------------------------------------------------------------------
 
-The desigin concept of **vanilla-schema-validator** is based on my hypothesis explains that in
-JavaScript, it is impossible to precisely determine a type of an object via its
-run-time type information and `duck typing` is the only way to accomplish it.
+The desigin concept of **vanilla-schema-validator** is based on my hypothesis
+explains that in JavaScript, it is impossible to precisely determine a type of
+an object via its run-time type information and `duck typing` is the only way
+to accomplish it.
 
 A Type in JavaScript is merely the least expectation to an object. For example,
 if you get an object, you might expect that there is a property which name is
@@ -100,7 +101,7 @@ following three elements.
 
 ```javascript
   schema.string()('value')
-   1      2       3
+  |  1  |   2    |   3   |
 ```
 
 1. `Namespace` ... We call this part `Namespace` . A namespace object keeps a
@@ -315,7 +316,7 @@ specified validators, this validator returns `false`.  **v1.0.0**
 
 
 ```javascript
-  const validator = schema.statement`
+  const validator = schema.compile`
     array(
       equals( <<'a'>> ),
       equals( <<'b'>> ),
@@ -386,13 +387,13 @@ schema.uuid()( false ) // false
 ```
 
 
- Create Validators via RTTI Statement Script Compiler
+ Create Validators via Statement Script Compiler
 --------------------------------------------------------------------------------
-The `schema` offers a template literal function which is called RTTI Statement
+The `schema` offers a template literal function which is called Statement
 Script Compiler.  Statement compiler helps to build various validators:
 
 ```javascript
-const type = schema.statement`
+const type = schema.compile`
   object(
     foo : number(),
     bar : string(),
@@ -415,7 +416,7 @@ console.error( type( v2 ) ); // false;
 In this document, sometimes a reference to `schema` object is called `namespace`.
 In JavaScript, in order to build complex validators, it is necessary to specify
 a desired namespace reference everytime you refer the validator factories. In
-RTTI Statement Script, it is possible to omit the namespace specifier.
+Statement Script, it is possible to omit the namespace specifier.
 
 The statement compiler may help you to build your validators with less
 boilerplate.
@@ -434,7 +435,7 @@ raw JavaScript values.
 For example,
 
 ```javascript
-const type = schema.statement`
+const type = schema.compile`
   object(
     foo : equals( <<  42  >> ),
     bar : equals( << '42' >> ),
@@ -456,7 +457,7 @@ You can add your own validators by setting factorys of your desired validators
 as properties on the `schema` object.
 
 ```javascript
-const type = schema.statement`
+const type = schema.compile`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -487,12 +488,12 @@ object by `clone()` method.
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
 
-const rtti2 = schema.clone();
+const schema2 = schema.clone();
 
-rtti2.Foo = (...defs)=>(o)=>typeof o ==='number';
-rtti2.Bar = (...defs)=>(o)=>typeof o ==='string';
+schema2.Foo = (...defs)=>(o)=>typeof o ==='number';
+schema2.Bar = (...defs)=>(o)=>typeof o ==='string';
 
-const type2 = rtti2.statement`
+const type2 = schema2.compile`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -506,7 +507,7 @@ const v = {
 console.error( type2( v ) ); // true;
 
 
-const type1 = schema.statement`
+const type1 = schema.compile`
   object(
     foo : Foo(),
     bar : Bar(),
@@ -611,9 +612,18 @@ for the sake of naming consistency.
 
 - v1.0.2 Fixed `README.md`.
 
-- v2.0.0 Renamed **rtti.js**  to **vanilla-schema-validator**.  npm package
-         **rtti.js** is now deprecated.
-         (Wed, 14 Dec 2022 14:38:18 +0900)
+- v2.0.0 **vanilla-schema-validator** is released.
+         (Tue, 27 Dec 2022 17:48:41 +0900)
+
+         **rtti.js** has been renamed to **vanilla-schema-validator**.  
+         npm package **rtti.js** is deprecated.
+         Updated on (Wed, 14 Dec 2022 14:38:18 +0900)
+
+         `rtti.statement` is renamed `schema.compile`.
+         `vanilla-schema-validator` is one-hundred percent backward compatible
+         with former `rtti.js` though.
+         Updated on (Tue, 27 Dec 2022 17:33:45 +0900)
+
 
  Conclusion
 --------------------------------------------------------------------------------
