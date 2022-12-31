@@ -368,59 +368,59 @@ test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`
 
 
 
-
-/*
- * the standard statement compiler ( for backward compatibility )
- */
-test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
-  const factory = schema`
-    object(
-      name : string(),
-      age  : number(),
-      field : or( number(), string() ),
-      attrs : object(
-        foo: string(),
-        bar: number(),
-      ),
-      arr_test : array_of(
-        not( number()),
-      ),
-    )
-  `;
-
-  expect( factory.script ).toBe(`
-    schema.object({
-      name : schema.string(),
-      age  : schema.number(),
-      field : schema.or( schema.number(), schema.string() ),
-      attrs : schema.object({
-        foo: schema.string(),
-        bar: schema.number(),
-      }),
-      arr_test : schema.array_of(
-        schema.not( schema.number()),
-      ),
-    })
-  `);
-
-  const vali = factory();
-  console.error({factory,vali});
-});
-
-test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
-  expect( schema`string()`()(INFO) ).toBe( 'string' );
-  expect( schema`number()`()(INFO) ).toBe( 'number' );
-
-  expect( schema`string()`()('hello') ).toBe( true  );
-  expect( schema`string()`()( 123   ) ).toBe( false );
-  expect( schema`number()`()( 123   ) ).toBe( true  );
-  expect( schema`number()`()('hello') ).toBe( false );
-});
-
-
-
-
-
+// ABANDONED (Sat, 31 Dec 2022 18:39:35 +0900)
+// /*
+//  * the standard statement compiler ( for backward compatibility )
+//  */
+// test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
+//   const factory = schema`
+//     object(
+//       name : string(),
+//       age  : number(),
+//       field : or( number(), string() ),
+//       attrs : object(
+//         foo: string(),
+//         bar: number(),
+//       ),
+//       arr_test : array_of(
+//         not( number()),
+//       ),
+//     )
+//   `;
+// 
+//   expect( factory.script ).toBe(`
+//     schema.object({
+//       name : schema.string(),
+//       age  : schema.number(),
+//       field : schema.or( schema.number(), schema.string() ),
+//       attrs : schema.object({
+//         foo: schema.string(),
+//         bar: schema.number(),
+//       }),
+//       arr_test : schema.array_of(
+//         schema.not( schema.number()),
+//       ),
+//     })
+//   `);
+// 
+//   const vali = factory();
+//   console.error({factory,vali});
+// });
+// 
+// test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
+//   expect( schema`string()`()(INFO) ).toBe( 'string' );
+//   expect( schema`number()`()(INFO) ).toBe( 'number' );
+// 
+//   expect( schema`string()`()('hello') ).toBe( true  );
+//   expect( schema`string()`()( 123   ) ).toBe( false );
+//   expect( schema`number()`()( 123   ) ).toBe( true  );
+//   expect( schema`number()`()('hello') ).toBe( false );
+// });
+// 
+// 
+// 
+// 
+// 
 
 
 
@@ -687,15 +687,15 @@ test( 'object with undefined No.1', ()=>{
 });
 
 
-test( 'informative error message No.1 ', ()=>{
-  expect( ()=>schema.statement`
-    object(
-      a: string
-    )`()(
-      {
-      }
-    )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    schema.object({\n      a: schema.string\n    })" );
-});
+// test( 'informative error message No.1 ', ()=>{
+//   expect( ()=>schema.statement`
+//     object(
+//       a: string
+//     )`()(
+//       {
+//       }
+//     )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    schema.object({\n      a: schema.string\n    })" );
+// });
 
 
 test( 'DEFINE AND COMPILE No.1', ()=>{

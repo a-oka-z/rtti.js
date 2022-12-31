@@ -1,3 +1,4 @@
+const module_name = "vanilla-schema-validator";
 const INFO = Symbol.for( 'dump schema information' );
 const ID_STANDARD_STATEMENT_COMPILER  = "compiler";
 
@@ -82,10 +83,10 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   return -1;
 };
 
-function rtti_clone() {
-  const __rtti = new_rtti();
-  Object.assign( __rtti, this );
-  return __rtti;
+function cloneSchema() {
+  const schema = createSchema();
+  Object.assign( schema, this );
+  return schema;
 }
 
 function rttijs_standard_template_literal(strings, ... values) {
@@ -185,11 +186,12 @@ function rttijs_standard_template_literal(strings, ... values) {
    */
   const self = this;
   const result = function compiled_statement(...args) {
-    const thisOrSelf = this == undefined ? self : this;
+    const schema = this == undefined ? self : this;
     try {
-      return compiled_script.apply( undefined, [ thisOrSelf, ...args ] );
+      return compiled_script.apply( undefined, [ schema, ...args ] );
     } catch (e) {
-      e.message = e.message + '\nscript was ```\n' + script+'\n```\nself was ```'+ thisOrSelf + '```' ;
+      e.message = 
+        `[${module_name}] a compiled validator threw an error. '${e.message}'\ninformation:\nscript:${script}\n---\nschema:${JSON.stringify( schema, (k,v)=>typeof v==='function' ? '[function '+k+']' : v, 2)}\n---\n`;
       throw e;
       // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
     }
@@ -373,35 +375,23 @@ const standardValis = {
       this[ key ] = make_vali_factory( (...defs)=>value, (...defs)=>key, (...defs)=>{} );
     });
   },
-  "clone" : rtti_clone,
+  "clone" : cloneSchema,
 };
 
 
 
-function new_rtti() {
-  // Create a thunk for backward compatibility. This should create a normal
-  // object.
-  function schema(...args) {
-   /*
-    * `schema` is the reference to this function itself.  This functionality is
-    * designed to accomplish recursive calls in closures. In this part, it
-    * is applied as a closure which can be accessed from outside the
-    * closure.
-    */
-    return schema[ID_STANDARD_STATEMENT_COMPILER].apply( schema, args );
-  }
-  return schema;
+function createSchema() {
+  return {};
 }
 
-
 const schema = (()=>{
-  const __rtti = new_rtti();
-  Object.assign( __rtti, standardValis );
-  return __rtti;
+  const schema = createSchema();
+  Object.assign( schema, standardValis );
+  return schema;
 })();
 
 
-const newRtti = new_rtti;
+const newRtti = createSchema;
 
 
 // // console.error( schema.null()() );

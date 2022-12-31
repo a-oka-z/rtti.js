@@ -2,7 +2,7 @@ params: body
 'use strict';
 
 function inspect(s) {
-  return JSON.stringify( s, null, 2 );
+  return JSON.stringify( s, (k,v)=>typeof v === 'function' ? v.toString() : v, 2 );
 }
 
 
