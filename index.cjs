@@ -99,6 +99,9 @@ function rtti_clone() {
 }
 
 function rttijs_standard_template_literal(strings, ... values) {
+  if ( this === undefined )
+    throw Error('this is undefined');
+
   if ( ! Array.isArray( strings ) ) {
     throw new TypeError( 'the first argument is not an array' );
   }
@@ -192,14 +195,11 @@ function rttijs_standard_template_literal(strings, ... values) {
    */
   const self = this;
   const result = function compiled_statement(...args) {
+    const thisOrSelf = this == undefined ? self : this;
     try {
-      if ( this === undefined ) {
-        return compiled_script.apply( undefined, [ self, ...args ] );
-      } else {
-        return compiled_script.apply( undefined, [ this, ...args ] );
-      }
+      return compiled_script.apply( undefined, [ thisOrSelf, ...args ] );
     } catch (e) {
-      e.message = e.message + '\n' + script;
+      e.message = e.message + '\nscript was ```\n' + script+'\n```\nself was ```'+ thisOrSelf + '```' ;
       throw e;
       // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
     }
@@ -359,11 +359,11 @@ const standardValis = {
 
   [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
   "statement" : function statement(...args) {
-    return this[ID_STANDARD_STATEMENT_COMPILER](...args);
+    return this[ID_STANDARD_STATEMENT_COMPILER].call(this,...args);
   },
 
   "compile" : function compile(...args) {
-    return this[ID_STANDARD_STATEMENT_COMPILER](...args);
+    return this[ID_STANDARD_STATEMENT_COMPILER].call(this,...args);
   },
 
   "define"  : function define(object) {
