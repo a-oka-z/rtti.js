@@ -626,6 +626,8 @@ for the sake of naming consistency.
          `vanilla-schema-validator` is one-hundred percent backward compatible
          with former `rtti.js` though.
          Updated on (Tue, 27 Dec 2022 17:33:45 +0900)
+- v2.0.1 fixed the issue that `statement compiler` throws an error when a comma
+         is placed after all statements.
 
 
  Conclusion

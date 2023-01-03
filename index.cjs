@@ -183,8 +183,12 @@ function rttijs_standard_template_literal(strings, ... values) {
    * This is just for trapping errors; this simply returns the function.
    */
   const compiled_script = (()=>{
+    let __script = script;
+    __script = __script.trim();
+    __script = __script.replace( /,$/, '' );
+
     try {
-      return new Function( PREFIX , '...args' , 'return (\n' + script + '\n);' );
+      return new Function( PREFIX , '...args' , 'return (\n' + __script + '\n);' );
     } catch (e) {
       throw new SyntaxError( e.message += '\n' + script, {cause:e} );
     }
