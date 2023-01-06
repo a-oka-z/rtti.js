@@ -342,8 +342,12 @@ const standardValis = {
       )
     },
     (...defs)=>{
-      const def = defs.shift();
-      return def(INFO) + '[]';
+      if ( defs.length === 0 ) {
+        return '[empty array]';
+      } else {
+        const def = defs.shift();
+        return def(INFO) + '[]';
+      }
     },
     (...defs)=>{
       if ( ! defs.every(def=>(check_if_proper_vali( def, 'array' )))) {
