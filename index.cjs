@@ -202,7 +202,20 @@ function rttijs_standard_template_literal(strings, ... values) {
   const result = function compiled_statement(...args) {
     const schema = this == undefined ? self : this;
     try {
-      return compiled_script.apply( undefined, [ schema, ...args ] );
+      const validator =  compiled_script.apply( undefined, [ schema, ...args ] );
+      if ( validator !== undefined && 
+           validator !== null      && 
+          ( ( typeof validator === 'object'   ) || 
+            ( typeof validator === 'function' ) ) )
+      {
+        Object.defineProperty( validator, 'script', {
+          value : script,
+          enumerable   : false,
+          writable     : true,
+          configurable : true,
+        });
+      }
+      return validator;
     } catch (e) {
       e.message = 
         `[${module_name}] a compiled validator threw an error. '${e.message}'\ninformation:\nscript:${script}\n---\nschema:${JSON.stringify( schema, (k,v)=>typeof v==='function' ? '[function '+k+']' : v, 2)}\n---\n`;

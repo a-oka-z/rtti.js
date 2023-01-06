@@ -727,3 +727,51 @@ test( 'rtti backward compatibility test  No.1', ()=>{
   expect( rtti.new_type()( { b : 'string' } )) .toBe( false );
 
 });
+
+
+
+
+test('STATEMENT COMPILER / returned validators have `script` property 1', ()=>{
+  const factory = schema.statement`
+    object(
+      name : string(),
+      age  : number(),
+      field : or( number(), string() ),
+      attrs : object(
+        foo: equals( << "hello world" >> ),
+        bar: number(),
+      ),
+      arr_test : array_of(
+        not( number()),
+      ),
+    )
+  `;
+
+  expect( factory().script ).toBe(`
+    schema.object({
+      name : schema.string(),
+      age  : schema.number(),
+      field : schema.or( schema.number(), schema.string() ),
+      attrs : schema.object({
+        foo: schema.equals(  "hello world"  ),
+        bar: schema.number(),
+      }),
+      arr_test : schema.array_of(
+        schema.not( schema.number()),
+      ),
+    })
+  `);
+
+  console.error({factory});
+});
+
+
+test('STATEMENT COMPILER / returned validators have `script` property 2', ()=>{
+  const factory = schema.statement`   << (e)=>e===1>>   `;
+
+  expect( factory()( 1 ) ).toBe( true );
+  expect( factory()( 2 ) ).toBe( false );
+  expect( factory().script.trim() ).toBe(`(e)=>e===1`);
+
+  console.error({factory});
+});
