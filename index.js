@@ -10,10 +10,34 @@ const create_info_gen_from_string = ( info_gen_string )=>{
   }
 };
 
+function vali_to_string( vali ) {
+  if ( typeof vali !== 'function' ) {
+    throw new TypeError( 'vali is not a function' );
+  }
+
+  try {
+    const result = vali( INFO );
+    if ( typeof result !== 'boolean' ) {
+      return result;
+    }
+  } catch (e) {
+    console.error(e);
+    // safely ignorable
+  }
+    
+  if ( 'source' in vali ) {
+    return vali.source;
+  } else if ( 'script' in vali ) {
+    return vali.script;
+  } else {
+    return Function.prototype.toString.call( vali );
+  }
+}
+
 function make_vali_factory(
-  vali_gen=(()=>{ throw new ReferenceError( 'vali_gen is not specified' ) } ), 
-  info_gen=(function info_gen(...defs){ return "unknown" } ),
-  chk_args=(function chk_args(...defs){ return null }) 
+  vali_gen = (()=>{ throw new ReferenceError( 'vali_gen is not specified' ) } ), 
+  info_gen = (function info_gen(...defs){ return `${defs.map(e=>vali_to_string(e)).join(',')}` } ),
+  chk_args = (function chk_args(...defs){ return null }),
 ) {
   // console.log( 'make_vali_factory', this );
   if ( this !== undefined ) throw new Error("not undefined");
@@ -22,12 +46,28 @@ function make_vali_factory(
     info_gen = create_info_gen_from_string( info_gen );
   }
 
-  return function validator(...defs) {
+  function validator(...defs) {
     chk_args.apply( this, defs );
     const vali = vali_gen.apply( this, defs );
     const info = info_gen.apply( this, defs );
-    return (o)=>( o=== INFO ? info : vali(o) );
+    const wrapped_vali =  (o)=>( o=== INFO ? info : vali(o) );
+
+    const descriptor = {
+      value : info,
+      enumerable : false,
+      writable : false,
+      configurable : true,
+    };
+
+    Object.defineProperties( wrapped_vali,{
+      "source": descriptor,
+      "script": descriptor,
+    });
+
+    return wrapped_vali;
   }
+
+  return validator;
 };
 
 const makeValiFactory = make_vali_factory;
@@ -219,18 +259,18 @@ function rttijs_standard_template_literal(strings, ... values) {
 
 
 const standardValis = {
-  "any"       : make_vali_factory((...defs)=>(o)=>true                                                   , (...defs)=>"any"      , (...def)=>{}),
-  "undefined" : make_vali_factory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined", (...def)=>{}),
-  "null"      : make_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null"     , (...def)=>{}),
-  "boolean"   : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean"  , (...def)=>{}),
-  "number"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number"   , (...def)=>{}),
-  "string"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string"   , (...def)=>{}),
-  "bigint"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint"   , (...def)=>{}),
-  "symbol"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol"   , (...def)=>{}),
-  "function"  : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function" , (...def)=>{}),
+  "any"       : make_vali_factory((...defs)=>(o)=>true                                                   , (...defs)=>"any()"      , (...def)=>{}),
+  "undefined" : make_vali_factory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined()", (...def)=>{}),
+  "null"      : make_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null()"     , (...def)=>{}),
+  "boolean"   : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean()"  , (...def)=>{}),
+  "number"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number()"   , (...def)=>{}),
+  "string"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string()"   , (...def)=>{}),
+  "bigint"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint()"   , (...def)=>{}),
+  "symbol"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol()"   , (...def)=>{}),
+  "function"  : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function()" , (...def)=>{}),
   "or"        : make_vali_factory(
     (...defs)=>(o)=>defs.some( f=>f(o)),
-    (...defs)=>"or",
+    (...defs)=>"or()",
     (...defs)=>{
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified in `or`' );
@@ -242,7 +282,7 @@ const standardValis = {
   ),
   "and"       : make_vali_factory(
     (...defs)=>(o)=>defs.every(f=>f(o)),
-    (...defs)=>"and"      ,
+    (...defs)=>"and()"      ,
     (...defs)=>{
       if (defs.length===0) {
         throw new RangeError( 'no definition was specified' );
@@ -254,7 +294,7 @@ const standardValis = {
   ),
   "not"       : make_vali_factory(
     (...defs)=>(o)=>! defs[0]( o ),
-    (...defs)=>"not",
+    (...defs)=>"not()",
     (...defs)=>{
       if (defs.length < 1) {
         throw new RangeError( 'no definition was specified in `not`' );
@@ -341,14 +381,7 @@ const standardValis = {
         }
       )
     },
-    (...defs)=>{
-      if ( defs.length === 0 ) {
-        return '[empty array]';
-      } else {
-        const def = defs.shift();
-        return def(INFO) + '[]';
-      }
-    },
+    undefined,
     (...defs)=>{
       if ( ! defs.every(def=>(check_if_proper_vali( def, 'array' )))) {
         throw new TypeError( "found an invalid argument `array`" );

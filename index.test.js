@@ -132,17 +132,17 @@ expect.extend({
  * });
  */
 
-test('INFO undefined'  , ()=>{  expect( schema.undefined (              )(INFO            )).toBe('undefined'         ); } );
-test('INFO null'       , ()=>{  expect( schema.null      (              )(INFO            )).toBe('null'              ); } );
-test('INFO boolean'    , ()=>{  expect( schema.boolean   (              )(INFO            )).toBe('boolean'           ); } );
-test('INFO number'     , ()=>{  expect( schema.number    (              )(INFO            )).toBe('number'            ); } );
-test('INFO string'     , ()=>{  expect( schema.string    (              )(INFO            )).toBe('string'            ); } );
-test('INFO bigint'     , ()=>{  expect( schema.bigint    (              )(INFO            )).toBe('bigint'            ); } );
-test('INFO symbol'     , ()=>{  expect( schema.symbol    (              )(INFO            )).toBe('symbol'            ); } );
-test('INFO function'   , ()=>{  expect( schema.function  (              )(INFO            )).toBe('function'          ); } );
-test('INFO not'        , ()=>{  expect( schema.not       (schema.boolean())(INFO            )).toBe('not'               ); } );
-test('INFO or'         , ()=>{  expect( schema.or        (schema.boolean())(INFO            )).toBe('or'                ); } );
-test('INFO and'        , ()=>{  expect( schema.and       (schema.boolean())(INFO            )).toBe('and'               ); } );
+test('INFO undefined'  , ()=>{  expect( schema.undefined (              )(INFO            )).toBe('undefined()'         ); } );
+test('INFO null'       , ()=>{  expect( schema.null      (              )(INFO            )).toBe('null()'              ); } );
+test('INFO boolean'    , ()=>{  expect( schema.boolean   (              )(INFO            )).toBe('boolean()'           ); } );
+test('INFO number'     , ()=>{  expect( schema.number    (              )(INFO            )).toBe('number()'            ); } );
+test('INFO string'     , ()=>{  expect( schema.string    (              )(INFO            )).toBe('string()'            ); } );
+test('INFO bigint'     , ()=>{  expect( schema.bigint    (              )(INFO            )).toBe('bigint()'            ); } );
+test('INFO symbol'     , ()=>{  expect( schema.symbol    (              )(INFO            )).toBe('symbol()'            ); } );
+test('INFO function'   , ()=>{  expect( schema.function  (              )(INFO            )).toBe('function()'          ); } );
+test('INFO not'        , ()=>{  expect( schema.not       (schema.boolean())(INFO            )).toBe('not()'               ); } );
+test('INFO or'         , ()=>{  expect( schema.or        (schema.boolean())(INFO            )).toBe('or()'                ); } );
+test('INFO and'        , ()=>{  expect( schema.and       (schema.boolean())(INFO            )).toBe('and()'               ); } );
 
 test('CHECK undefined' , ()=>{  expect( schema.undefined (              )(undefined       )).toBe(true                ); } );
 test('CHECK null'      , ()=>{  expect( schema.null      (              )(null            )).toBe(true                ); } );
@@ -324,8 +324,8 @@ test('STATEMENT COMPILER test basic 1', ()=>{
 });
 
 test('STATEMENT COMPILER test basic 2', ()=>{
-  expect( schema.statement`string()`()(INFO) ).toBe( 'string' );
-  expect( schema.statement`number()`()(INFO) ).toBe( 'number' );
+  expect( schema.statement`string()`()(INFO) ).toBe( 'string()' );
+  expect( schema.statement`number()`()(INFO) ).toBe( 'number()' );
 
   expect( schema.statement`string()`()('hello') ).toBe( true  );
   expect( schema.statement`string()`()( 123   ) ).toBe( false );
@@ -333,17 +333,17 @@ test('STATEMENT COMPILER test basic 2', ()=>{
   expect( schema.statement`number()`()('hello') ).toBe( false );
 });
 
-test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`              ()(INFO        )).toBe('undefined'          ); } );
-test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`              ()(INFO        )).toBe('null'               ); } );
-test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`              ()(INFO        )).toBe('boolean'            ); } );
-test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`              ()(INFO        )).toBe('number'             ); } );
-test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`              ()(INFO        )).toBe('string'             ); } );
-test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`              ()(INFO        )).toBe('bigint'             ); } );
-test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`              ()(INFO        )).toBe('symbol'             ); } );
-test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`              ()(INFO        )).toBe('function'           ); } );
-test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`     ()(INFO        )).toBe('not'                ); } );
-test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`     ()(INFO        )).toBe('or'                 ); } );
-test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`     ()(INFO        )).toBe('and'                ); } );
+test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`              ()(INFO        )).toBe('undefined()'          ); } );
+test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`              ()(INFO        )).toBe('null()'               ); } );
+test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`              ()(INFO        )).toBe('boolean()'            ); } );
+test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`              ()(INFO        )).toBe('number()'             ); } );
+test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`              ()(INFO        )).toBe('string()'             ); } );
+test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`              ()(INFO        )).toBe('bigint()'             ); } );
+test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`              ()(INFO        )).toBe('symbol()'             ); } );
+test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`              ()(INFO        )).toBe('function()'           ); } );
+test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`     ()(INFO        )).toBe('not()'                ); } );
+test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`     ()(INFO        )).toBe('or()'                 ); } );
+test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`     ()(INFO        )).toBe('and()'                ); } );
 
 test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( schema.statement`undefined ()`              ()(undefined   )).toBe(true                 ); } );
 test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( schema.statement`null      ()`              ()(null        )).toBe(true                 ); } );
@@ -773,3 +773,11 @@ test('STATEMENT COMPILER / returned validators have `script` property 2', ()=>{
 
   console.error({factory});
 });
+
+
+
+test('informative error message ...1 ', ()=>{
+  const v = schema.array( schema.boolean(), schema.number(), schema.string() );
+  console.error( v( INFO ) );
+});
+

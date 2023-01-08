@@ -640,6 +640,9 @@ script.
 Fixed the issue that occurs when `array()` validator factory is called with no
 arguments.
 
+- v2.0.4 (??)
+
+Added `vali_to_string()`
 
 
  Conclusion

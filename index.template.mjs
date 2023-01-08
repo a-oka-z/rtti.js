@@ -17,6 +17,7 @@ export {
   schema,
   schema as rtti,
   make_vali_factory,
+  vali_to_string,
 
   makeValiFactory,
   newRtti,
