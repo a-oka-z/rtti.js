@@ -640,9 +640,9 @@ script.
 Fixed the issue that occurs when `array()` validator factory is called with no
 arguments.
 
-- v2.0.4 (??)
-
-Added `vali_to_string()`
+- v2.0.4 (Sun, 08 Jan 2023 14:20:08 +0900)
+  - Added `vali_to_string()`
+  - Removed an experimental method `define()`
 
 
  Conclusion

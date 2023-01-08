@@ -412,23 +412,6 @@ const standardValis = {
     return this[ID_STANDARD_STATEMENT_COMPILER].call(this,...args);
   },
 
-  "define"  : function define(object) {
-    if ( this === undefined ) {
-      throw new ReferenceError( '`define` function cannot be executed without `this`' );
-    } 
-    if ( typeof object !== 'object' ) {
-      throw new TypeError( 'the first argument must be an object' );
-    }
-    Object.entries( object ).forEach(([key,value])=>{
-      if ( typeof key !== 'string' ) {
-        throw new TypeError( 'the first argument must be a string value' );
-      }
-      if ( typeof value !== 'function' ) {
-        throw new TypeError( 'the second argument must be a function' );
-      }
-      this[ key ] = make_vali_factory( (...defs)=>value, (...defs)=>key, (...defs)=>{} );
-    });
-  },
   "clone" : cloneSchema,
 };
 
