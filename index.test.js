@@ -43,72 +43,72 @@ function filterErrorToJSONFriendly(o) {
   }
 }
 
-expect.extend({
-  toProperlyReturn( received, expected ) {
-    let returned  = null;
-    try {
-      returned = received();
-    } catch( e ) {
-      console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
-      return {
-        message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
-        pass: false,
-      };
-    }
-
-    try {
-      const wasExpected = expected( returned );
-      if ( wasExpected ) {
-        return {
-          message: () => `Successed`,
-          pass: true,
-        };
-      } else {
-        return {
-          message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
-          pass: false,
-        };
-      }
-    } catch ( e ) {
-      return {
-        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-        pass: false,
-      };
-    }
-  },
-  toProperlyThrow( received, expected ) {
-    let thrown  = null;
-    try {
-      received();
-      return {
-        message: () => `the function did not throw`,
-        pass: false,
-      };
-    } catch( e ) {
-      thrown = e;
-    }
-
-    try {
-      const wasExpected = expected( thrown );
-      if ( wasExpected ) {
-        return {
-          message: () => `Successed`,
-          pass: true,
-        };
-      } else {
-        return {
-          message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
-          pass: false,
-        };
-      }
-    } catch ( e ) {
-      return {
-        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-        pass: false,
-      };
-    }
-  },
-});
+// expect.extend({
+//   toProperlyReturn( received, expected ) {
+//     let returned  = null;
+//     try {
+//       returned = received();
+//     } catch( e ) {
+//       console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
+//       return {
+//         message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
+//         pass: false,
+//       };
+//     }
+// 
+//     try {
+//       const wasExpected = expected( returned );
+//       if ( wasExpected ) {
+//         return {
+//           message: () => `Successed`,
+//           pass: true,
+//         };
+//       } else {
+//         return {
+//           message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
+//           pass: false,
+//         };
+//       }
+//     } catch ( e ) {
+//       return {
+//         message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+//         pass: false,
+//       };
+//     }
+//   },
+//   toProperlyThrow( received, expected ) {
+//     let thrown  = null;
+//     try {
+//       received();
+//       return {
+//         message: () => `the function did not throw`,
+//         pass: false,
+//       };
+//     } catch( e ) {
+//       thrown = e;
+//     }
+// 
+//     try {
+//       const wasExpected = expected( thrown );
+//       if ( wasExpected ) {
+//         return {
+//           message: () => `Successed`,
+//           pass: true,
+//         };
+//       } else {
+//         return {
+//           message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
+//           pass: false,
+//         };
+//       }
+//     } catch ( e ) {
+//       return {
+//         message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+//         pass: false,
+//       };
+//     }
+//   },
+// });
 
 /*
  * test('test test true',()=>{
@@ -132,73 +132,185 @@ expect.extend({
  * });
  */
 
-test('INFO undefined'  , ()=>{  expect( schema.undefined (              )(INFO            )).toBe('undefined()'         ); } );
-test('INFO null'       , ()=>{  expect( schema.null      (              )(INFO            )).toBe('null()'              ); } );
-test('INFO boolean'    , ()=>{  expect( schema.boolean   (              )(INFO            )).toBe('boolean()'           ); } );
-test('INFO number'     , ()=>{  expect( schema.number    (              )(INFO            )).toBe('number()'            ); } );
-test('INFO string'     , ()=>{  expect( schema.string    (              )(INFO            )).toBe('string()'            ); } );
-test('INFO bigint'     , ()=>{  expect( schema.bigint    (              )(INFO            )).toBe('bigint()'            ); } );
-test('INFO symbol'     , ()=>{  expect( schema.symbol    (              )(INFO            )).toBe('symbol()'            ); } );
-test('INFO function'   , ()=>{  expect( schema.function  (              )(INFO            )).toBe('function()'          ); } );
+class Expect {
+  constructor(expected) {
+    this.expected = expected;
+  };
+
+  toBe(received) {
+    return assert.equal( this.expected ,received );
+  };
+  toEqual(received) {
+    return assert.deepEqual( this.expected ,received );
+  };
+
+  toProperlyReturn( received ) {
+    const result = this.__toProperlyReturn( received );
+    if ( result.pass === true ) {
+    } else if ( result.pass === true ) {
+      throw assert.fail( result.message() );
+    } else {
+      throw new Error('unknown value');
+    }
+  };
+
+  __toProperlyReturn( received ) {
+    let returned  = null;
+    try {
+      returned = received();
+    } catch( e ) {
+      console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
+      return {
+        message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
+        pass: false,
+      };
+    }
+
+    try {
+      const wasExpected = this.expected( returned );
+      if ( wasExpected ) {
+        return {
+          message: () => `Successed`,
+          pass: true,
+        };
+      } else {
+        return {
+          message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
+          pass: false,
+        };
+      }
+    } catch ( e ) {
+      return {
+        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+        pass: false,
+      };
+    }
+  };
+
+  toProperlyThrow( received ) {
+    const result = this.__toProperlyThrow( received );
+    if ( result.pass === true ) {
+    } else if ( result.pass === false ) {
+      throw assert.fail( result.message() );
+    } else {
+      throw new Error('unknown value');
+    }
+  }
+
+  __toProperlyThrow( received ) {
+    let thrown  = null;
+    try {
+      received();
+      return {
+        message: () => `the function did not throw`,
+        pass: false,
+      };
+    } catch( e ) {
+      thrown = e;
+    }
+
+    try {
+      const wasExpected = this.expected( thrown );
+      if ( wasExpected ) {
+        return {
+          message: () => `Successed`,
+          pass: true,
+        };
+      } else {
+        return {
+          message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
+          pass: false,
+        };
+      }
+    } catch ( e ) {
+      return {
+        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
+        pass: false,
+      };
+    }
+  };
+
+
+  toThrow(received) {
+    assert.throws( this.expected, received );
+  };
+
+  notToThrow() {
+    assert.doesNotThrow( this.expected );
+  };
+};
+
+function expect( expected ) {
+  return new Expect( expected );
+}
+
+test('INFO undefined'  , ()=>{  expect( schema.undefined (                )(INFO            )).toBe('undefined()'         ); } );
+test('INFO null'       , ()=>{  expect( schema.null      (                )(INFO            )).toBe('null()'              ); } );
+test('INFO boolean'    , ()=>{  expect( schema.boolean   (                )(INFO            )).toBe('boolean()'           ); } );
+test('INFO number'     , ()=>{  expect( schema.number    (                )(INFO            )).toBe('number()'            ); } );
+test('INFO string'     , ()=>{  expect( schema.string    (                )(INFO            )).toBe('string()'            ); } );
+test('INFO bigint'     , ()=>{  expect( schema.bigint    (                )(INFO            )).toBe('bigint()'            ); } );
+test('INFO symbol'     , ()=>{  expect( schema.symbol    (                )(INFO            )).toBe('symbol()'            ); } );
+test('INFO function'   , ()=>{  expect( schema.function  (                )(INFO            )).toBe('function()'          ); } );
 test('INFO not'        , ()=>{  expect( schema.not       (schema.boolean())(INFO            )).toBe('not()'               ); } );
 test('INFO or'         , ()=>{  expect( schema.or        (schema.boolean())(INFO            )).toBe('or()'                ); } );
 test('INFO and'        , ()=>{  expect( schema.and       (schema.boolean())(INFO            )).toBe('and()'               ); } );
 
-test('CHECK undefined' , ()=>{  expect( schema.undefined (              )(undefined       )).toBe(true                ); } );
-test('CHECK null'      , ()=>{  expect( schema.null      (              )(null            )).toBe(true                ); } );
-test('CHECK boolean 1' , ()=>{  expect( schema.boolean   (              )(true            )).toBe(true                ); } );
-test('CHECK boolean 2' , ()=>{  expect( schema.boolean   (              )(false           )).toBe(true                ); } );
-test('CHECK number'    , ()=>{  expect( schema.number    (              )(100000          )).toBe(true                ); } );
-test('CHECK string'    , ()=>{  expect( schema.string    (              )("fooo"          )).toBe(true                ); } );
-test('CHECK bigint'    , ()=>{  expect( schema.bigint    (              )(BigInt(1)       )).toBe(true                ); } );
-test('CHECK symbol'    , ()=>{  expect( schema.symbol    (              )(Symbol('1')     )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (              )(()=>{}          )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (              )(function(){}    )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (              )(new Function(''))).toBe(true                ); } );
-test('CHECK not ERR'   , ()=>{  expect( ()=>schema.not   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK or ERR'    , ()=>{  expect( ()=>schema.or    (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK and ERR'   , ()=>{  expect( ()=>schema.and   (              )(                )).toProperlyThrow((o)=>o instanceof RangeError  ); } );
-test('CHECK not OK'    , ()=>{  expect( ()=>schema.not   (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
-test('CHECK or OK'     , ()=>{  expect( ()=>schema.or    (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
-test('CHECK and OK'    , ()=>{  expect( ()=>schema.and   (schema.number() )(                )).toProperlyReturn( (o)=>true ); } );
+test('CHECK undefined' , ()=>{  expect( schema.undefined (                )(undefined       )).toBe(true                ); } );
+test('CHECK null'      , ()=>{  expect( schema.null      (                )(null            )).toBe(true                ); } );
+test('CHECK boolean 1' , ()=>{  expect( schema.boolean   (                )(true            )).toBe(true                ); } );
+test('CHECK boolean 2' , ()=>{  expect( schema.boolean   (                )(false           )).toBe(true                ); } );
+test('CHECK number'    , ()=>{  expect( schema.number    (                )(100000          )).toBe(true                ); } );
+test('CHECK string'    , ()=>{  expect( schema.string    (                )("fooo"          )).toBe(true                ); } );
+test('CHECK bigint'    , ()=>{  expect( schema.bigint    (                )(BigInt(1)       )).toBe(true                ); } );
+test('CHECK symbol'    , ()=>{  expect( schema.symbol    (                )(Symbol('1')     )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (                )(()=>{}          )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (                )(function(){}    )).toBe(true                ); } );
+test('CHECK function'  , ()=>{  expect( schema.function  (                )(new Function(''))).toBe(true                ); } );
+test('CHECK not ERR'   , ()=>{  expect( ()=>schema.not   (                )(                )).toThrow( new RangeError( 'no definition was specified in `not`' )  ); } );
+test('CHECK or ERR'    , ()=>{  expect( ()=>schema.or    (                )(                )).toThrow( new RangeError( 'no definition was specified in `or`' )  ); } );
+test('CHECK and ERR'   , ()=>{  expect( ()=>schema.and   (                )(                )).toThrow( new RangeError( 'no definition was specified' )  ); } );
+test('CHECK not OK'    , ()=>{  expect( ()=>schema.not   (schema.number() )(                )).notToThrow(  ); } );
+test('CHECK or OK'     , ()=>{  expect( ()=>schema.or    (schema.number() )(                )).notToThrow(  ); } );
+test('CHECK and OK'    , ()=>{  expect( ()=>schema.and   (schema.number() )(                )).notToThrow(  ); } );
 
 /**
  * The primitive evaluators always return false when the given argument is
  * undefined or null, unless they are either undefined() or null().
  */
 test( 'NULL CHECK ', ()=>{
-  expect( schema.undefined()( undefined  )).toBe( true  );
-  expect( schema.null()     ( undefined  )).toBe( false );
-  expect( schema.undefined()( null       )).toBe( false );
-  expect( schema.null()     ( null       )).toBe( true  );
-  expect( schema.boolean()  ( null       )).toBe( false );
-  expect( schema.number()   ( null       )).toBe( false );
-  expect( schema.string()   ( null       )).toBe( false );
-  expect( schema.bigint()   ( null       )).toBe( false );
-  expect( schema.symbol()   ( null       )).toBe( false );
-  expect( schema.function() ( null       )).toBe( false );
+  assert.equal( schema.undefined()( undefined  ), true  );
+  assert.equal( schema.null()     ( undefined  ), false );
+  assert.equal( schema.undefined()( null       ), false );
+  assert.equal( schema.null()     ( null       ), true  );
+  assert.equal( schema.boolean()  ( null       ), false );
+  assert.equal( schema.number()   ( null       ), false );
+  assert.equal( schema.string()   ( null       ), false );
+  assert.equal( schema.bigint()   ( null       ), false );
+  assert.equal( schema.symbol()   ( null       ), false );
+  assert.equal( schema.function() ( null       ), false );
 });
 
 /**
  * test `not`
  */
 test( 'CHECK2 not', ()=>{
-  expect( schema.not( schema.string())( false         )).toBe( true  );
-  expect( schema.not( schema.string())( "some string" )).toBe( false );
-  expect( schema.not( schema.string())( 12345 + 234   )).toBe( true  );
-  expect( schema.not( schema.string())( null          )).toBe( true  );
-  expect( schema.not( schema.string())( 1             )).toBe( true  );
-  expect( schema.not( schema.string())( BigInt(100)   )).toBe( true  );
+  assert.equal( schema.not( schema.string())( false         ), true  );
+  assert.equal( schema.not( schema.string())( "some string" ), false );
+  assert.equal( schema.not( schema.string())( 12345 + 234   ), true  );
+  assert.equal( schema.not( schema.string())( null          ), true  );
+  assert.equal( schema.not( schema.string())( 1             ), true  );
+  assert.equal( schema.not( schema.string())( BigInt(100)   ), true  );
 });
 
 test( 'CHECK2 or', ()=>{
-  expect( schema.or( schema.number(), schema.string()              )( false         )).toBe( false );
-  expect( schema.or( schema.number(), schema.string()              )( "some string" )).toBe( true  );
-  expect( schema.or( schema.number(), schema.string()              )( 12345 + 234   )).toBe( true  );
-  expect( schema.or( schema.number(), schema.string()              )( null          )).toBe( false );
-  expect( schema.or( schema.number(), schema.string(), schema.null() )( null          )).toBe( true  );
-  expect( schema.or( schema.number(), schema.string(), schema.null() )( 1             )).toBe( true  );
-  expect( schema.or( schema.number(), schema.string(), schema.null() )( BigInt(100)   )).toBe( false );
+  assert.equal( schema.or( schema.number(), schema.string()              )( false         ), false );
+  assert.equal( schema.or( schema.number(), schema.string()              )( "some string" ), true  );
+  assert.equal( schema.or( schema.number(), schema.string()              )( 12345 + 234   ), true  );
+  assert.equal( schema.or( schema.number(), schema.string()              )( null          ), false );
+  assert.equal( schema.or( schema.number(), schema.string(), schema.null() )( null          ), true  );
+  assert.equal( schema.or( schema.number(), schema.string(), schema.null() )( 1             ), true  );
+  assert.equal( schema.or( schema.number(), schema.string(), schema.null() )( BigInt(100)   ), false );
 });
 
 /*
@@ -333,33 +445,33 @@ test('STATEMENT COMPILER test basic 2', ()=>{
   expect( schema.statement`number()`()('hello') ).toBe( false );
 });
 
-test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`              ()(INFO        )).toBe('undefined()'          ); } );
-test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`              ()(INFO        )).toBe('null()'               ); } );
-test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`              ()(INFO        )).toBe('boolean()'            ); } );
-test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`              ()(INFO        )).toBe('number()'             ); } );
-test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`              ()(INFO        )).toBe('string()'             ); } );
-test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`              ()(INFO        )).toBe('bigint()'             ); } );
-test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`              ()(INFO        )).toBe('symbol()'             ); } );
-test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`              ()(INFO        )).toBe('function()'           ); } );
-test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`     ()(INFO        )).toBe('not()'                ); } );
-test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`     ()(INFO        )).toBe('or()'                 ); } );
-test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`     ()(INFO        )).toBe('and()'                ); } );
+test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`           ()(INFO        )).toBe('undefined()'          ); } );
+test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`           ()(INFO        )).toBe('null()'               ); } );
+test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`           ()(INFO        )).toBe('boolean()'            ); } );
+test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`           ()(INFO        )).toBe('number()'             ); } );
+test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`           ()(INFO        )).toBe('string()'             ); } );
+test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`           ()(INFO        )).toBe('bigint()'             ); } );
+test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`           ()(INFO        )).toBe('symbol()'             ); } );
+test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`           ()(INFO        )).toBe('function()'           ); } );
+test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`  ()(INFO        )).toBe('not()'                ); } );
+test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`  ()(INFO        )).toBe('or()'                 ); } );
+test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`  ()(INFO        )).toBe('and()'                ); } );
 
-test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( schema.statement`undefined ()`              ()(undefined   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( schema.statement`null      ()`              ()(null        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( schema.statement`boolean   ()`              ()(true        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( schema.statement`boolean   ()`              ()(false       )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( schema.statement`number    ()`              ()(100000      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( schema.statement`string    ()`              ()("fooo"      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( schema.statement`bigint    ()`              ()(BigInt(1)   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( schema.statement`symbol    ()`              ()(Symbol('1') )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( schema.statement`function  ()`              ()(()=>{}      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>schema.statement`not   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>schema.statement`or    (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>schema.statement`and   (              )`()(            )).toProperlyThrow(     (o)=>o instanceof RangeError   ); } );
-test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>schema.statement`not   (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
-test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>schema.statement`or    (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
-test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`and   (schema.number() )`()(            )).not.toProperlyThrow( (o)=>false   ); } );
+test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( schema.statement`undefined ()`           ()(undefined   )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( schema.statement`null      ()`           ()(null        )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( schema.statement`boolean   ()`           ()(true        )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( schema.statement`boolean   ()`           ()(false       )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( schema.statement`number    ()`           ()(100000      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( schema.statement`string    ()`           ()("fooo"      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( schema.statement`bigint    ()`           ()(BigInt(1)   )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( schema.statement`symbol    ()`           ()(Symbol('1') )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( schema.statement`function  ()`           ()(()=>{}      )).toBe(true                 ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>schema.statement`not   (           )`()(            )).toThrow( RangeError ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>schema.statement`or    (           )`()(            )).toThrow( RangeError ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>schema.statement`and   (           )`()(            )).toThrow( RangeError ); } );
+test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>schema.statement`not   (number()   )`()(            )).notToThrow(); } );
+test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>schema.statement`or    (number()   )`()(            )).notToThrow(); } );
+test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`and   (number()   )`()(            )).notToThrow(); } );
 
 
 
@@ -464,13 +576,13 @@ test('equals',()=>{
   // 1. set constructor `hello` to the first cloned object.
   rtti1.hello = hello;
   expect( 'hello' in rtti1 ).toBe( true );
-  expect( ()=>rtti1.statement`hello()`( value ) ).not.toThrow();
+  expect( ()=>rtti1.statement`hello()`( value ) ).notToThrow();
 
   // 2. clone again and confirm if the constructor `hello` is available on the
   //    second cloned object.
   const rtti2 = rtti1.clone();
   expect( 'hello' in rtti2 ).toBe( true );
-  expect( ()=>rtti2.statement`hello()`( value ) ).not.toThrow();
+  expect( ()=>rtti2.statement`hello()`( value ) ).notToThrow();
 
   // 3.  confirm that setting `hello` does not affect to the original schema
   //     object.
@@ -481,7 +593,7 @@ test('equals',()=>{
   rtti2.world = world;
   expect( 'world' in rtti2 ).toBe( true );
   expect( 'world' in rtti1 ).toBe( false );
-  expect( ()=>rtti2.statement`world()`( value ) ).not.toThrow();
+  expect( ()=>rtti2.statement`world()`( value ) ).notToThrow();
   expect( ()=>rtti1.statement`world()`( value ) ).toThrow();
 });
 
