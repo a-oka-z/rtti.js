@@ -82,7 +82,7 @@ const check_if_proper_vali = (func, name='unknown')=>{
   } else {
     const result = func(false);
     if ( typeof result === 'function' ) {
-      throw new TypeError( `the specified validator returned a function not a boolean in \`${name}\`; probably you forgot to call your factory generator?` );
+      throw new TypeError( `the specified validator returned a function not a boolean in \`${name}\`; probably you forgot to call your validator generator?` );
     } else if ( typeof result !== 'boolean' ) {
       throw new TypeError( `the specified validator returned neither a boolean nor a function in \`${name}\`` );
     }
@@ -226,7 +226,7 @@ function rttijs_standard_template_literal(strings, ... values) {
 
   /*
    * Switch self/this depends on the context that the function is called.
-   * For further information, see Atsushi Oka's daily on Nov 17 2022.
+   * For further information, see Atsushi Oka's daily log on Nov 17 2022.
    */
   const self = this;
   const result = function compiled_statement(...args) {
