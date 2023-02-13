@@ -43,236 +43,36 @@ function filterErrorToJSONFriendly(o) {
   }
 }
 
-// expect.extend({
-//   toProperlyReturn( received, expected ) {
-//     let returned  = null;
-//     try {
-//       returned = received();
-//     } catch( e ) {
-//       console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
-//       return {
-//         message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
-//         pass: false,
-//       };
-//     }
-// 
-//     try {
-//       const wasExpected = expected( returned );
-//       if ( wasExpected ) {
-//         return {
-//           message: () => `Successed`,
-//           pass: true,
-//         };
-//       } else {
-//         return {
-//           message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
-//           pass: false,
-//         };
-//       }
-//     } catch ( e ) {
-//       return {
-//         message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-//         pass: false,
-//       };
-//     }
-//   },
-//   toProperlyThrow( received, expected ) {
-//     let thrown  = null;
-//     try {
-//       received();
-//       return {
-//         message: () => `the function did not throw`,
-//         pass: false,
-//       };
-//     } catch( e ) {
-//       thrown = e;
-//     }
-// 
-//     try {
-//       const wasExpected = expected( thrown );
-//       if ( wasExpected ) {
-//         return {
-//           message: () => `Successed`,
-//           pass: true,
-//         };
-//       } else {
-//         return {
-//           message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
-//           pass: false,
-//         };
-//       }
-//     } catch ( e ) {
-//       return {
-//         message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-//         pass: false,
-//       };
-//     }
-//   },
-// });
 
-/*
- * test('test test true',()=>{
- *   expect( ()=>'foo' ).toProperlyReturn( (v)=>v==='foo' );
- * });
- * test('test test false',()=>{
- *   expect( ()=>'foo' ).toProperlyReturn( (v)=>v!=='foo' );
- * });
- * test('test test thrown',()=>{
- *   expect( ()=>'foo' ).toProperlyReturn( (v)=>{throw new Error( 'foo', {cause: new Error('bar', {cause:new RangeError()})})});
- * });
- * 
- * test('test test toProperlyThrow throw',()=>{
- *   expect( ()=>{ throw 'foo' } ).toProperlyThrow( (v)=>true );
- * });
- * test('test test toProperlyThrow not throw ',()=>{
- *   expect( ()=>{             } ).toProperlyThrow( (v)=>true );
- * });
- * test('test test toProperlyThrow throw and throw',()=>{
- *   expect( ()=>{ throw 'foo' } ).toProperlyThrow( (v)=>{throw new Error( 'foo', {cause: new Error('bar', {cause:new RangeError()})})});
- * });
- */
+test('INFO undefined'  , ()=>{  assert.equal       ( schema.undefined (                )(INFO            ),'undefined()'         ); } );
+test('INFO null'       , ()=>{  assert.equal       ( schema.null      (                )(INFO            ),'null()'              ); } );
+test('INFO boolean'    , ()=>{  assert.equal       ( schema.boolean   (                )(INFO            ),'boolean()'           ); } );
+test('INFO number'     , ()=>{  assert.equal       ( schema.number    (                )(INFO            ),'number()'            ); } );
+test('INFO string'     , ()=>{  assert.equal       ( schema.string    (                )(INFO            ),'string()'            ); } );
+test('INFO bigint'     , ()=>{  assert.equal       ( schema.bigint    (                )(INFO            ),'bigint()'            ); } );
+test('INFO symbol'     , ()=>{  assert.equal       ( schema.symbol    (                )(INFO            ),'symbol()'            ); } );
+test('INFO function'   , ()=>{  assert.equal       ( schema.function  (                )(INFO            ),'function()'          ); } );
+test('INFO not'        , ()=>{  assert.equal       ( schema.not       (schema.boolean())(INFO            ),'not()'               ); } );
+test('INFO or'         , ()=>{  assert.equal       ( schema.or        (schema.boolean())(INFO            ),'or()'                ); } );
+test('INFO and'        , ()=>{  assert.equal       ( schema.and       (schema.boolean())(INFO            ),'and()'               ); } );
 
-class Expect {
-  constructor(expected) {
-    this.expected = expected;
-  };
-
-  toBe(received) {
-    return assert.equal( this.expected ,received );
-  };
-  toEqual(received) {
-    return assert.deepEqual( this.expected ,received );
-  };
-
-  toProperlyReturn( received ) {
-    const result = this.__toProperlyReturn( received );
-    if ( result.pass === true ) {
-    } else if ( result.pass === true ) {
-      throw assert.fail( result.message() );
-    } else {
-      throw new Error('unknown value');
-    }
-  };
-
-  __toProperlyReturn( received ) {
-    let returned  = null;
-    try {
-      returned = received();
-    } catch( e ) {
-      console.error( ',,,,,,,,,,,,,,,,,,,,,,',e );
-      return {
-        message: () => `the function has thrown an error : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2 )   }`,
-        pass: false,
-      };
-    }
-
-    try {
-      const wasExpected = this.expected( returned );
-      if ( wasExpected ) {
-        return {
-          message: () => `Successed`,
-          pass: true,
-        };
-      } else {
-        return {
-          message: () => `Failed ${ JSON.stringify( filterErrorToJSONFriendly( returned ),null,2 )   } `,
-          pass: false,
-        };
-      }
-    } catch ( e ) {
-      return {
-        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-        pass: false,
-      };
-    }
-  };
-
-  toProperlyThrow( received ) {
-    const result = this.__toProperlyThrow( received );
-    if ( result.pass === true ) {
-    } else if ( result.pass === false ) {
-      throw assert.fail( result.message() );
-    } else {
-      throw new Error('unknown value');
-    }
-  }
-
-  __toProperlyThrow( received ) {
-    let thrown  = null;
-    try {
-      received();
-      return {
-        message: () => `the function did not throw`,
-        pass: false,
-      };
-    } catch( e ) {
-      thrown = e;
-    }
-
-    try {
-      const wasExpected = this.expected( thrown );
-      if ( wasExpected ) {
-        return {
-          message: () => `Successed`,
-          pass: true,
-        };
-      } else {
-        return {
-          message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly( thrown ),null,2) }`,
-          pass: false,
-        };
-      }
-    } catch ( e ) {
-      return {
-        message: () => `Failed. Reason : ${ JSON.stringify( filterErrorToJSONFriendly(e),null,2) }`,
-        pass: false,
-      };
-    }
-  };
-
-
-  toThrow(received) {
-    assert.throws( this.expected, received );
-  };
-
-  notToThrow() {
-    assert.doesNotThrow( this.expected );
-  };
-};
-
-function expect( expected ) {
-  return new Expect( expected );
-}
-
-test('INFO undefined'  , ()=>{  expect( schema.undefined (                )(INFO            )).toBe('undefined()'         ); } );
-test('INFO null'       , ()=>{  expect( schema.null      (                )(INFO            )).toBe('null()'              ); } );
-test('INFO boolean'    , ()=>{  expect( schema.boolean   (                )(INFO            )).toBe('boolean()'           ); } );
-test('INFO number'     , ()=>{  expect( schema.number    (                )(INFO            )).toBe('number()'            ); } );
-test('INFO string'     , ()=>{  expect( schema.string    (                )(INFO            )).toBe('string()'            ); } );
-test('INFO bigint'     , ()=>{  expect( schema.bigint    (                )(INFO            )).toBe('bigint()'            ); } );
-test('INFO symbol'     , ()=>{  expect( schema.symbol    (                )(INFO            )).toBe('symbol()'            ); } );
-test('INFO function'   , ()=>{  expect( schema.function  (                )(INFO            )).toBe('function()'          ); } );
-test('INFO not'        , ()=>{  expect( schema.not       (schema.boolean())(INFO            )).toBe('not()'               ); } );
-test('INFO or'         , ()=>{  expect( schema.or        (schema.boolean())(INFO            )).toBe('or()'                ); } );
-test('INFO and'        , ()=>{  expect( schema.and       (schema.boolean())(INFO            )).toBe('and()'               ); } );
-
-test('CHECK undefined' , ()=>{  expect( schema.undefined (                )(undefined       )).toBe(true                ); } );
-test('CHECK null'      , ()=>{  expect( schema.null      (                )(null            )).toBe(true                ); } );
-test('CHECK boolean 1' , ()=>{  expect( schema.boolean   (                )(true            )).toBe(true                ); } );
-test('CHECK boolean 2' , ()=>{  expect( schema.boolean   (                )(false           )).toBe(true                ); } );
-test('CHECK number'    , ()=>{  expect( schema.number    (                )(100000          )).toBe(true                ); } );
-test('CHECK string'    , ()=>{  expect( schema.string    (                )("fooo"          )).toBe(true                ); } );
-test('CHECK bigint'    , ()=>{  expect( schema.bigint    (                )(BigInt(1)       )).toBe(true                ); } );
-test('CHECK symbol'    , ()=>{  expect( schema.symbol    (                )(Symbol('1')     )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (                )(()=>{}          )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (                )(function(){}    )).toBe(true                ); } );
-test('CHECK function'  , ()=>{  expect( schema.function  (                )(new Function(''))).toBe(true                ); } );
-test('CHECK not ERR'   , ()=>{  expect( ()=>schema.not   (                )(                )).toThrow( new RangeError( 'no definition was specified in `not`' )  ); } );
-test('CHECK or ERR'    , ()=>{  expect( ()=>schema.or    (                )(                )).toThrow( new RangeError( 'no definition was specified in `or`' )  ); } );
-test('CHECK and ERR'   , ()=>{  expect( ()=>schema.and   (                )(                )).toThrow( new RangeError( 'no definition was specified' )  ); } );
-test('CHECK not OK'    , ()=>{  expect( ()=>schema.not   (schema.number() )(                )).notToThrow(  ); } );
-test('CHECK or OK'     , ()=>{  expect( ()=>schema.or    (schema.number() )(                )).notToThrow(  ); } );
-test('CHECK and OK'    , ()=>{  expect( ()=>schema.and   (schema.number() )(                )).notToThrow(  ); } );
+test('CHECK undefined' , ()=>{  assert.equal       ( schema.undefined (                )(undefined       ),true                ); } );
+test('CHECK null'      , ()=>{  assert.equal       ( schema.null      (                )(null            ),true                ); } );
+test('CHECK boolean 1' , ()=>{  assert.equal       ( schema.boolean   (                )(true            ),true                ); } );
+test('CHECK boolean 2' , ()=>{  assert.equal       ( schema.boolean   (                )(false           ),true                ); } );
+test('CHECK number'    , ()=>{  assert.equal       ( schema.number    (                )(100000          ),true                ); } );
+test('CHECK string'    , ()=>{  assert.equal       ( schema.string    (                )("fooo"          ),true                ); } );
+test('CHECK bigint'    , ()=>{  assert.equal       ( schema.bigint    (                )(BigInt(1)       ),true                ); } );
+test('CHECK symbol'    , ()=>{  assert.equal       ( schema.symbol    (                )(Symbol('1')     ),true                ); } );
+test('CHECK function'  , ()=>{  assert.equal       ( schema.function  (                )(()=>{}          ),true                ); } );
+test('CHECK function'  , ()=>{  assert.equal       ( schema.function  (                )(function(){}    ),true                ); } );
+test('CHECK function'  , ()=>{  assert.equal       ( schema.function  (                )(new Function('')),true                ); } );
+test('CHECK not ERR'   , ()=>{  assert.throws      ( ()=>schema.not   (                )(                ), new RangeError( 'no definition was specified in `not`' )  ); } );
+test('CHECK or ERR'    , ()=>{  assert.throws      ( ()=>schema.or    (                )(                ), new RangeError( 'no definition was specified in `or`' )  ); } );
+test('CHECK and ERR'   , ()=>{  assert.throws      ( ()=>schema.and   (                )(                ), new RangeError( 'no definition was specified' )  ); } );
+test('CHECK not OK'    , ()=>{  assert.doesNotThrow( ()=>schema.not   (schema.number() )(                ),  ); } );
+test('CHECK or OK'     , ()=>{  assert.doesNotThrow( ()=>schema.or    (schema.number() )(                ),  ); } );
+test('CHECK and OK'    , ()=>{  assert.doesNotThrow( ()=>schema.and   (schema.number() )(                ),  ); } );
 
 /**
  * The primitive evaluators always return false when the given argument is
@@ -321,23 +121,23 @@ test( 'CHECK2 or', ()=>{
  * undefined or null.
  */
 test( 'CHECK2 and', ()=>{
-  expect( schema.and( schema.undefined(), schema.not(schema.null()      ))( undefined      )).toBe( true );
-  expect( schema.and( schema.null(),      schema.not(schema.undefined() ))( null           )).toBe( true );
-  expect( schema.and( schema.boolean(),   schema.not(schema.null()      ))( false          )).toBe( true );
-  expect( schema.and( schema.number(),    schema.not(schema.null()      ))( 10000          )).toBe( true );
-  expect( schema.and( schema.string(),    schema.not(schema.null()      ))( "hello"        )).toBe( true );
-  expect( schema.and( schema.bigint(),    schema.not(schema.null()      ))( BigInt(1)      )).toBe( true );
-  expect( schema.and( schema.symbol(),    schema.not(schema.null()      ))( Symbol('foo')  )).toBe( true );
-  expect( schema.and( schema.function(),  schema.not(schema.null()      ))( ()=>{}         )).toBe( true );
+  assert.equal( schema.and( schema.undefined(), schema.not(schema.null()      ))( undefined      ),  true );
+  assert.equal( schema.and( schema.null(),      schema.not(schema.undefined() ))( null           ),  true );
+  assert.equal( schema.and( schema.boolean(),   schema.not(schema.null()      ))( false          ),  true );
+  assert.equal( schema.and( schema.number(),    schema.not(schema.null()      ))( 10000          ),  true );
+  assert.equal( schema.and( schema.string(),    schema.not(schema.null()      ))( "hello"        ),  true );
+  assert.equal( schema.and( schema.bigint(),    schema.not(schema.null()      ))( BigInt(1)      ),  true );
+  assert.equal( schema.and( schema.symbol(),    schema.not(schema.null()      ))( Symbol('foo')  ),  true );
+  assert.equal( schema.and( schema.function(),  schema.not(schema.null()      ))( ()=>{}         ),  true );
 
-  expect( schema.and( schema.undefined(), schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.null(),      schema.not(schema.undefined() ))( undefined      )).toBe( false );
-  expect( schema.and( schema.boolean(),   schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.number(),    schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.string(),    schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.bigint(),    schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.symbol(),    schema.not(schema.null()      ))( null           )).toBe( false );
-  expect( schema.and( schema.function(),  schema.not(schema.null()      ))( null           )).toBe( false );
+  assert.equal( schema.and( schema.undefined(), schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.null(),      schema.not(schema.undefined() ))( undefined      ),  false );
+  assert.equal( schema.and( schema.boolean(),   schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.number(),    schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.string(),    schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.bigint(),    schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.symbol(),    schema.not(schema.null()      ))( null           ),  false );
+  assert.equal( schema.and( schema.function(),  schema.not(schema.null()      ))( null           ),  false );
 });
 
 test('CHECK Object',()=>{
@@ -345,10 +145,10 @@ test('CHECK Object',()=>{
     a:schema.boolean(),
     b:schema.number(),
   });
-  expect( def({ a:true, b:1,     })).toBe( true  );
-  expect( def({ a:1,    b:1,     })).toBe( false );
-  expect( def({ a:true, b:false, })).toBe( false );
-  expect( def({ a:1   , b:false, })).toBe( false );
+  assert.equal( def({ a:true, b:1,     }),  true  );
+  assert.equal( def({ a:1,    b:1,     }),  false );
+  assert.equal( def({ a:true, b:false, }),  false );
+  assert.equal( def({ a:1   , b:false, }),  false );
 });
 
 
@@ -356,10 +156,10 @@ test('CHECK ARRAY_OF',()=>{
   const def = schema.array_of(
     schema.number(),
   );
-  expect( def([0,         1,   2,       3,    4,    5])).toBe( true  );
-  expect( def([0,         1,   2,   false,    4,    5])).toBe( false );
-  expect( def([0,         1,   2,       3, "ff",    5])).toBe( false );
-  expect( def([0, BigInt(1),   2,       3,    4,    5])).toBe( false );
+  assert.equal( def([0,         1,   2,       3,    4,    5]),  true  );
+  assert.equal( def([0,         1,   2,   false,    4,    5]),  false );
+  assert.equal( def([0,         1,   2,       3, "ff",    5]),  false );
+  assert.equal( def([0, BigInt(1),   2,       3,    4,    5]),  false );
 });
 
 
@@ -416,7 +216,7 @@ test('STATEMENT COMPILER test basic 1', ()=>{
     )
   `;
 
-  expect( factory.script ).toBe(`
+  assert.equal( factory.script , `
     schema.object({
       name : schema.string(),
       age  : schema.number(),
@@ -436,99 +236,43 @@ test('STATEMENT COMPILER test basic 1', ()=>{
 });
 
 test('STATEMENT COMPILER test basic 2', ()=>{
-  expect( schema.statement`string()`()(INFO) ).toBe( 'string()' );
-  expect( schema.statement`number()`()(INFO) ).toBe( 'number()' );
+  assert.equal( schema.statement`string()`()(INFO) ,  'string()' );
+  assert.equal( schema.statement`number()`()(INFO) ,  'number()' );
 
-  expect( schema.statement`string()`()('hello') ).toBe( true  );
-  expect( schema.statement`string()`()( 123   ) ).toBe( false );
-  expect( schema.statement`number()`()( 123   ) ).toBe( true  );
-  expect( schema.statement`number()`()('hello') ).toBe( false );
+  assert.equal( schema.statement`string()`()('hello') ,  true  );
+  assert.equal( schema.statement`string()`()( 123   ) ,  false );
+  assert.equal( schema.statement`number()`()( 123   ) ,  true  );
+  assert.equal( schema.statement`number()`()('hello') ,  false );
 });
 
-test('STATEMENT COMPILER INFO undefined'  , ()=>{  expect( schema.statement`undefined ()`           ()(INFO        )).toBe('undefined()'          ); } );
-test('STATEMENT COMPILER INFO null'       , ()=>{  expect( schema.statement`null      ()`           ()(INFO        )).toBe('null()'               ); } );
-test('STATEMENT COMPILER INFO boolean'    , ()=>{  expect( schema.statement`boolean   ()`           ()(INFO        )).toBe('boolean()'            ); } );
-test('STATEMENT COMPILER INFO number'     , ()=>{  expect( schema.statement`number    ()`           ()(INFO        )).toBe('number()'             ); } );
-test('STATEMENT COMPILER INFO string'     , ()=>{  expect( schema.statement`string    ()`           ()(INFO        )).toBe('string()'             ); } );
-test('STATEMENT COMPILER INFO bigint'     , ()=>{  expect( schema.statement`bigint    ()`           ()(INFO        )).toBe('bigint()'             ); } );
-test('STATEMENT COMPILER INFO symbol'     , ()=>{  expect( schema.statement`symbol    ()`           ()(INFO        )).toBe('symbol()'             ); } );
-test('STATEMENT COMPILER INFO function'   , ()=>{  expect( schema.statement`function  ()`           ()(INFO        )).toBe('function()'           ); } );
-test('STATEMENT COMPILER INFO not'        , ()=>{  expect( schema.statement`not       (boolean())`  ()(INFO        )).toBe('not()'                ); } );
-test('STATEMENT COMPILER INFO or'         , ()=>{  expect( schema.statement`or        (boolean())`  ()(INFO        )).toBe('or()'                 ); } );
-test('STATEMENT COMPILER INFO and'        , ()=>{  expect( schema.statement`and       (boolean())`  ()(INFO        )).toBe('and()'                ); } );
+test('STATEMENT COMPILER INFO undefined'  , ()=>{  assert.equal( schema.statement`undefined ()`           ()(INFO        ), 'undefined()'          ); } );
+test('STATEMENT COMPILER INFO null'       , ()=>{  assert.equal( schema.statement`null      ()`           ()(INFO        ), 'null()'               ); } );
+test('STATEMENT COMPILER INFO boolean'    , ()=>{  assert.equal( schema.statement`boolean   ()`           ()(INFO        ), 'boolean()'            ); } );
+test('STATEMENT COMPILER INFO number'     , ()=>{  assert.equal( schema.statement`number    ()`           ()(INFO        ), 'number()'             ); } );
+test('STATEMENT COMPILER INFO string'     , ()=>{  assert.equal( schema.statement`string    ()`           ()(INFO        ), 'string()'             ); } );
+test('STATEMENT COMPILER INFO bigint'     , ()=>{  assert.equal( schema.statement`bigint    ()`           ()(INFO        ), 'bigint()'             ); } );
+test('STATEMENT COMPILER INFO symbol'     , ()=>{  assert.equal( schema.statement`symbol    ()`           ()(INFO        ), 'symbol()'             ); } );
+test('STATEMENT COMPILER INFO function'   , ()=>{  assert.equal( schema.statement`function  ()`           ()(INFO        ), 'function()'           ); } );
+test('STATEMENT COMPILER INFO not'        , ()=>{  assert.equal( schema.statement`not       (boolean())`  ()(INFO        ), 'not()'                ); } );
+test('STATEMENT COMPILER INFO or'         , ()=>{  assert.equal( schema.statement`or        (boolean())`  ()(INFO        ), 'or()'                 ); } );
+test('STATEMENT COMPILER INFO and'        , ()=>{  assert.equal( schema.statement`and       (boolean())`  ()(INFO        ), 'and()'                ); } );
 
-test('STATEMENT COMPILER CHECK undefined' , ()=>{  expect( schema.statement`undefined ()`           ()(undefined   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK null'      , ()=>{  expect( schema.statement`null      ()`           ()(null        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  expect( schema.statement`boolean   ()`           ()(true        )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  expect( schema.statement`boolean   ()`           ()(false       )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK number'    , ()=>{  expect( schema.statement`number    ()`           ()(100000      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK string'    , ()=>{  expect( schema.statement`string    ()`           ()("fooo"      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK bigint'    , ()=>{  expect( schema.statement`bigint    ()`           ()(BigInt(1)   )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK symbol'    , ()=>{  expect( schema.statement`symbol    ()`           ()(Symbol('1') )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK function'  , ()=>{  expect( schema.statement`function  ()`           ()(()=>{}      )).toBe(true                 ); } );
-test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  expect( ()=>schema.statement`not   (           )`()(            )).toThrow( RangeError ); } );
-test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  expect( ()=>schema.statement`or    (           )`()(            )).toThrow( RangeError ); } );
-test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  expect( ()=>schema.statement`and   (           )`()(            )).toThrow( RangeError ); } );
-test('STATEMENT COMPILER CHECK not OK'    , ()=>{  expect( ()=>schema.statement`not   (number()   )`()(            )).notToThrow(); } );
-test('STATEMENT COMPILER CHECK or OK'     , ()=>{  expect( ()=>schema.statement`or    (number()   )`()(            )).notToThrow(); } );
-test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`and   (number()   )`()(            )).notToThrow(); } );
+test('STATEMENT COMPILER CHECK undefined' , ()=>{  assert.equal( schema.statement`undefined ()`           ()(undefined   ), true                 ); } );
+test('STATEMENT COMPILER CHECK null'      , ()=>{  assert.equal( schema.statement`null      ()`           ()(null        ), true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 1' , ()=>{  assert.equal( schema.statement`boolean   ()`           ()(true        ), true                 ); } );
+test('STATEMENT COMPILER CHECK boolean 2' , ()=>{  assert.equal( schema.statement`boolean   ()`           ()(false       ), true                 ); } );
+test('STATEMENT COMPILER CHECK number'    , ()=>{  assert.equal( schema.statement`number    ()`           ()(100000      ), true                 ); } );
+test('STATEMENT COMPILER CHECK string'    , ()=>{  assert.equal( schema.statement`string    ()`           ()("fooo"      ), true                 ); } );
+test('STATEMENT COMPILER CHECK bigint'    , ()=>{  assert.equal( schema.statement`bigint    ()`           ()(BigInt(1)   ), true                 ); } );
+test('STATEMENT COMPILER CHECK symbol'    , ()=>{  assert.equal( schema.statement`symbol    ()`           ()(Symbol('1') ), true                 ); } );
+test('STATEMENT COMPILER CHECK function'  , ()=>{  assert.equal( schema.statement`function  ()`           ()(()=>{}      ), true                 ); } );
+test('STATEMENT COMPILER CHECK not ERR'   , ()=>{  assert.throws( ()=>schema.statement`not   (           )`()(            ),  RangeError ); } );
+test('STATEMENT COMPILER CHECK or ERR'    , ()=>{  assert.throws( ()=>schema.statement`or    (           )`()(            ),  RangeError ); } );
+test('STATEMENT COMPILER CHECK and ERR'   , ()=>{  assert.throws( ()=>schema.statement`and   (           )`()(            ),  RangeError ); } );
+test('STATEMENT COMPILER CHECK not OK'    , ()=>{  assert.doesNotThrow( ()=>schema.statement`not   (number()   )`()(            ), ); } );
+test('STATEMENT COMPILER CHECK or OK'     , ()=>{  assert.doesNotThrow( ()=>schema.statement`or    (number()   )`()(            ), ); } );
+test('STATEMENT COMPILER CHECK and OK'    , ()=>{  assert.doesNotThrow( ()=>schema.statement`and   (number()   )`()(            ), ); } );
 
-
-
-
-// ABANDONED (Sat, 31 Dec 2022 18:39:35 +0900)
-// /*
-//  * the standard statement compiler ( for backward compatibility )
-//  */
-// test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 1', ()=>{
-//   const factory = schema`
-//     object(
-//       name : string(),
-//       age  : number(),
-//       field : or( number(), string() ),
-//       attrs : object(
-//         foo: string(),
-//         bar: number(),
-//       ),
-//       arr_test : array_of(
-//         not( number()),
-//       ),
-//     )
-//   `;
-// 
-//   expect( factory.script ).toBe(`
-//     schema.object({
-//       name : schema.string(),
-//       age  : schema.number(),
-//       field : schema.or( schema.number(), schema.string() ),
-//       attrs : schema.object({
-//         foo: schema.string(),
-//         bar: schema.number(),
-//       }),
-//       arr_test : schema.array_of(
-//         schema.not( schema.number()),
-//       ),
-//     })
-//   `);
-// 
-//   const vali = factory();
-//   console.error({factory,vali});
-// });
-// 
-// test('STATEMENT COMPILER BACKWARD COMPATIBILITY TEST basic 2', ()=>{
-//   expect( schema`string()`()(INFO) ).toBe( 'string' );
-//   expect( schema`number()`()(INFO) ).toBe( 'number' );
-// 
-//   expect( schema`string()`()('hello') ).toBe( true  );
-//   expect( schema`string()`()( 123   ) ).toBe( false );
-//   expect( schema`number()`()( 123   ) ).toBe( true  );
-//   expect( schema`number()`()('hello') ).toBe( false );
-// });
-// 
-// 
-// 
-// 
-// 
 
 
 
@@ -537,27 +281,27 @@ test('STATEMENT COMPILER CHECK and OK'    , ()=>{  expect( ()=>schema.statement`
  */
 
 test('equals',()=>{
-  expect( schema.equals( 'hello' )( 'hello'    ) ).toBe( true );
-  expect( schema.equals( 'hello' )( 'NO hello' ) ).toBe( false );
-  expect( schema.equals( 123     )( '123'      ) ).toBe( false );
-  expect( schema.equals( false   )( 'false'    ) ).toBe( false );
-  expect( schema.equals( false   )( false      ) ).toBe( true );
-  expect( schema.equals( null    )( undefined  ) ).toBe( false );
-  expect( schema.equals( null    )( null       ) ).toBe( true );
+  assert.equal( schema.equals( 'hello' )( 'hello'    ) ,  true );
+  assert.equal( schema.equals( 'hello' )( 'NO hello' ) ,  false );
+  assert.equal( schema.equals( 123     )( '123'      ) ,  false );
+  assert.equal( schema.equals( false   )( 'false'    ) ,  false );
+  assert.equal( schema.equals( false   )( false      ) ,  true );
+  assert.equal( schema.equals( null    )( undefined  ) ,  false );
+  assert.equal( schema.equals( null    )( null       ) ,  true );
 });
 
 test('uuid',()=>{
-  expect( schema.uuid()( 'hello'    ) ).toBe( false );
-  expect( schema.uuid()( 'NO hello' ) ).toBe( false );
-  expect( schema.uuid()( '123'      ) ).toBe( false );
-  expect( schema.uuid()( 'false'    ) ).toBe( false );
-  expect( schema.uuid()( false      ) ).toBe( false );
-  expect( schema.uuid()( undefined  ) ).toBe( false );
-  expect( schema.uuid()( null       ) ).toBe( false );
-  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) ).toBe( true );
-  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) ).toBe( false );
-  expect( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) ).toBe( false );
-  expect( schema.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) ).toBe( false );
+  assert.equal( schema.uuid()( 'hello'    ) ,  false );
+  assert.equal( schema.uuid()( 'NO hello' ) ,  false );
+  assert.equal( schema.uuid()( '123'      ) ,  false );
+  assert.equal( schema.uuid()( 'false'    ) ,  false );
+  assert.equal( schema.uuid()( false      ) ,  false );
+  assert.equal( schema.uuid()( undefined  ) ,  false );
+  assert.equal( schema.uuid()( null       ) ,  false );
+  assert.equal( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e67' ) ,  true );
+  assert.equal( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7m37e67' ) ,  false );
+  assert.equal( schema.uuid()( '2a945d9d-2cfb-423b-afb2-362ea7c37e677' ) ,  false );
+  assert.equal( schema.uuid()( '2a945d9d-2cfb423b-afb2-362ea7c37e677' ) ,  false );
 
 });
 
@@ -575,26 +319,26 @@ test('equals',()=>{
 
   // 1. set constructor `hello` to the first cloned object.
   rtti1.hello = hello;
-  expect( 'hello' in rtti1 ).toBe( true );
-  expect( ()=>rtti1.statement`hello()`( value ) ).notToThrow();
+  assert.equal( 'hello' in rtti1 ,  true );
+  assert.doesNotThrow( ()=>rtti1.statement`hello()`( value ) );
 
   // 2. clone again and confirm if the constructor `hello` is available on the
   //    second cloned object.
   const rtti2 = rtti1.clone();
-  expect( 'hello' in rtti2 ).toBe( true );
-  expect( ()=>rtti2.statement`hello()`( value ) ).notToThrow();
+  assert.equal( 'hello' in rtti2 ,  true );
+  assert.doesNotThrow( ()=>rtti2.statement`hello()`( value ) );
 
   // 3.  confirm that setting `hello` does not affect to the original schema
   //     object.
-  expect( 'hello' in schema ).toBe( false );
-  expect( ()=>schema.statement`hello()`( value ) ).toThrow();
+  assert.equal( 'hello' in schema ,  false );
+  assert.throws( ()=>schema.statement`hello()`( value ) );
 
   // 4.  set constructor `world to the second cloned object.
   rtti2.world = world;
-  expect( 'world' in rtti2 ).toBe( true );
-  expect( 'world' in rtti1 ).toBe( false );
-  expect( ()=>rtti2.statement`world()`( value ) ).notToThrow();
-  expect( ()=>rtti1.statement`world()`( value ) ).toThrow();
+  assert.equal( 'world' in rtti2 ,  true );
+  assert.equal( 'world' in rtti1 ,  false );
+  assert.doesNotThrow( ()=>rtti2.statement`world()`( value ) );
+  assert.throws( ()=>rtti1.statement`world()`( value ) );
 });
 
 
@@ -603,14 +347,14 @@ test('equals',()=>{
  * any()
  */
 
-test( 'ANY undefined'  , ()=>{ expect( schema.any()( undefined       )).toBe(true); } );
-test( 'ANY null'       , ()=>{ expect( schema.any()( null            )).toBe(true); } );
-test( 'ANY boolean'    , ()=>{ expect( schema.any()( false           )).toBe(true); } );
-test( 'ANY number'     , ()=>{ expect( schema.any()( 1               )).toBe(true); } );
-test( 'ANY string'     , ()=>{ expect( schema.any()( '1'             )).toBe(true); } );
-test( 'ANY bigint'     , ()=>{ expect( schema.any()( BigInt(1)       )).toBe(true); } );
-test( 'ANY symbol'     , ()=>{ expect( schema.any()( Symbol.for('1') )).toBe(true); } );
-test( 'ANY function'   , ()=>{ expect( schema.any()( ()=>{}          )).toBe(true); } );
+test( 'ANY undefined'  , ()=>{ assert.equal( schema.any()( undefined       ), true); } );
+test( 'ANY null'       , ()=>{ assert.equal( schema.any()( null            ), true); } );
+test( 'ANY boolean'    , ()=>{ assert.equal( schema.any()( false           ), true); } );
+test( 'ANY number'     , ()=>{ assert.equal( schema.any()( 1               ), true); } );
+test( 'ANY string'     , ()=>{ assert.equal( schema.any()( '1'             ), true); } );
+test( 'ANY bigint'     , ()=>{ assert.equal( schema.any()( BigInt(1)       ), true); } );
+test( 'ANY symbol'     , ()=>{ assert.equal( schema.any()( Symbol.for('1') ), true); } );
+test( 'ANY function'   , ()=>{ assert.equal( schema.any()( ()=>{}          ), true); } );
 
 
 
@@ -636,7 +380,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.1', ()=>{
     )
   `;
 
-  expect( factory.script ).toBe(`
+  assert.equal( factory.script , `
     schema.object({
       name : schema.string(),
       age  : schema.number(),
@@ -673,7 +417,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
     )
   `;
 
-  expect( factory.script ).toBe(`
+  assert.equal( factory.script , `
     schema.object({
       name : schema.equals(  "John Coltrane"  ),
       age  : schema.number(),
@@ -694,14 +438,14 @@ test('STATEMENT COMPILER JavaScript Blocks No.2', ()=>{
 
 test('STATEMENT COMPILER JavaScript Blocks No.3', ()=>{
   const factory = schema.statement`equals(<<10>>)`;
-  expect( factory.script ).toBe(`schema.equals(10)`.trim());
+  assert.equal( factory.script , `schema.equals(10)`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
 
 test('STATEMENT COMPILER JavaScript Blocks No.4', ()=>{
   const factory = schema.statement`number(<<>>)`;
-  expect( factory.script ).toBe(`schema.number()`.trim());
+  assert.equal( factory.script , `schema.number()`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
@@ -709,7 +453,7 @@ test('STATEMENT COMPILER JavaScript Blocks No.4', ()=>{
 
 test('STATEMENT COMPILER JavaScript Blocks No.5', ()=>{
   const factory = schema.statement`number(<<1 + >><<2 + >><<3>>)`;
-  expect( factory.script ).toBe(`schema.number(1 + 2 + 3)`.trim());
+  assert.equal( factory.script , `schema.number(1 + 2 + 3)`.trim());
   const vali = factory();
   console.error({factory,vali});
 });
@@ -726,7 +470,7 @@ test( 'CLONE TEST No.1', ()=>{
   rtti1.hello = make_vali_factory( ()=>(o)=>o === 'hello' );
 
   // this should be false.
-  expect( rtti1.statement`hello()`()( v ) ).toBe( false );
+  assert.equal( rtti1.statement`hello()`()( v ) ,  false );
 
   // create namespace2.
   const rtti2 = schema.clone();
@@ -736,8 +480,8 @@ test( 'CLONE TEST No.1', ()=>{
 
   // `hello` should refer different factories depends on which namespace it is
   // called with.
-  expect( rtti1.statement`hello()`()( v ) ).toBe( false );
-  expect( rtti2.statement`hello()`()( v ) ).toBe( true );
+  assert.equal( rtti1.statement`hello()`()( v ) ,  false );
+  assert.equal( rtti2.statement`hello()`()( v ) ,  true );
 
   // this looks like it refers `rtti2.hello`
   const factory_by_rtti2 = rtti2.statement`hello()`;
@@ -747,11 +491,11 @@ test( 'CLONE TEST No.1', ()=>{
 
   // factory_by_rtti2 is called in the context of rtti1; this should refer
   // `rtti1.hello`; so this should be false.
-  expect( rtti1.hello2()( v ) ).toBe( false ); 
+  assert.equal( rtti1.hello2()( v ) ,  false ); 
 
   // if `factory_by_rtti2` is called without namespace, it refers the `rtti2`
   // where `factory_by_rtti2` comes from.
-  expect( factory_by_rtti2()( v ) ).toBe( true ); 
+  assert.equal( factory_by_rtti2()( v ) ,  true ); 
 
 });
 
@@ -765,17 +509,17 @@ test( 'ARRAY No.1', ()=>{
       equals( << 'c' >> ),
       )`();
 
-  expect( validator(['a','b','c']) ).toBe( true );
-  expect( validator(['a','b','d']) ).toBe( false );
-  expect( validator(['a','b','c', 'd' ]) ).toBe( false );
-  expect( validator(['a','b'          ]) ).toBe( false );
+  assert.equal( validator(['a','b','c']) ,  true );
+  assert.equal( validator(['a','b','d']) ,  false );
+  assert.equal( validator(['a','b','c', 'd' ]) ,  false );
+  assert.equal( validator(['a','b'          ]) ,  false );
 
 });
 
 
 
 test( 'object with undefined No.1', ()=>{
-  expect( schema.statement`
+  assert.equal( schema.statement`
     object(
       a: or(
         undefined(),
@@ -784,25 +528,25 @@ test( 'object with undefined No.1', ()=>{
     )`()(
       {
       }
-    )).toBe( true );
-  expect( schema.statement`
+    ),  true );
+  assert.equal( schema.statement`
     object(
       a: string()
     )`()(
       {
       }
-    )).toBe( false );
+    ),  false );
 });
 
 
 // test( 'informative error message No.1 ', ()=>{
-//   expect( ()=>schema.statement`
+//   assert.equal( ()=>schema.statement`
 //     object(
 //       a: string
 //     )`()(
 //       {
 //       }
-//     )).toProperlyThrow((e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    schema.object({\n      a: schema.string\n    })" );
+//     ), (e)=>e.message === "the specified validator returned a function not a boolean in `object`; probably you forgot to call your factory generator?\n\n    schema.object({\n      a: schema.string\n    })" );
 // });
 
 
@@ -823,7 +567,7 @@ test('STATEMENT COMPILER / returned validators have `script` property 1', ()=>{
     )
   `;
 
-  expect( factory().script ).toBe(`
+  assert.equal( factory().script , `
     schema.object({
       name : schema.string(),
       age  : schema.number(),
@@ -845,9 +589,9 @@ test('STATEMENT COMPILER / returned validators have `script` property 1', ()=>{
 test('STATEMENT COMPILER / returned validators have `script` property 2', ()=>{
   const factory = schema.statement`   << (e)=>e===1>>   `;
 
-  expect( factory()( 1 ) ).toBe( true );
-  expect( factory()( 2 ) ).toBe( false );
-  expect( factory().script.trim() ).toBe(`(e)=>e===1`);
+  assert.equal( factory()( 1 ) ,  true );
+  assert.equal( factory()( 2 ) ,  false );
+  assert.equal( factory().script.trim() , `(e)=>e===1`);
 
   console.error({factory});
 });
