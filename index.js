@@ -1,6 +1,50 @@
 const module_name = "vanilla-schema-validator";
 const INFO = Symbol.for( 'dump schema information' );
-const ID_STANDARD_STATEMENT_COMPILER  = "compiler";
+const SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILER  = "vanilla-schema-validator.standard-compiler";
+const SCHEMA_VALIDATOR_CURRENTT_COMPILER  = "vanilla-schema-validator.compiler";
+
+const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
+const SCHEMA_VALIDATOR_NAME   = Symbol.for( 'vanilla-schema-validator.name' );
+
+class SchemaValidatorContext {
+  result_stack;
+  path_stack;
+  constructor(...args) {
+    this.path_stack = [];
+    this.result_stack = [];
+  }
+  enter( field_name ) {
+    this.path_stack.push( field_name );
+  }
+  notify( value ) {
+    if ( typeof value !== 'boolean' ) {
+      throw new TypeError( `notified an invalid value : ${value}` );
+    }
+    this.result_stack.push({
+      path : [...this.path_stack],
+      value : value,
+    });
+    return value;
+  }
+  leave() {
+    return this.path_stack.pop();
+  }
+  result() {
+    return [ ...this.result_stack ];
+  }
+  toString() {
+    return this.result().map(e=>e.path.join('') + ':' + e.value ).join('\n');
+  }
+}
+
+class NullSchemaValidatorContext {
+  enter(){}
+  notify(value){ return value;}
+  leave(){}
+  result() { return [] }
+  toString() { return '' }
+};
+const null_context = new NullSchemaValidatorContext();
 
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
@@ -34,60 +78,98 @@ function vali_to_string( vali ) {
   }
 }
 
-function make_vali_factory(
-  vali_gen = (()=>{ throw new ReferenceError( 'vali_gen is not specified' ) } ), 
-  info_gen = (function info_gen(...defs){ return `${defs.map(e=>vali_to_string(e)).join(',')}` } ),
-  chk_args = (function chk_args(...defs){ return null }),
-) {
-  // console.log( 'make_vali_factory', this );
-  if ( this !== undefined ) throw new Error("not undefined");
+function make_vali_factory(nargs) {
+  let {
+    name,
+    source = name,
+    factory,
+  } = nargs;
 
-  if ( typeof info_gen === 'string' ) {
-    info_gen = create_info_gen_from_string( info_gen );
+  if ( name === undefined ) {
+    throw new RangeError('`name` was not specified');
+  }
+  if ( typeof name !== 'string' ) {
+    throw new RangeError('name is not a string value');
+  }
+  if ( typeof source !== 'string' ) {
+    throw new RangeError( 'source is not a string value');
+  }
+  if ( factory === undefined ) {
+    throw new ReferenceError( 'factory is not specified' );
+  }
+  if ( typeof factory !== 'function' ) {
+    throw new ReferenceError( 'factory is not a function' );
   }
 
-  function validator(...defs) {
-    chk_args.apply( this, defs );
-    const vali = vali_gen.apply( this, defs );
-    const info = info_gen.apply( this, defs );
-    const wrapped_vali =  (o)=>( o=== INFO ? info : vali(o) );
+  const __validator_factory = function validator_factory( ...defs ) {
+    const validator = factory.apply( this, defs );
 
-    const descriptor = {
-      value : info,
+    Object.defineProperties( validator, {
+      name : {
+        value : __validator_factory.name,
+        enumerable : false,
+        writable : false,
+        configurable : true,
+      },
+      [SCHEMA_VALIDATOR_NAME]: {
+        value : __validator_factory[SCHEMA_VALIDATOR_NAME],
+        enumerable : true,
+        writable : false,
+        configurable : true,
+      },
+      [SCHEMA_VALIDATOR_SOURCE]: {
+        value : __validator_factory[SCHEMA_VALIDATOR_SOURCE],
+        enumerable : true,
+        writable : false,
+        configurable : true,
+      },
+    });
+
+    return validator;
+  };
+
+  Object.defineProperties( __validator_factory, {
+    name : {
+      value : name,
       enumerable : false,
       writable : false,
       configurable : true,
-    };
+    },
+    [SCHEMA_VALIDATOR_NAME]: {
+      value : name,
+      enumerable : true,
+      writable : false,
+      configurable : true,
+    },
+    [SCHEMA_VALIDATOR_SOURCE]: {
+      value : source,
+      enumerable : true,
+      writable : false,
+      configurable : true,
+    },
+  });
 
-    Object.defineProperties( wrapped_vali,{
-      "source": descriptor,
-      "script": descriptor,
-    });
-
-    return wrapped_vali;
-  }
-
-  return validator;
+  return __validator_factory;
 };
 
 const makeValiFactory = make_vali_factory;
 
-const check_if_proper_vali = (func, name='unknown')=>{
+const check_if_proper_vali = func=>{
   if ( func === null ) {
-    throw new ReferenceError( `the specified validator was null in \`${name}\`` );
+    return 'null';
   } else if ( func === undefined ) {
-    throw new ReferenceError( `the specified validator was null in \`${name}\`` );
+    return 'undefined';
   } else if ( typeof func !== `function` ) {
-    throw new ReferenceError( `the specified validator was not a function in \`${name}\`` );
+    return 'not a function';
   } else {
-    const result = func(false);
+    const result = func( false );
     if ( typeof result === 'function' ) {
-      throw new TypeError( `the specified validator returned a function not a boolean in \`${name}\`; probably you forgot to call your validator generator?` );
+      return 'a validator that returns a function not a boolean; probably you forgot to call your validator factory.';
     } else if ( typeof result !== 'boolean' ) {
-      throw new TypeError( `the specified validator returned neither a boolean nor a function in \`${name}\`` );
+      return 'a validator returned neither a boolean nor a function';
     }
   }
-  return true;
+  return null;
 };
 
 
@@ -245,6 +327,7 @@ function rttijs_standard_template_literal(strings, ... values) {
           configurable : true,
         });
       }
+
       return validator;
     } catch (e) {
       e.message = 
@@ -253,96 +336,193 @@ function rttijs_standard_template_literal(strings, ... values) {
       // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
     }
   };
-  result.script = script;
+
+  Object.defineProperties( __validator_factory, {
+    name : {
+      value : name,
+      enumerable : false,
+      writable : false,
+      configurable : true,
+    },
+    [SCHEMA_VALIDATOR_NAME]: {
+      value : name,
+      enumerable : true,
+      writable : false,
+      configurable : true,
+    },
+    [SCHEMA_VALIDATOR_SOURCE]: {
+      value : source,
+      enumerable : true,
+      writable : false,
+      configurable : true,
+    },
+  });
+
   return result;
 };
 
 
 const standardValis = {
-  "any"       : make_vali_factory((...defs)=>(o)=>true                                                   , (...defs)=>"any()"      , (...def)=>{}),
-  "undefined" : make_vali_factory((...defs)=>(o)=>typeof o === "undefined"                               , (...defs)=>"undefined()", (...def)=>{}),
-  "null"      : make_vali_factory((...defs)=>(o)=>o === null                                             , (...defs)=>"null()"     , (...def)=>{}),
-  "boolean"   : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean"  , (...defs)=>"boolean()"  , (...def)=>{}),
-  "number"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   , (...defs)=>"number()"   , (...def)=>{}),
-  "string"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   , (...defs)=>"string()"   , (...def)=>{}),
-  "bigint"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   , (...defs)=>"bigint()"   , (...def)=>{}),
-  "symbol"    : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   , (...defs)=>"symbol()"   , (...def)=>{}),
-  "function"  : make_vali_factory((...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" , (...defs)=>"function()" , (...def)=>{}),
-  "or"        : make_vali_factory(
-    (...defs)=>(o)=>defs.some( f=>f(o)),
-    (...defs)=>"or()",
-    (...defs)=>{
-      if (defs.length===0) {
+  "any"       : make_vali_factory({
+    name : 'any',
+    factory : (...defs)=>(o)=>true,
+  }),
+  "undefined" : make_vali_factory({
+    name : "undefined",
+    factory : (...defs)=>(o)=>typeof o === "undefined",
+  }),
+  "null"      : make_vali_factory({
+    name : "null",
+    factory :  (...defs)=>(o)=>o === null,
+  }),
+  "boolean"   : make_vali_factory({
+    name : "boolean",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean" ,
+  }),
+  "number"    : make_vali_factory({
+    name : "number",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   ,
+  }),
+  "string"    : make_vali_factory({
+    name : "string",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   ,
+  }),
+  "bigint"    : make_vali_factory({
+    name : "bigint",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   ,
+  }),
+  "symbol"    : make_vali_factory({
+    name : "symbol",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   ,
+  }),
+  "function"  : make_vali_factory({
+    name : "function",
+    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" ,
+  }),
+  "or"        : make_vali_factory({
+    name : "or",
+    factory : (...defs)=>{
+      if ( defs.length < 1 ) {
         throw new RangeError( 'no definition was specified in `or`' );
       }
-      if ( ! defs.every( e=>check_if_proper_vali( e, 'or' ) ) ) {
-        throw new TypeError( 'found an invalid argument in `or`' );
-      }
+      defs.forEach( (e,i)=>{
+        const m = check_if_proper_vali( e );
+        if ( m !== null ) {
+          throw new RangeError(`the argument at or(${i}) is ${m}` );
+        }
+      });
+      return (o,c=null_context)=>{
+        // This implements the logical operator `or`; check every element
+        // before determine the result to obtain a user-friendly diagnosis
+        // report.
+        return c.notify(
+          defs.map( (f,i)=>{
+            c.enter(`|${i}`);
+            try {
+              return c.notify( f(o,c) );
+            } finally {
+              c.leave();
+            }
+          }).some(e=>!!e)
+        );
+      };
     },
-  ),
-  "and"       : make_vali_factory(
-    (...defs)=>(o)=>defs.every(f=>f(o)),
-    (...defs)=>"and()"      ,
-    (...defs)=>{
-      if (defs.length===0) {
-        throw new RangeError( 'no definition was specified' );
+  }),
+  "and"       : make_vali_factory({
+    name : "and",
+    factory : (...defs)=>{
+      //1
+      if ( defs.length < 1 ) {
+        throw new RangeError( 'no definition was specified in `and`' );
       }
-      if ( ! defs.every( e=>check_if_proper_vali( e, 'and' ) ) ) {
-        throw new TypeError( 'found an invalid argument in `and`' );
-      }
+      //2
+      defs.forEach( (e,i)=>{
+        const m = check_if_proper_vali( e );
+        if ( m !== null ) {
+          throw new RangeError(`the argument at or(${i}) is ${m}` );
+        }
+      });
+
+      //3
+      return (o,c=null_context)=>{
+        // This implements the logical operator `and`; check every element
+        // before determine the result to obtain a user-friendly diagnosis
+        // report.
+        return c.notify(
+          defs.map( (f,i)=>{
+            c.enter(`&${i}`);
+            try {
+              return c.notify( f(o,c) );
+            } finally {
+              c.leave();
+            }
+          }).every(e=>!!e)
+        );
+      };
     },
-  ),
-  "not"       : make_vali_factory(
-    (...defs)=>(o)=>! defs[0]( o ),
-    (...defs)=>"not()",
-    (...defs)=>{
-      if (defs.length < 1) {
+  }),
+  "not"       : make_vali_factory({
+    name : "not",
+    factory : (...defs)=>{
+      if ( defs.length < 1 ) {
         throw new RangeError( 'no definition was specified in `not`' );
       }
-      if (1<defs.length) {
-        throw new RangeError( 'too many definitions were specified in `not`' );
-      }
+      return (o,c=null_context)=>{
+        return c.notify(
+          ! (()=>{
+            c.enter('!');
+            try {
+              return c.notify( defs[0]( o,c ) );
+            } finally {
+              c.leave();
+            }
+          })()
+        );
+      };
     },
-  ),
-  "object"    : make_vali_factory(
-    (...defs)=>{
-      return (
-        (o)=>{
-          if ( o === null || o === undefined ) {
-            return false;
-          }
-          if ( typeof o !== 'object' ) {
-            return false;
-          }
-          return defs.every(
-            def=>Object.entries(def).every(
-              ([key,value])=>value( o[key])))
+  }),
+  "object"    : make_vali_factory({
+    name : "object",
+    factory : (...defs)=>{
+      if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
+        throw new RangeError( 'every argument must be an object' );
+      }
+
+      return (o,c=null_context)=>{
+        if ( o === null || o === undefined ) {
+          return false;
         }
-      )
+
+        if ( typeof o !== 'object' ) {
+          return false;
+        }
+
+        // This implements `object` operator; check every element before
+        // determine the result to obtain a user-friendly diagnosis report.
+
+        // `r` is an two-dimentional array of boolean.
+        const r =
+          defs.map(
+            def=>Object.entries(def).map(
+              ([key,value])=>{
+                c.enter(`.${key}`);
+                try {
+                  return c.notify( value( o[key], c ) );
+                } finally {
+                  c.leave();
+                }
+              }));
+        // check if every element is true.
+        const r2 =  r.every(e1=>e1.every(e2=>!!e2));
+        return c.notify(r2);
+      };
     },
-    (...defs)=>{
-      return defs.reduce(
-        (accum,arg)=>({
-          ...accum,
-          ...(Object.entries(arg).reduce(
-            (accum,[key,value])=>({
-              ...accum,
-              [key]: value(INFO),
-            })
-            ,{}))
-        })
-        ,{})
-    },
-    (...defs)=>{
-      if ( ! defs.every(e=>( e!==null && e!==undefined && typeof e === 'object' && Object.values(e).every(ee=>check_if_proper_vali(ee,'object'))))) {
-        throw new TypeError( 'found an invalid argument in `object`' );
-      }
-    }
-  ),
-  "array_of"    : make_vali_factory(
-    (...defs)=>{
-      return (
-        (o)=>{
+  }),
+  "array_of"    : make_vali_factory({
+    name : "array_of",
+    factory : 
+      (...defs)=>{
+        return (o)=>{
           if ( o === null || o === undefined ) {
             return false;
           }
@@ -351,21 +531,12 @@ const standardValis = {
           }
           return defs.every(
             (def)=>o.every(e=>def(e)));
-        }
-      )
-    },
-    (...defs)=>{
-      const def = defs.shift();
-      return def(INFO) + '[]';
-    },
-    (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def,'array_of' )))) {
-        throw new TypeError( "found an invalid argument `array_of`" );
-      }
-    }
-  ),
-  "array"    : make_vali_factory(
-    (...defs)=>{
+        };
+      },
+  }),
+  "array"    : make_vali_factory({
+    name : "array",
+    factory : (...defs)=>{
       return (
         (o)=>{
           if ( o === null || o === undefined ) {
@@ -381,35 +552,24 @@ const standardValis = {
         }
       )
     },
-    undefined,
-    (...defs)=>{
-      if ( ! defs.every(def=>(check_if_proper_vali( def, 'array' )))) {
-        throw new TypeError( "found an invalid argument `array`" );
-      }
-    }
-  ),
-  "equals"    : make_vali_factory(
-    (val)=>(o)=>o === val,
-    (val)=>val,
-    (...defs)=>{
-      if ( defs.length < 1 ) {
-        throw new RangeError( 'no definition was specified in `equals`' );
-      }
-    }
-  ),
-  "uuid"    : make_vali_factory(
-    (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
-    (...defs)=>"uuid",
-    (...defs)=>{}
-  ),
+  }),
+  "equals"    : make_vali_factory({
+    name : "equals",
+    factory : (val)=>(o)=>o === val,
+  }),
+  "uuid"    : make_vali_factory({
+    name : "uuid",
+    factory: (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
+  }),
 
-  [ID_STANDARD_STATEMENT_COMPILER]       : rttijs_standard_template_literal,
+  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILER] : rttijs_standard_template_literal,
+  [SCHEMA_VALIDATOR_CURRENTT_COMPILER] : rttijs_standard_template_literal,
   "statement" : function statement(...args) {
-    return this[ID_STANDARD_STATEMENT_COMPILER].call(this,...args);
+    return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
   },
 
   "compile" : function compile(...args) {
-    return this[ID_STANDARD_STATEMENT_COMPILER].call(this,...args);
+    return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
   },
 
   "clone" : cloneSchema,

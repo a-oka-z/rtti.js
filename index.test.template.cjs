@@ -4,6 +4,6 @@ params: body
 const { test, describe, it, before, after }  = require( 'node:test' );
 const util   = require( 'node:util' );
 const assert = require( 'node:assert/strict' );
-const { INFO, schema, rtti, make_vali_factory } = require( './index.cjs' );
+const { schema, rtti, make_vali_factory, SchemaValidatorContext, SCHEMA_VALIDATOR_SOURCE, SCHEMA_VALIDATOR_NAME } = require( './index.cjs' );
 
 <%=body %>

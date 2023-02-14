@@ -11,15 +11,12 @@ function inspect(s) {
 
 <%=body%>
 
-
 export {
-  INFO,
   schema,
-  schema as rtti,
   make_vali_factory,
   vali_to_string,
-
-  makeValiFactory,
-  newRtti,
+  SchemaValidatorContext,
+  SCHEMA_VALIDATOR_SOURCE,
+  SCHEMA_VALIDATOR_NAME,
 };
 
