@@ -14,10 +14,10 @@
     }
   },
   "scripts": {
-    "test-es6": "NODE_OPTIONS='--experimental-vm-modules' node --test-reporter='spec' index.test.mjs",
-    "test-cs": "                                          node --test-reporter='spec' index.test.cjs",
+    "test-esm": "node --test-reporter='spec' --watch index.test.mjs",
+    "test-cjs": "node --test-reporter='spec' --watch index.test.cjs",
     "test-simple": "npm run make; npm run test-cs",
-    "test": "npm run make; npm run test-cs; # npm run test-es6",
+    "test": "npm run make; npm run test-esm; # npm run test-cjs",
     "make": "node ./make.js"
   },
   "files": [

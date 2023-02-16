@@ -1,5 +1,5 @@
 params: body
-'use strict'
+'use strict';
 
 function inspect(s) {
   return JSON.stringify( s, (k,v)=>typeof v === 'function' ? v.toString() : v, 2 );

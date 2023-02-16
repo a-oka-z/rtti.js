@@ -1,4 +1,11 @@
 
+util.inspect.defaultOptions.depth = null;
+util.inspect.defaultOptions.maxArrayLength = null;
+util.inspect.defaultOptions.maxStringLength = null;
+util.inspect.defaultOptions.breakLength = 1;
+util.inspect.defaultOptions.compact =false;
+
+
 function getStackFromError(o) {
   if ( o == null ) {
     return o;
@@ -187,8 +194,6 @@ describe('check object with date', ()=>{
 });
 
 
-
-
 /*
  *
  */
@@ -212,20 +217,36 @@ test('STATEMENT COMPILER test basic 1', ()=>{
     )
   `;
 
-  assert.equal( factory.script , `
-    schema.object({
-      name : schema.string(),
-      age  : schema.number(),
-      field : schema.or( schema.number(), schema.string() ),
-      attrs : schema.object({
-        foo: schema.string(),
-        bar: schema.number(),
-      }),
-      arr_test : schema.array_of(
-        schema.not( schema.number()),
-      ),
-    })
-  `);
+  assert.equal( factory.toString() , 
+`function t_anonymous(...args) {
+    const schema = this === undefined ? self : this;
+    try {
+      return (
+        schema.object({
+          name:schema.string(),
+          age:schema.number(),
+          field:schema.or(
+            schema.number(),
+            schema.string()
+          ),
+          attrs:schema.object({
+            foo:schema.string(),
+            bar:schema.number()
+          }),
+          arr_test:schema.array_of(
+            schema.not(
+              schema.number()
+            )
+          )
+        })
+      );
+    } catch ( e ) {
+      e.source = t_anonymous.toString();
+      e.schema = schema;
+      throw e;
+    }
+  }`
+  );
 
   const vali = factory();
   console.error({factory,vali});
@@ -351,7 +372,7 @@ describe( 'check any', ()=>{
  *
  */
 
-describe( 'check statement compiler 1', ()=>{
+describe( 'check statement compiler 1 JavaScript Block', ()=>{
   it('as JavaScript Blocks No.1', ()=>{
     const factory = schema.statement`
       object(
@@ -368,20 +389,37 @@ describe( 'check statement compiler 1', ()=>{
       )
     `;
 
-    assert.equal( factory.script , `
-      schema.object({
-        name : schema.string(),
-        age  : schema.number(),
-        field : schema.or( schema.number(), schema.string() ),
-        attrs : schema.object({
-          foo: schema.equals(  "hello world"  ),
-          bar: schema.number(),
-        }),
-        arr_test : schema.array_of(
-          schema.not( schema.number()),
-        ),
-      })
-    `);
+    assert.equal( factory.toString() ,
+`function t_anonymous(...args) {
+    const schema = this === undefined ? self : this;
+    try {
+      return (
+        schema.object({
+          name:schema.string(),
+          age:schema.number(),
+          field:schema.or(
+            schema.number(),
+            schema.string()
+          ),
+          attrs:schema.object({
+            foo:schema.equals(
+              t__static_value_0_interpolator()
+            ),
+            bar:schema.number()
+          }),
+          arr_test:schema.array_of(
+            schema.not(
+              schema.number()
+            )
+          )
+        })
+      );
+    } catch ( e ) {
+      e.source = t_anonymous.toString();
+      e.schema = schema;
+      throw e;
+    }
+  }`);
 
     const vali = factory();
     console.error({factory,vali});
@@ -405,20 +443,40 @@ describe( 'check statement compiler 1', ()=>{
       )
     `;
 
-    assert.equal( factory.script , `
-      schema.object({
-        name : schema.equals(  "John Coltrane"  ),
-        age  : schema.number(),
-        field : schema.or( schema.number(), schema.string() ),
-        attrs : schema.object({
-          foo: schema.equals(  "hello world"  ),
-          bar: schema.number(),
-        }),
-        arr_test : schema.array_of(
-          schema.not( schema.number()),
-        ),
-      })
-    `);
+    assert.equal( factory.toString() , 
+        'function t_anonymous(...args) {\n' +
+      '    const schema = this === undefined ? self : this;\n' +
+      '    try {\n' +
+      '      return (\n' +
+      '        schema.object({\n' +
+      '          name:schema.equals(\n' +
+      '            t__static_value_0_interpolator()\n' +
+      '          ),\n' +
+      '          age:schema.number(),\n' +
+      '          field:schema.or(\n' +
+      '            schema.number(),\n' +
+      '            schema.string()\n' +
+      '          ),\n' +
+      '          attrs:schema.object({\n' +
+      '            foo:schema.equals(\n' +
+      '              t__static_value_1_interpolator()\n' +
+      '            ),\n' +
+      '            bar:schema.number()\n' +
+      '          }),\n' +
+      '          arr_test:schema.array_of(\n' +
+      '            schema.not(\n' +
+      '              schema.number()\n' +
+      '            )\n' +
+      '          )\n' +
+      '        })\n' +
+      '      );\n' +
+      '    } catch ( e ) {\n' +
+      '      e.source = t_anonymous.toString();\n' +
+      '      e.schema = schema;\n' +
+      '      throw e;\n' +
+      '    }\n' +
+      '  }' 
+    );
 
     const vali = factory();
     console.error({factory,vali});
@@ -426,24 +484,58 @@ describe( 'check statement compiler 1', ()=>{
 
   it('as JavaScript Blocks No.3', ()=>{
     const factory = schema.statement`equals(<<10>>)`;
-    assert.equal( factory.script , `schema.equals(10)`.trim());
+    assert.equal( 
+      factory.toString() , 
+
+      'function t_anonymous(...args) {\n' +
+      '    const schema = this === undefined ? self : this;\n' +
+      '    try {\n' +
+      '      return (\n' +
+      '        schema.equals(\n' +
+      '          t__static_value_0_interpolator()\n' +
+      '        )\n' +
+      '      );\n' +
+      '    } catch ( e ) {\n' +
+      '      e.source = t_anonymous.toString();\n' +
+      '      e.schema = schema;\n' +
+      '      throw e;\n' +
+      '    }\n' +
+      '  }'
+    );
     const vali = factory();
     console.error({factory,vali});
   });
 
   it('as JavaScript Blocks No.4', ()=>{
     const factory = schema.statement`number(<<>>)`;
-    assert.equal( factory.script , `schema.number()`.trim());
+    assert.equal( factory.toString() , 
+      'function t_anonymous(...args) {\n' +
+      '    const schema = this === undefined ? self : this;\n' +
+      '    try {\n' +
+      '      return (\n' +
+      '        schema.number(\n' +
+      '          t__static_value_0_interpolator()\n' +
+      '        )\n' +
+      '      );\n' +
+      '    } catch ( e ) {\n' +
+      '      e.source = t_anonymous.toString();\n' +
+      '      e.schema = schema;\n' +
+      '      throw e;\n' +
+      '    }\n' +
+      '  }'
+    );
     const vali = factory();
     console.error({factory,vali});
   });
 
 
   it('as JavaScript Blocks No.5', ()=>{
-    const factory = schema.statement`number(<<1 + >><<2 + >><<3>>)`;
-    assert.equal( factory.script , `schema.number(1 + 2 + 3)`.trim());
-    const vali = factory();
-    console.error({factory,vali});
+    assert.throws( ()=>{
+      const factory = schema.statement`number(<<1 + >><<2 + >><<3>>)`;
+      assert.equal( factory.toString() , `schema.number(1 + 2 + 3)`.trim());
+      const vali = factory();
+      console.error({factory,vali});
+    });
   });
 });
 
@@ -563,21 +655,38 @@ test('check statement compiler 2 / returned validators have `script` property 1'
     )
   `;
 
-  assert.equal( factory().script , `
-    schema.object({
-      name : schema.string(),
-      age  : schema.number(),
-      field : schema.or( schema.number(), schema.string() ),
-      attrs : schema.object({
-        foo: schema.equals(  "hello world"  ),
-        bar: schema.number(),
-      }),
-      arr_test : schema.array_of(
-        schema.not( schema.number()),
-      ),
-    })
-  `);
-
+  assert.equal( factory.toString() ,
+    'function t_anonymous(...args) {\n' +
+    '    const schema = this === undefined ? self : this;\n' +
+    '    try {\n' +
+    '      return (\n' +
+    '        schema.object({\n' +
+    '          name:schema.string(),\n' +
+    '          age:schema.number(),\n' +
+    '          field:schema.or(\n' +
+    '            schema.number(),\n' +
+    '            schema.string()\n' +
+    '          ),\n' +
+    '          attrs:schema.object({\n' +
+    '            foo:schema.equals(\n' +
+    '              t__static_value_0_interpolator()\n' +
+    '            ),\n' +
+    '            bar:schema.number()\n' +
+    '          }),\n' +
+    '          arr_test:schema.array_of(\n' +
+    '            schema.not(\n' +
+    '              schema.number()\n' +
+    '            )\n' +
+    '          )\n' +
+    '        })\n' +
+    '      );\n' +
+    '    } catch ( e ) {\n' +
+    '      e.source = t_anonymous.toString();\n' +
+    '      e.schema = schema;\n' +
+    '      throw e;\n' +
+    '    }\n' +
+    '  }'
+  );
   console.error({factory});
 });
 
@@ -587,11 +696,25 @@ test('check statement compiler 3 / returned validators have `script` property 2'
 
   assert.equal( factory()( 1 ) ,  true );
   assert.equal( factory()( 2 ) ,  false );
-  assert.equal( factory().script.trim() , `(e)=>e===1`);
+
+  assert.equal( factory.toString().trim() ,
+    'function t_anonymous(...args) {\n' +
+    '    const schema = this === undefined ? self : this;\n' +
+    '    try {\n' +
+    '      return (\n' +
+    '        t__static_value_0_interpolator()\n' +
+    '      );\n' +
+    '    } catch ( e ) {\n' +
+    '      e.source = t_anonymous.toString();\n' +
+    '      e.schema = schema;\n' +
+    '      throw e;\n' +
+    '    }\n' +
+    '  }'
+
+  );
 
   console.error({factory});
 });
-
 
 
 
@@ -624,7 +747,133 @@ describe( 'check context', ()=>{
       arr_test : [ false, 'boo', 15 ],
     };
     const r = factory()(o ,c);
-    console.log( 'source', factory[SCHEMA_VALIDATOR_SOURCE], 'result\n', c.toString() );
+    console.log( 'source', factory[SCHEMA_VALIDATOR_SOURCE], 'result', c.toString() );
   });
+});
+
+describe( 'new_standard_template_literal', ()=>{
+  it('new_standard_template_literal as 0', ()=>{
+    assert.throws( ()=>{
+      const result = schema.compile`
+        foo:object( ^ )
+      `;
+      console.error( 'result',result );
+    });
+  });
+
+  it('new_standard_template_literal as 1', ()=>{
+     const result = schema.compile`
+      object(
+      )
+    `
+    console.error( 'result',result);
+  });
+
+  it('new_standard_template_literal as 2', ()=>{
+     const result = schema.compile`
+      t_args : object(
+      )
+    `
+    console.error( 'result',result);
+  });
+
+  it('new_standard_template_literal as 3', ()=>{
+     const result = schema.compile`
+      t_args : object(
+        foo : object
+      )
+    `
+    console.error( 'result',result);
+  });
+
+  it('new_standard_template_literal as 4', ()=>{
+     const result = schema.compile`
+      t_args : object(
+        foo : object()
+      )
+    `
+    console.error( 'result',result);
+  });
+
+  it('new_standard_template_literal as 5', ()=>{
+     const result = schema.compile`
+      t_args : object(
+        foo : object,
+        bar : object
+      )
+    `
+    console.error( 'result',result);
+  });
+
+
+  it('new_standard_template_literal as 6',()=>{
+    assert.throws( ()=>{
+      const result = schema.compile`
+        t_args : object(
+          foo : object,
+          bar : object
+          bar : object,
+        )
+      `
+      console.error( 'result6',result);
+    }, new Error('missing comma') )
+  });
+
+
+  it('new_standard_template_literal as 7',()=>{
+     const result = schema.compile`
+      object(
+        foo : and(
+          number(),
+          equals( << 1 >> ),
+          // aaa   
+          /*
+          foo(), // ee
+          bar(),
+          a
+          */
+          /*
+           */BAR(),
+          // aaaa
+          equals( << 1 >> ),
+        ),
+      )
+    `
+    console.error( 'result',result);
+  });
+
+  it('new_standard_template_literal as 8',()=>{
+    assert.throws( ()=>{
+      const result = schema.compile`
+        t_args : object(
+          bar : object,
+        ))
+      `
+      console.error( 'result8',result);
+    }, new Error('probably found an unmatched parenthesis') )
+  });
+
+  it('new_standard_template_literal as 9',()=>{
+    assert.throws( ()=>{
+      const result = schema.compile`
+        t_args : object((
+          bar : object,
+        )
+      `
+      console.error( 'result9',result);
+    }, new Error('expected a keyword but missing') )
+  });
+
+  it('new_standard_template_literal as 10',()=>{
+    assert.throws( ()=>{
+      const result = schema.compile`
+        t_args : object((
+          bar : object,
+        ))
+      `
+      console.error( 'result10',result);
+    }, new Error('expected a keyword but missing') )
+  });
+
 });
 

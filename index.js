@@ -1,7 +1,10 @@
 const module_name = "vanilla-schema-validator";
 const INFO = Symbol.for( 'dump schema information' );
-const SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILER  = "vanilla-schema-validator.standard-compiler";
+
+const SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILE  = "vanilla-schema-validator.standard-compiler";
+const SCHEMA_VALIDATOR_STANDARD_STATEMENT_EXEXUTE  = "vanilla-schema-validator.standard-executor";
 const SCHEMA_VALIDATOR_CURRENTT_COMPILER  = "vanilla-schema-validator.compiler";
+const SCHEMA_VALIDATOR_CURRENTT_EXECUTOR  = "vanilla-schema-validator.executor";
 
 const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
 const SCHEMA_VALIDATOR_NAME   = Symbol.for( 'vanilla-schema-validator.name' );
@@ -185,10 +188,14 @@ const check_if_proper_vali = func=>{
  *     bar: number(),
  *   )
  * )
- * TYPE = char*( PARAMS )
- * A_PARAM = char* ( : TYPE )
- * PARAMS = A_PARAM ( , PARAMS )
  *
+ * id        = [a-zA-Z0-9]+
+ * validator = id
+ * factory   = id( PARAMS )
+ * valifac   =  ( validator-name : ) factory
+ * PARAMS    = valifac ( , PARAMS )
+ *
+ * schema    = valifac
  *
  */
 const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
@@ -204,12 +211,6 @@ const adjacent_token_is_colon = (tokens,idx)=>{
   }
   return -1;
 };
-
-function cloneSchema() {
-  const schema = createSchema();
-  Object.assign( schema, this );
-  return schema;
-}
 
 function rttijs_standard_template_literal(strings, ... values) {
   if ( this === undefined )
@@ -331,27 +332,21 @@ function rttijs_standard_template_literal(strings, ... values) {
       return validator;
     } catch (e) {
       e.message = 
-        `[${module_name}] a compiled validator threw an error. '${e.message}'\ninformation:\nscript:${script}\n---\nschema:${JSON.stringify( schema, (k,v)=>typeof v==='function' ? '[function '+k+']' : v, 2)}\n---\n`;
+        `[${module_name}] a compiled validator factory threw an error. '${e.message}'\ninformation:\nscript:${script}\n---\nschema:${JSON.stringify( schema, (k,v)=>typeof v==='function' ? '[function '+k+']' : v, 2)}\n---\n`;
       throw e;
       // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
     }
   };
 
-  Object.defineProperties( __validator_factory, {
-    name : {
-      value : name,
-      enumerable : false,
-      writable : false,
-      configurable : true,
-    },
-    [SCHEMA_VALIDATOR_NAME]: {
-      value : name,
+  Object.defineProperties( result, {
+    'script': {
+      value : script,
       enumerable : true,
       writable : false,
       configurable : true,
     },
     [SCHEMA_VALIDATOR_SOURCE]: {
-      value : source,
+      value : script,
       enumerable : true,
       writable : false,
       configurable : true,
@@ -360,6 +355,422 @@ function rttijs_standard_template_literal(strings, ... values) {
 
   return result;
 };
+
+
+function __parse(input) {
+  class CompileError extends Error {
+    constructor(...args) {
+      const arg = Object.assign({},...args);
+      super(args.message, args);
+      Object.assign( this, arg );
+    }
+  }
+  const escaped_blocks = [];
+
+  function escape_blocks( s ) {
+    return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
+      const c = escaped_blocks.length;
+      const id = 't__static_value_' + ( c ) + '_interpolator';
+      escaped_blocks.push({
+        key : id,
+        value: p1,
+      });
+      return id + '()'; 
+    });
+  }
+
+  function remove_line_comment( s ) {
+    return s.replaceAll( /\/\/.*$/gm, function (match) {
+      return ' ';
+    });
+  }
+
+  function remove_block_comment( s ) {
+    return s.replaceAll( /\/\*[\s\S]*\*\//gm, function (match) {
+      return ' ';
+    });
+  }
+
+  function check_all_valid_chars( s ) {
+    const regexp = /[^\$a-zA-Z0-9_:,\(\)\s]/gm;
+    return s.replaceAll(regexp , function (match,offset,string,groups) {
+      throw new CompileError({message: `invalid character '${ match }' in character ${ offset }\n${s}` });
+    });
+  }
+
+  const KWD = '@'; // t_validator_type
+  const BGN = '('; // (
+  const END = ')'; // )
+  const PSP = ','; // , ... comma / parameter separator
+  const KSP = ';'; // ; ... colon / key-value separator
+
+
+  const modified_input =
+    check_all_valid_chars(
+      remove_block_comment(
+        remove_line_comment(
+          escape_blocks( input  ))));
+
+  class Token {
+    constructor({type,value,src}) {
+      if ( type === null || type === undefined ) {
+        throw new ReferenceError( 'type was not specified' );
+      }
+      if ( value === null || value === undefined ) {
+        throw new ReferenceError( 'value was not specified' );
+      }
+      if ( typeof type  !== 'string' ) {
+        throw new TypeError( 'invalid type of `type`' );
+      }
+      if ( typeof value  !== 'string' ) {
+        throw new TypeError( 'invalid type of `value`' );
+      }
+      this.type = type;
+      this.value = value;
+      this.src = src;
+    }
+  }
+
+  //                2                 3     4     5     6     
+  const pattern = /(([0-9a-zA-Z\$_]+)|([(])|([)])|([,])|([:]))/g;
+  const tokens = [];
+  for(;;) {
+    const m = pattern.exec( modified_input );
+    if ( ! m ) {
+      break;
+    }
+    if ( false ) {
+    } else if ( typeof m[2] === 'string' ) {
+      tokens.push( new Token({
+        type : KWD,
+        value : m[2],
+        src :{
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[3] === 'string' ) {
+      tokens.push( new Token({
+        type : BGN,
+        value : m[3],
+        src :{
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[4] === 'string' ) {
+      tokens.push( new Token({
+        type : END,
+        value : m[4],
+        src :{
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[5] === 'string' ) {
+      tokens.push( new Token({
+        type : PSP,
+        value : m[5],
+        src :{
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[6] === 'string' ) {
+      tokens.push( new Token({
+        type : KSP,
+        value : m[6],
+        src :{
+          position: m.index,
+        },
+      }));
+    } else {
+      throw new CompileError({message:'internal error ' + input });
+    }
+  }
+
+  class Elem {
+    constructor(token) {
+      this.token  = token;
+      this.token_at_end = null;
+      this.val_id = null;
+      this.fac_id = null;
+      this.children = [];
+      this.is_closed_element = false;
+    }
+  }
+
+  {
+    let elem_stack = [ new Elem(null) ];
+    let work_elem = null;
+
+    /*
+     * Notify the end of the current element.
+     * There are two posibillities that ends the current element : 
+     *   1. an end of a pair of parenthesis
+     *   2. a parameter separator  ( comma )
+     * See the code bellow.
+     */
+    const notify_end_of_elem = (work_elem,current_token)=>{
+      if ( work_elem !== null ) {
+        work_elem.token_at_end = current_token;
+      }
+    };
+
+    for ( const current_token of tokens ) {
+      switch ( current_token.type ) {
+        case KWD : {
+
+          if ( work_elem === null ) {
+            // begin a new definition
+            work_elem = new Elem( current_token );
+            elem_stack[ elem_stack.length-1].children.push( work_elem );
+          }
+
+          if ( work_elem.fac_id !== null ) {
+            if ( work_elem.val_id === null ) {
+              throw new CompileError({message: 'missing colon' });
+            } else {
+              throw new CompileError({message: 'missing comma' });
+            }
+          }
+
+          work_elem.fac_id = current_token.value; 
+
+          break;
+        };
+
+        case BGN : {
+          if ( work_elem === null ) {
+            throw new CompileError({message: 'expected a keyword but missing' });
+          }
+          if ( work_elem.is_closed_element !== false ) {
+            throw new CompileError({message: `expected ')' or a new keyword but missing` });
+          }
+          elem_stack.push( work_elem );
+          work_elem = null;
+
+          break;
+        };
+
+        case END : {
+          if ( work_elem === null ) {
+            // This can be safely ignored.
+            // throw new CompileError({message: 'expected a keyword but missing' });
+          }
+          if ( elem_stack.length <= 0 ) {
+            throw new CompileError({message: 'an unmatched parenthes' });
+          }
+
+          notify_end_of_elem( work_elem, current_token );
+
+          work_elem = elem_stack.pop();
+          work_elem.is_closed_element = true;
+
+          break;
+        };
+
+        case PSP : {
+          if( work_elem === null ) {
+            throw new CompileError({message: 'missing keyword' });
+          }
+
+          // Notify the end of the current element.
+          notify_end_of_elem( work_elem, current_token );
+
+          work_elem = null;
+
+          break;
+        };
+
+        case KSP : {
+          if ( work_elem === null ) {
+            throw new CompileError({message: 'no validator was specified' });
+          }
+          if ( work_elem.fac_id === null ) {
+            throw new CompileError({message:'no factory was specified' });
+          }
+          if ( work_elem.val_id !== null ) {
+            throw new CompileError({message:'duplicate colon error' });
+          }
+          work_elem.val_id = work_elem.fac_id;
+          work_elem.fac_id = null;
+
+          break;
+        };
+        default : {
+          throw new CompileError({message: 'internal error ' + input });
+        };
+      }
+    }
+    notify_end_of_elem( work_elem, 0<tokens.length ? tokens[ tokens.length -1 ] : null );
+
+    if (  elem_stack.length !== 1 ) {
+      throw new CompileError({ message:'probably found an unmatched parenthesis' });
+    }
+
+    const parsed = {
+      source : input,
+      tokens,
+      modified_source : modified_input,
+      definitions : [...elem_stack.shift().children ],
+      escaped_blocks,
+    };
+
+    return parsed;
+  }
+}
+
+function __compile( parsed ) {
+  const compiled_buf = [];
+  const output = (...args)=>compiled_buf.push(...args);
+  const remove_last_comma = ()=>{
+    const i = compiled_buf.length -1;
+    compiled_buf[ i ] = compiled_buf[ i ].replaceAll( /,\s*$/gm ,'' ); 
+  }
+
+  output( '"use strict";' );
+  output( 'const self=this;' );
+  const check_escaped_block = (s)=>{
+    s=s.trim();
+    if ( s.trim() === '' ) {
+      return 'undefined';
+    } else {
+      return s;
+    }
+  };
+  for ( const {key,value} of parsed.escaped_blocks ) {
+
+    output( `const ${key} = ()=>(${check_escaped_block(value)});` );
+  }
+
+  function output_elem( elem, indent_level ) {
+    const indent  = " ".repeat( (indent_level + 4 ) * 2 );
+    const {
+      paren_b,
+      paren_e
+    } = elem.fac_id === 'object' ? {
+      paren_b : '{',
+      paren_e : '}',
+    } : {
+      paren_b : '',
+      paren_e : '',
+    };
+
+    const schema_name = elem.fac_id.match( /^t__static_value_[0-9]_interpolator$/ ) ? '' : 'schema.';
+
+    // Omit to output validator id on the first indent level.  The first indent
+    // level should be treated specially because  it should be enclosed by a
+    // function call. If it is without the enclosing, it would be implemented
+    // symmetrically.
+    if ( indent_level === 0 ) {
+      output( indent +                                        `${schema_name}${elem.fac_id}(${paren_b}` );
+    } else {
+      output( indent + `${elem.val_id ? elem.val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
+    }
+    for ( const sub_elem of elem.children ) {
+      output_elem( sub_elem, indent_level + 1 ); 
+    }
+    remove_last_comma();
+    output( indent + `${paren_e}),` );
+  }
+
+  output( 'const result = ({' );
+  let type_name = null;
+  for ( const elem of parsed.definitions ) {
+    type_name = elem.val_id ?? 't_anonymous';
+    output( `  "${type_name}" : (function ${type_name}(...args) {` );
+    output( `    const schema = this === undefined ? self : this;` );
+    output( `    try {` );
+    output( `      return (` );
+
+    output_elem( elem, 0 ) ;
+    remove_last_comma();
+
+    output( `      );` );
+    output( `    } catch ( e ) {` );
+    output( `      e.source = ${type_name}.toString();` );
+    output( `      e.schema = schema;` );
+    output( `      throw e;` );
+    output( `    }` );
+    output( `  }),` );
+  }
+  output('});' );
+  if ( type_name !== null ) {
+    output( `result.t_default = result.${type_name};` );
+  }
+  output( `return result;` );
+
+  const clean_source = (s)=>{
+    return s.replaceAll( /\(\s*\)/gm, '()' );
+  };
+
+  const compiled_source = clean_source( compiled_buf.join('\n')) ;
+  let factory_factory = null;
+  try {
+    factory_factory = new Function( compiled_source );
+  } catch (e){
+    e.message += ' in\n---\n' + compiled_source.replaceAll( /^/gm, ' '.repeat(4) ) + '\n---\n';
+    e.source = compiled_source;
+    throw e;
+  }
+  return {
+    ...parsed,
+    compiled_buf,
+    compiled_source,
+    factory_factory,
+  };
+}
+
+function schema_validator_script_compiler( input ) {
+  const parsed   = __parse( input  );
+  const compiled = __compile( parsed );
+  return compiled;
+}
+
+function schema_validator_template_literal_compile( strings, ... values ) {
+  if ( this === undefined )
+    throw Error('this is undefined');
+  if ( ! Array.isArray( strings ) ) {
+    throw new TypeError( 'the first argument is not an array' );
+  }
+  if ( ! strings.every(e=>typeof e === 'string' ) )  {
+    throw new TypeError( 'the array of the first argument contains a non-string value' );
+  }
+
+  const input = joinStringsAndValues( strings, values );
+  const compiled = schema_validator_script_compiler( input );
+  const result   = compiled.factory_factory.call( this );
+
+  // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
+  // console.log( 'decompiled',   result.t_default.toString() );
+
+  return result.t_default;
+}
+
+function schema_validator_template_literal_execute( strings, ... values ) {
+  if ( this === undefined )
+    throw Error('this is undefined');
+  if ( ! Array.isArray( strings ) ) {
+    throw new TypeError( 'the first argument is not an array' );
+  }
+  if ( ! strings.every(e=>typeof e === 'string' ) )  {
+    throw new TypeError( 'the array of the first argument contains a non-string value' );
+  }
+
+  const input = joinStringsAndValues( strings, values );
+  const compiled = schema_validator_script_compiler( input );
+  const result   = compiled.factory_factory.call( this );
+
+  // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
+  Object.assign( this, result );
+  return result;
+}
+
+
+
+
+function cloneSchema() {
+  const schema = createSchema();
+  Object.assign( schema, this );
+  return schema;
+}
 
 
 const standardValis = {
@@ -415,7 +826,7 @@ const standardValis = {
         // This implements the logical operator `or`; check every element
         // before determine the result to obtain a user-friendly diagnosis
         // report.
-        return c.notify(
+        return (
           defs.map( (f,i)=>{
             c.enter(`|${i}`);
             try {
@@ -562,14 +973,20 @@ const standardValis = {
     factory: (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
   }),
 
-  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILER] : rttijs_standard_template_literal,
-  [SCHEMA_VALIDATOR_CURRENTT_COMPILER] : rttijs_standard_template_literal,
+  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILE] : schema_validator_template_literal_compile,
+  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_EXEXUTE] : schema_validator_template_literal_execute,
+
+  [SCHEMA_VALIDATOR_CURRENTT_COMPILER] : schema_validator_template_literal_compile,
+  [SCHEMA_VALIDATOR_CURRENTT_EXECUTOR] : schema_validator_template_literal_execute,
+
   "statement" : function statement(...args) {
     return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
   },
-
   "compile" : function compile(...args) {
     return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
+  },
+  "execute" : function execute(...args) {
+    return this[SCHEMA_VALIDATOR_CURRENTT_EXECUTOR].call(this,...args);
   },
 
   "clone" : cloneSchema,
