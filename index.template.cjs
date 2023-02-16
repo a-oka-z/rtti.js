@@ -15,6 +15,7 @@ function inspect(s) {
 module.exports.schema            = schema;
 module.exports.make_vali_factory = make_vali_factory;
 module.exports.vali_to_string    = vali_to_string;
+module.exports.trace_validator   = trace_validator;
 module.exports.SchemaValidatorContext = SchemaValidatorContext;
 module.exports.SCHEMA_VALIDATOR_SOURCE = SCHEMA_VALIDATOR_SOURCE;
 module.exports.SCHEMA_VALIDATOR_NAME  = SCHEMA_VALIDATOR_NAME;

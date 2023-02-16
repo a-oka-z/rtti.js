@@ -7,8 +7,70 @@ const SCHEMA_VALIDATOR_CURRENTT_COMPILER  = "vanilla-schema-validator.compiler";
 const SCHEMA_VALIDATOR_CURRENTT_EXECUTOR  = "vanilla-schema-validator.executor";
 
 const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
-const SCHEMA_VALIDATOR_NAME   = Symbol.for( 'vanilla-schema-validator.name' );
+const SCHEMA_VALIDATOR_FACTORY_NAME   = 'factory_name' ;
+const SCHEMA_VALIDATOR_NAME = 'validator_name';
 
+
+
+/*
+ * (Thu, 16 Feb 2023 18:54:50 +0900)
+ *
+ * When a factory names a validator , the name should be taken as both a
+ * facotry name and as a validator name. And the factory name is immutable so
+ * that it cannot be modified. When a user renames a validator, it only changes
+ * its validator name and its validator factory name will not be changed. 
+ */
+const name_validator   = (factory_name,validator)=>{
+  Object.defineProperties( validator, {
+    [SCHEMA_VALIDATOR_FACTORY_NAME]: {
+      value : factory_name,
+      enumerable : true,
+      writable : true,
+      configurable : true,
+    },
+    [SCHEMA_VALIDATOR_NAME]: {
+      value : factory_name,
+      enumerable : true,
+      writable : true,
+      configurable : true,
+    },
+  });
+  return validator;
+};
+
+const rename_validator = (factory_name,validator)=>{
+  Object.defineProperties( validator, {
+    [SCHEMA_VALIDATOR_NAME]: {
+      value : factory_name,
+      enumerable : true,
+      writable : true,
+      configurable : true,
+    },
+  });
+  return validator;
+};
+
+const path_to_str = (p)=>{
+  return `.(${p.id}:${vali_to_str(p.validator)})`;
+};
+const vali_to_str = (v)=>{
+  if ( SCHEMA_VALIDATOR_NAME in v ) {
+    return v[SCHEMA_VALIDATOR_NAME];
+  } else if ( 'name' in v ) {
+    return v.name;
+  } else {
+    return '?';
+  }
+};
+
+
+const bool_to_str = (v)=>{
+  if ( v ) {
+    return 't';
+  } else {
+    return 'f';
+  }
+};
 class SchemaValidatorContext {
   result_stack;
   path_stack;
@@ -16,16 +78,19 @@ class SchemaValidatorContext {
     this.path_stack = [];
     this.result_stack = [];
   }
-  enter( field_name ) {
-    this.path_stack.push( field_name );
+  enter( id, validator ) {
+    this.path_stack.push({
+      id,validator
+    });
   }
   notify( value ) {
     if ( typeof value !== 'boolean' ) {
       throw new TypeError( `notified an invalid value : ${value}` );
     }
+    const path = [...this.path_stack];
     this.result_stack.push({
-      path : [...this.path_stack],
-      value : value,
+      path,
+      value,
     });
     return value;
   }
@@ -36,7 +101,7 @@ class SchemaValidatorContext {
     return [ ...this.result_stack ];
   }
   toString() {
-    return this.result().map(e=>e.path.join('') + ':' + e.value ).join('\n');
+    return this.result().map( e=>bool_to_str( e.value ) + ' : ' + ( e.path.map(path_to_str).join('')  ) ).join('\n');
   }
 }
 
@@ -48,6 +113,23 @@ class NullSchemaValidatorContext {
   toString() { return '' }
 };
 const null_context = new NullSchemaValidatorContext();
+
+const trace_validator = (validator, value )=>{
+  const context = new SchemaValidatorContext();
+  try {
+    context.enter( 'root', validator );
+    const result = context.notify( validator( value, context ) );
+    return {
+      result, 
+      context,
+      report : ()=>{
+        return context.toString();
+      },
+    };
+  } finally {
+    context.leave();
+  }
+};
 
 const create_info_gen_from_string = ( info_gen_string )=>{
   if ( typeof info_gen_string === 'string' ) {
@@ -106,52 +188,8 @@ function make_vali_factory(nargs) {
 
   const __validator_factory = function validator_factory( ...defs ) {
     const validator = factory.apply( this, defs );
-
-    Object.defineProperties( validator, {
-      name : {
-        value : __validator_factory.name,
-        enumerable : false,
-        writable : false,
-        configurable : true,
-      },
-      [SCHEMA_VALIDATOR_NAME]: {
-        value : __validator_factory[SCHEMA_VALIDATOR_NAME],
-        enumerable : true,
-        writable : false,
-        configurable : true,
-      },
-      [SCHEMA_VALIDATOR_SOURCE]: {
-        value : __validator_factory[SCHEMA_VALIDATOR_SOURCE],
-        enumerable : true,
-        writable : false,
-        configurable : true,
-      },
-    });
-
     return validator;
   };
-
-  Object.defineProperties( __validator_factory, {
-    name : {
-      value : name,
-      enumerable : false,
-      writable : false,
-      configurable : true,
-    },
-    [SCHEMA_VALIDATOR_NAME]: {
-      value : name,
-      enumerable : true,
-      writable : false,
-      configurable : true,
-    },
-    [SCHEMA_VALIDATOR_SOURCE]: {
-      value : source,
-      enumerable : true,
-      writable : false,
-      configurable : true,
-    },
-  });
-
   return __validator_factory;
 };
 
@@ -199,163 +237,6 @@ const check_if_proper_vali = func=>{
  *
  */
 const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
-const adjacent_token_is_colon = (tokens,idx)=>{
-  for ( let i=idx;i<tokens.length; i++ ) {
-    if ( tokens[i] === ':' ) {
-      return i;
-    } else if ( tokens[i].match (/\s+/ ) ){
-      continue;
-    } else {
-      return -1;
-    }
-  }
-  return -1;
-};
-
-function rttijs_standard_template_literal(strings, ... values) {
-  if ( this === undefined )
-    throw Error('this is undefined');
-
-  if ( ! Array.isArray( strings ) ) {
-    throw new TypeError( 'the first argument is not an array' );
-  }
-  if ( ! strings.every(e=>typeof e === 'string' ) )  {
-    throw new TypeError( 'the array of the first argument contains a non-string value' );
-  }
-
-  const escaped_blocks = [];
-
-  function escape_blocks( s ) {
-    return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
-      const c = escaped_blocks.length;
-      const id = '__RTTIJS_ESCAPED_SEQUENCE_NO_' + ( c ) + '__';
-      escaped_blocks.push( p1 );
-      return id; 
-    });
-  }
-
-  function unescape_blocks( input ) {
-    let output = input;
-    output = output.replaceAll( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/g, function(match,p1) {
-      return escaped_blocks[p1];
-    })
-    return output;
-  }
-
-  const input  = 
-    escape_blocks( 
-      joinStringsAndValues( strings, values ));
-
-  const i_tokens = Array.from( input.matchAll( /[(),:]|[a-zA-Z_][_a-zA-Z0-9]*|\s+/g ) ).map( e=>e[0] );
-  const o_tokens = [ ...i_tokens ];
-  const PREFIX = 'schema';
-
-  const parenthesis_stack = [];
-
-  let last_keyword = null;
-  for ( let i=0; i<i_tokens.length; i++ ) {
-    const curr_t = i_tokens[i];
-    // if (curr_t.trim() !== '' ){ console.error( curr_t ) };
-    if ( false ) {
-    } else if ( curr_t === '(' ) {
-      if (false) {
-      } else if ( last_keyword === 'object' || last_keyword === 'define' ) {
-        o_tokens[i] = '({';
-        parenthesis_stack.push( '})' );
-      } else  {
-        parenthesis_stack.push( ')' );
-      }
-
-      last_keyword = null;
-    } else if ( curr_t === ')' ) {
-      o_tokens[i] = parenthesis_stack.pop();
-
-      last_keyword = null;
-    } else if ( curr_t === ',' ) {
-      last_keyword = null;
-    } else if ( curr_t === ':' ) {
-      last_keyword = null;
-    } else if ( curr_t.match( /\s+/ ) ) {
-      // last_keyword = null;
-    } else if ( /__RTTIJS_ESCAPED_SEQUENCE_NO_([0-9]+)__/.test( curr_t ) ) {
-        // do nothing
-        o_tokens[i] = o_tokens[i];
-    } else {
-      if ( adjacent_token_is_colon( i_tokens, i+1 )<0 ) {
-        o_tokens[i] = PREFIX  + '.' + o_tokens[i] ;
-      }
-      last_keyword = i_tokens[i]; // is this proper? (Wed, 16 Nov 2022 17:28:53 +0900)
-    }
-  }
-
-  const script = 
-    unescape_blocks(
-      o_tokens.join(''));
-
-  /*
-   * This is just for trapping errors; this simply returns the function.
-   */
-  const compiled_script = (()=>{
-    let __script = script;
-    __script = __script.trim();
-    __script = __script.replace( /,$/, '' );
-
-    try {
-      return new Function( PREFIX , '...args' , 'return (\n' + __script + '\n);' );
-    } catch (e) {
-      throw new SyntaxError( e.message += '\n' + script, {cause:e} );
-    }
-  })();
-
-  /*
-   * Switch self/this depends on the context that the function is called.
-   * For further information, see Atsushi Oka's daily log on Nov 17 2022.
-   */
-  const self = this;
-  const result = function compiled_statement(...args) {
-    const schema = this == undefined ? self : this;
-    try {
-      const validator =  compiled_script.apply( undefined, [ schema, ...args ] );
-      if ( validator !== undefined && 
-           validator !== null      && 
-          ( ( typeof validator === 'object'   ) || 
-            ( typeof validator === 'function' ) ) )
-      {
-        Object.defineProperty( validator, 'script', {
-          value : script,
-          enumerable   : false,
-          writable     : true,
-          configurable : true,
-        });
-      }
-
-      return validator;
-    } catch (e) {
-      e.message = 
-        `[${module_name}] a compiled validator factory threw an error. '${e.message}'\ninformation:\nscript:${script}\n---\nschema:${JSON.stringify( schema, (k,v)=>typeof v==='function' ? '[function '+k+']' : v, 2)}\n---\n`;
-      throw e;
-      // throw new SyntaxError( 'an error was occured in a compiled `rtti.js` statement\n' + script,  {cause:e} );
-    }
-  };
-
-  Object.defineProperties( result, {
-    'script': {
-      value : script,
-      enumerable : true,
-      writable : false,
-      configurable : true,
-    },
-    [SCHEMA_VALIDATOR_SOURCE]: {
-      value : script,
-      enumerable : true,
-      writable : false,
-      configurable : true,
-    },
-  });
-
-  return result;
-};
-
 
 function __parse(input) {
   class CompileError extends Error {
@@ -678,12 +559,15 @@ function __compile( parsed ) {
     output( `  "${type_name}" : (function ${type_name}(...args) {` );
     output( `    const schema = this === undefined ? self : this;` );
     output( `    try {` );
-    output( `      return (` );
+    output( `      const validator = schema.thru(` );
 
-    output_elem( elem, 0 ) ;
+    output_elem( elem, 0 );
     remove_last_comma();
 
     output( `      );` );
+    output( `      validator.${SCHEMA_VALIDATOR_NAME} = "${type_name}";` );
+    output( `      validator.${SCHEMA_VALIDATOR_FACTORY_NAME} = "${type_name}";` );
+    output( `      return validator;` );
     output( `    } catch ( e ) {` );
     output( `      e.source = ${type_name}.toString();` );
     output( `      e.schema = schema;` );
@@ -774,61 +658,35 @@ function cloneSchema() {
 
 
 const standardValis = {
-  "any"       : make_vali_factory({
-    name : 'any',
-    factory : (...defs)=>(o)=>true,
-  }),
-  "undefined" : make_vali_factory({
-    name : "undefined",
-    factory : (...defs)=>(o)=>typeof o === "undefined",
-  }),
-  "null"      : make_vali_factory({
-    name : "null",
-    factory :  (...defs)=>(o)=>o === null,
-  }),
-  "boolean"   : make_vali_factory({
-    name : "boolean",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "boolean" ,
-  }),
-  "number"    : make_vali_factory({
-    name : "number",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "number"   ,
-  }),
-  "string"    : make_vali_factory({
-    name : "string",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "string"   ,
-  }),
-  "bigint"    : make_vali_factory({
-    name : "bigint",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "bigint"   ,
-  }),
-  "symbol"    : make_vali_factory({
-    name : "symbol",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "symbol"   ,
-  }),
-  "function"  : make_vali_factory({
-    name : "function",
-    factory : (...defs)=>(o)=>o !== undefined && o!==null && typeof o === "function" ,
-  }),
-  "or"        : make_vali_factory({
-    name : "or",
-    factory : (...defs)=>{
-      if ( defs.length < 1 ) {
-        throw new RangeError( 'no definition was specified in `or`' );
+  "any"       : (...defs)=>name_validator("any"      ,(o)=>true ),
+  "undefined" : (...defs)=>name_validator("undefined",(o)=>typeof o === "undefined"),
+  "null"      : (...defs)=>name_validator("null"     ,(o)=>o === null ),
+  "boolean"   : (...defs)=>name_validator("boolean"  ,(o)=>o !== undefined && o!==null && typeof o === "boolean" ),
+  "number"    : (...defs)=>name_validator("number"   ,(o)=>o !== undefined && o!==null && typeof o === "number"  ),
+  "string"    : (...defs)=>name_validator("string"   ,(o)=>o !== undefined && o!==null && typeof o === "string"  ),
+  "bigint"    : (...defs)=>name_validator("bigint"   ,(o)=>o !== undefined && o!==null && typeof o === "bigint"  ),
+  "symbol"    : (...defs)=>name_validator("symbol"   ,(o)=>o !== undefined && o!==null && typeof o === "symbol"  ),
+  "function"  : (...defs)=>name_validator("function" ,(o)=>o !== undefined && o!==null && typeof o === "function"),
+  "or"        : (...defs)=>{
+    if ( defs.length < 1 ) {
+      throw new RangeError( 'no definition was specified in `or`' );
+    }
+
+    defs.forEach( (e,i)=>{
+      const m = check_if_proper_vali( e );
+      if ( m !== null ) {
+        throw new RangeError(`the argument at or(${i}) is ${m}` );
       }
-      defs.forEach( (e,i)=>{
-        const m = check_if_proper_vali( e );
-        if ( m !== null ) {
-          throw new RangeError(`the argument at or(${i}) is ${m}` );
-        }
-      });
-      return (o,c=null_context)=>{
+    });
+
+    return (
+      name_validator( "or", (o,c=null_context)=>{
         // This implements the logical operator `or`; check every element
         // before determine the result to obtain a user-friendly diagnosis
         // report.
         return (
           defs.map( (f,i)=>{
-            c.enter(`|${i}`);
+            c.enter(i,f);
             try {
               return c.notify( f(o,c) );
             } finally {
@@ -836,32 +694,32 @@ const standardValis = {
             }
           }).some(e=>!!e)
         );
-      };
-    },
-  }),
-  "and"       : make_vali_factory({
-    name : "and",
-    factory : (...defs)=>{
-      //1
-      if ( defs.length < 1 ) {
-        throw new RangeError( 'no definition was specified in `and`' );
-      }
-      //2
-      defs.forEach( (e,i)=>{
-        const m = check_if_proper_vali( e );
-        if ( m !== null ) {
-          throw new RangeError(`the argument at or(${i}) is ${m}` );
-        }
-      });
+      })
+    );
+  },
 
-      //3
-      return (o,c=null_context)=>{
+  "and" : (...defs)=>{
+    //1
+    if ( defs.length < 1 ) {
+      throw new RangeError( 'no definition was specified in `and`' );
+    }
+    //2
+    defs.forEach( (e,i)=>{
+      const m = check_if_proper_vali( e );
+      if ( m !== null ) {
+        throw new RangeError(`the argument at or(${i}) is ${m}` );
+      }
+    });
+
+    //3
+    return (
+      name_validator( "and", (o,c=null_context)=>{
         // This implements the logical operator `and`; check every element
         // before determine the result to obtain a user-friendly diagnosis
         // report.
-        return c.notify(
+        return (
           defs.map( (f,i)=>{
-            c.enter(`&${i}`);
+            c.enter(i,f);
             try {
               return c.notify( f(o,c) );
             } finally {
@@ -869,37 +727,57 @@ const standardValis = {
             }
           }).every(e=>!!e)
         );
-      };
-    },
-  }),
-  "not"       : make_vali_factory({
-    name : "not",
-    factory : (...defs)=>{
-      if ( defs.length < 1 ) {
-        throw new RangeError( 'no definition was specified in `not`' );
-      }
-      return (o,c=null_context)=>{
-        return c.notify(
+      })
+    );
+  },
+
+  "not" : (def)=>{
+    if ( def === undefined || def === null ) {
+      throw new RangeError( 'no definition was specified in `not`' );
+    }
+    return (
+      name_validator( "not", (o,c=null_context)=>{
+        return (
           ! (()=>{
-            c.enter('!');
+            c.enter('->',def);
             try {
-              return c.notify( defs[0]( o,c ) );
+              return c.notify( def( o,c ) );
             } finally {
               c.leave();
             }
           })()
         );
-      };
-    },
-  }),
-  "object"    : make_vali_factory({
-    name : "object",
-    factory : (...defs)=>{
-      if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
-        throw new RangeError( 'every argument must be an object' );
-      }
+      })
+    );
+  },
 
-      return (o,c=null_context)=>{
+  "thru" : (def)=>{
+    if ( def === undefined || def === null ) {
+      throw new RangeError( 'no definition was specified in `not`' );
+    }
+    return (
+      name_validator( "thru", (o,c=null_context)=>{
+        return (
+          (()=>{
+            c.enter('->',def);
+            try {
+              return c.notify( def( o,c ) );
+            } finally {
+              c.leave();
+            }
+          })()
+        );
+      })
+    );
+  },
+
+  "object" : (...defs)=>{
+    if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
+      throw new RangeError( 'every argument must be an object' );
+    }
+
+    return (
+      name_validator( "object", (o,c=null_context)=>{
         if ( o === null || o === undefined ) {
           return false;
         }
@@ -916,7 +794,7 @@ const standardValis = {
           defs.map(
             def=>Object.entries(def).map(
               ([key,value])=>{
-                c.enter(`.${key}`);
+                c.enter(key,value);
                 try {
                   return c.notify( value( o[key], c ) );
                 } finally {
@@ -924,54 +802,53 @@ const standardValis = {
                 }
               }));
         // check if every element is true.
-        const r2 =  r.every(e1=>e1.every(e2=>!!e2));
-        return c.notify(r2);
-      };
-    },
-  }),
-  "array_of"    : make_vali_factory({
-    name : "array_of",
-    factory : 
-      (...defs)=>{
-        return (o)=>{
-          if ( o === null || o === undefined ) {
-            return false;
-          }
-          if ( ! Array.isArray( o ) ) {
-            return false;
-          }
-          return defs.every(
-            (def)=>o.every(e=>def(e)));
-        };
-      },
-  }),
-  "array"    : make_vali_factory({
-    name : "array",
-    factory : (...defs)=>{
-      return (
-        (o)=>{
-          if ( o === null || o === undefined ) {
-            return false;
-          }
-          if ( ! Array.isArray( o ) ) {
-            return false;
-          }
-          if ( o.length != defs.length ) {
-            return false;
-          }
-          return defs.every( (def,i)=>def( o[i] ) );
+        return  r.every(e1=>e1.every(e2=>!!e2));
+      })
+    );
+  },
+
+  "array_of"    : (...defs)=>{
+    return (
+      name_validator( "array_of", (o)=>{
+        if ( o === null || o === undefined ) {
+          return false;
         }
+        if ( ! Array.isArray( o ) ) {
+          return false;
+        }
+        return defs.every(
+          (def)=>o.every(e=>def(e)));
+      })
+    );
+  },
+
+  "array"    : (...defs)=>{
+    return (
+      name_validator( "array", (o)=>{
+        if ( o === null || o === undefined ) {
+          return false;
+        }
+        if ( ! Array.isArray( o ) ) {
+          return false;
+        }
+        if ( o.length != defs.length ) {
+          return false;
+        }
+        return defs.every( (def,i)=>def( o[i] ) );
+      })
+    );
+  },
+
+  "equals"    :(val)=>name_validator( "equals", (o)=>o === val ),
+
+  "uuid"    : (...defs)=>{
+    return (
+      name_validator( 
+        "uuid", 
+        (o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ) 
       )
-    },
-  }),
-  "equals"    : make_vali_factory({
-    name : "equals",
-    factory : (val)=>(o)=>o === val,
-  }),
-  "uuid"    : make_vali_factory({
-    name : "uuid",
-    factory: (...defs)=>(o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ),
-  }),
+    );
+  },
 
   [SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILE] : schema_validator_template_literal_compile,
   [SCHEMA_VALIDATOR_STANDARD_STATEMENT_EXEXUTE] : schema_validator_template_literal_execute,
@@ -1007,40 +884,3 @@ const schema = (()=>{
 
 const newRtti = createSchema;
 
-
-// // console.error( schema.null()() );
-// console.error( schema.null()(null) );
-// console.error( schema.null()(1) );
-// console.error( schema.string()(1) );
-// console.error( schema.or(schema.number(), schema.string())(false));
-// console.error( schema.or(schema.boolean())(false));
-// console.error( schema.or(schema.boolean())(1));
-// console.error( schema.object({
-//   a:schema.boolean(),
-//   b:schema.number(),
-// })({
-//   a:true,
-//   b:1,
-// }));
-//
-// console.error( schema.object({
-//   a:schema.boolean(),
-//   b:schema.number(),
-// })({
-//   a:true,
-//   b:true,
-// }));
-//
-// console.error( schema.object({
-//   a:schema.boolean(),
-//   b:schema.number(),
-// })());
-//
-//
-// console.error( schema.array_of({ of: schema.number() })());
-// console.error( schema.array_of({ of: schema.array_of({ of: schema.number() } )})());
-// console.error( JSON.stringify( schema.object({a: schema.array_of({of:schema.number()})})(), null,2));
-// console.error( schema.array_of({ of: schema.number() })([1]));
-// console.error( schema.array_of({ of: schema.number() })(["string"]));
-// console.error( schema.array_of({ of: schema.array_of({ of: schema.number() } )})([[1]]));
-//

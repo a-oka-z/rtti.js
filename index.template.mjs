@@ -15,6 +15,7 @@ export {
   schema,
   make_vali_factory,
   vali_to_string,
+  trace_validator,
   SchemaValidatorContext,
   SCHEMA_VALIDATOR_SOURCE,
   SCHEMA_VALIDATOR_NAME,
