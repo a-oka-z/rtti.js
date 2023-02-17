@@ -911,3 +911,45 @@ describe( 'new_standard_template_literal', ()=>{
 
 });
 
+describe( "new_standard_template_literal 2",()=>{
+  const s = schema.clone();
+  s.define`
+    t_color : or(
+      equals( << "red" >>),
+      equals( << "blue" >>),
+      equals( << "yellow" >>),
+    ),
+    t_person : object(
+      name : string(),
+      age : number(),
+      attrs : object(
+        favorite_color : or(
+          t_color(), 
+          null(),
+        ),
+      ),
+    )
+  `;
+
+  assert.equal( typeof s.t_person , 'function' );
+
+  assert.equal( s.t_person()({
+    name : 'hello',
+    age : 20,
+    attrs : {
+      favorite_color : null,
+      foo : 'foo',
+    },
+  }), true);
+
+  console.log( trace_validator( s.t_person(),{
+    name : 'hello',
+    age : 20,
+    attrs : {
+      favorite_color : "green",
+      foo : 'foo',
+    },
+  }).report());
+});
+
+

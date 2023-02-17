@@ -1,10 +1,10 @@
 const module_name = "vanilla-schema-validator";
 const INFO = Symbol.for( 'dump schema information' );
 
-const SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILE  = "vanilla-schema-validator.standard-compiler";
-const SCHEMA_VALIDATOR_STANDARD_STATEMENT_EXEXUTE  = "vanilla-schema-validator.standard-executor";
-const SCHEMA_VALIDATOR_CURRENTT_COMPILER  = "vanilla-schema-validator.compiler";
-const SCHEMA_VALIDATOR_CURRENTT_EXECUTOR  = "vanilla-schema-validator.executor";
+const SCHEMA_VALIDATOR_COMPILE  = "vanilla-schema-validator.standard.compile";
+const SCHEMA_VALIDATOR_DEFINE  = "vanilla-schema-validator.standard.define";
+const SCHEMA_VALIDATOR_CURRENT_COMPILE  = "vanilla-schema-validator.compile";
+const SCHEMA_VALIDATOR_CURRENT_DEFINE  = "vanilla-schema-validator.define";
 
 const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
 const SCHEMA_VALIDATOR_FACTORY_NAME   = 'factory_name' ;
@@ -50,8 +50,12 @@ const rename_validator = (factory_name,validator)=>{
   return validator;
 };
 
-const path_to_str = (p)=>{
-  return `->{${p.id}:${vali_to_str(p.validator)}}`;
+const path_to_str = (p,show_value)=>{
+  if ( show_value ) {
+    return `->{${p.id}:${vali_to_str(p.validator)}} === ${bool_to_str(p.value)}`;
+  } else {
+    return `->{${p.id}:${vali_to_str(p.validator)}}`;
+  }
 };
 const vali_to_str = (v)=>{
   if ( SCHEMA_VALIDATOR_NAME in v ) {
@@ -63,45 +67,74 @@ const vali_to_str = (v)=>{
   }
 };
 
-
 const bool_to_str = (v)=>{
-  if ( v ) {
+  if ( v === null ) {
+    return '0';
+  } else if ( v ) {
     return 't';
   } else {
     return 'f';
   }
 };
+
+/*
+ * SchemaValidatorContext : object(
+ *   // this stores the current path elements
+ *   path_stack : array_of(
+ *     object(
+ *       id : string(),
+ *       validator : function(),
+ *       value : boolean(),
+ *     )
+ *   ),
+ *
+ *   // this stores these snapshots of `path_stack`
+ *   // which are created when `notify()` is called.
+ *   notified_values : array_of(
+ *     1t_path_stack(),
+ *   ),
+ *
+ *   // the final result
+ *   value : or( null(), boolean() ),
+ * ),
+ */
 class SchemaValidatorContext {
-  result_stack;
-  path_stack;
   constructor(...args) {
     this.path_stack = [];
-    this.result_stack = [];
+    this.notified_values = [];
+    this.value = null;
   }
   enter( id, validator ) {
     this.path_stack.push({
-      id,validator
+      id,
+      validator,
+      value : null,
     });
   }
   notify( value ) {
     if ( typeof value !== 'boolean' ) {
       throw new TypeError( `notified an invalid value : ${value}` );
     }
-    const path = [...this.path_stack];
-    this.result_stack.push({
-      path,
-      value,
-    });
+    if ( this.path_stack.length < 1 ) {
+      throw new RangeError( `stack undeflow error` );
+    }
+    const path_elem = this.path_stack[ this.path_stack.length -1 ];
+    if ( path_elem.value !== null ) {
+      throw new RangeError( `error: notify() has already been called` );
+    }
+    path_elem.value = value;
+    this.notified_values.push( [ ...(this.path_stack) ] );
+    this.value = value;
     return value;
   }
   leave() {
     return this.path_stack.pop();
   }
-  result() {
-    return [ ...this.result_stack ];
+  report() {
+    return this.notified_values.map( e=>( e.map( (ee,idx,arr)=>path_to_str(ee,arr.length-1===idx) ).join('') ) ).join('\n');
   }
   toString() {
-    return this.result().map( e=>bool_to_str( e.value ) + ' === ' + ( e.path.map(path_to_str).join('')  ) ).join('\n');
+    return this.report();
   }
 }
 
@@ -114,18 +147,12 @@ class NullSchemaValidatorContext {
 };
 const null_context = new NullSchemaValidatorContext();
 
-const trace_validator = (validator, value )=>{
+const trace_validator = ( validator, value )=>{
   const context = new SchemaValidatorContext();
   try {
     context.enter( 'begin', validator );
     const result = context.notify( validator( value, context ) );
-    return {
-      result, 
-      context,
-      report : ()=>{
-        return context.toString();
-      },
-    };
+    return context;
   } finally {
     context.leave();
   }
@@ -588,7 +615,7 @@ function schema_validator_template_literal_compile( strings, ... values ) {
   return result.t_default;
 }
 
-function schema_validator_template_literal_execute( strings, ... values ) {
+function schema_validator_template_literal_define( strings, ... values ) {
   if ( this === undefined )
     throw Error('this is undefined');
   if ( ! Array.isArray( strings ) ) {
@@ -810,20 +837,20 @@ const standardValis = {
     );
   },
 
-  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_COMPILE] : schema_validator_template_literal_compile,
-  [SCHEMA_VALIDATOR_STANDARD_STATEMENT_EXEXUTE] : schema_validator_template_literal_execute,
+  [SCHEMA_VALIDATOR_COMPILE] : schema_validator_template_literal_compile,
+  [SCHEMA_VALIDATOR_DEFINE] : schema_validator_template_literal_define,
 
-  [SCHEMA_VALIDATOR_CURRENTT_COMPILER] : schema_validator_template_literal_compile,
-  [SCHEMA_VALIDATOR_CURRENTT_EXECUTOR] : schema_validator_template_literal_execute,
+  [SCHEMA_VALIDATOR_CURRENT_COMPILE] : schema_validator_template_literal_compile,
+  [SCHEMA_VALIDATOR_CURRENT_DEFINE] : schema_validator_template_literal_define,
 
   "statement" : function statement(...args) {
-    return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
+    return this[SCHEMA_VALIDATOR_CURRENT_COMPILE].call(this,...args);
   },
   "compile" : function compile(...args) {
-    return this[SCHEMA_VALIDATOR_CURRENTT_COMPILER].call(this,...args);
+    return this[SCHEMA_VALIDATOR_CURRENT_COMPILE].call(this,...args);
   },
-  "execute" : function execute(...args) {
-    return this[SCHEMA_VALIDATOR_CURRENTT_EXECUTOR].call(this,...args);
+  "define" : function define(...args) {
+    return this[SCHEMA_VALIDATOR_CURRENT_DEFINE].call(this,...args);
   },
 
   "clone" : cloneSchema,

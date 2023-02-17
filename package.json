@@ -1,6 +1,6 @@
 {
   "name": "vanilla-schema-validator",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "description": "`vanilla-schema-validator` is yet another schema validator which is not based on framework.",
   "main": "index.mjs",
   "type": "module",
@@ -26,22 +26,6 @@
     "index.mjs",
     "package.json"
   ],
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "mjs",
-      "cjs",
-      "jsx",
-      "ts",
-      "tsx",
-      "json",
-      "node"
-    ],
-    "testMatch": [
-      "**/*.test.[cm]js"
-    ],
-    "verbose": true
-  },
   "author": {
     "name": "Atsushi Oka",
     "url": "https://github.com/a-oka-z/vanilla-schema-validator.js"

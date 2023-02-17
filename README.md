@@ -1,23 +1,154 @@
  **vanilla-schema-validator**
 ================================================================================ 
 
-**vanilla-schema-validator** is a schema validator which is non-opinionated,
-extensible, scalable and yet simple convention to check validity of an object
-or/and to determine the runtime type of an specific object by duck-typing.
+**vanilla-schema-validator** is a non-opinionated schema validator. It examines
+if a specified object conforms to a specified schema definitions. It could also
+be used as a runtime type detector, validation of JSON objects, etc.
 
-> Note that **vanilla-schema-validator** was formerly referred as 
-> [rtti.js](https://www.npmjs.com/package/rtti.js) and renamed on Dec 27 2022.
+Defining schema definition is done with a simple language called Schema
+Validator Definition Language (SVDL).
 
 ```javascript
-import  { schema } from 'vanilla-schema-validator';
+import schema from "vanilla-schema-validator";
 
-console.error( schema.string()(  42  )); // false
-console.error( schema.string()( '42' )); // true
-console.error( schema.number()(  42  )); // true
-console.error( schema.number()( '42' )); // false
+schema.define`
+  t_color : or(
+    equals( << "red" >> ),
+    equals( << "blue" >> ),
+    equals( << "yellow" >> ),
+  ),
+  t_person : object(
+    name : string(),
+    age : number(),
+    attrs : object(
+      favorite_color : or( 
+        t_color(), 
+        null(),
+      ),
+    ),
+  )`;
+
+schema.t_person()({
+  name : 'hello',
+  age : 20,
+  attrs : {
+    favorite_color : null,
+    foo : 'foo',
+  },
+})
+// true
+
+schema.t_person()({
+  name : 'hello',
+  age : 20,
+  attrs : {
+    favorite_color : "green",
+    foo : 'foo',
+  },
+});
+// false
 ```
 
-Combining these functions enables you to validate more complex objects :
+ Validator Tracer 
+--------------------------------------------------------------------------------
+It is very frustrating to examine a cause of validation falure especially if
+your validator is large and complex; use `trace_validator()` :
+
+```javascript
+import { schema, trace_validator } from "vanilla-schema-validator";
+
+schema.define`
+  t_color : or(
+    equals( << "red" >> ),
+    equals( << "blue" >> ),
+    equals( << "yellow" >> ),
+  ),
+  t_person : object(
+    name : string(),
+    age : number(),
+    attrs : object(
+      favorite_color : or( 
+        t_color(), 
+        null(),
+      ),
+    ),
+  )`;
+
+const info = trace_validator( 
+  schema.t_person(),
+  {
+    name : 'hello',
+    age : 20,
+    attrs : {
+      favorite_color : "green",
+      foo : 'foo',
+    },
+  }
+);
+
+info.value
+/*
+  false
+ */
+
+info.report(); 
+/*
+->{begin:t_person}->{op:object}->{name:string} === t
+->{begin:t_person}->{op:object}->{age:number} === t
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{0:t_color}->{op:or}->{0:equals} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{0:t_color}->{op:or}->{1:equals} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{0:t_color}->{op:or}->{2:equals} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{0:t_color}->{op:or} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{0:t_color} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or}->{1:null} === f
+->{begin:t_person}->{op:object}->{attrs:object}->{favorite_color:or} === f
+->{begin:t_person}->{op:object}->{attrs:object} === f
+->{begin:t_person}->{op:object} === f
+->{begin:t_person} === f
+*/
+```
+
+ Default Validators
+--------------------------------------------------------------------------------
+There are a number of predefined validators.
+
+- undefined()
+- null()
+- boolean()
+- number()
+- string()
+- bigint()
+- symbol()
+- function()
+- any()
+- or()
+- and()
+- not()
+- object()
+- array()
+- equals()
+- uuid()
+
+These validators are self-descriptively named so that you might be able to
+intuitively use these.
+
+In `vanilla-schema-validator`, every validator is provided as a factory
+function which creates and returns a validator function. 
+
+```javascript
+console.error( schema.string()(  42  ) ); // false
+console.error( schema.string()( '42' ) ); // true
+console.error( schema.number()(  42  ) ); // true
+console.error( schema.number()( '42' ) ); // false
+```
+
+The reason why these validators are provided as factories is that it enables
+you to customise your validator by providing any arguments when you instantiate
+your validator.
+
+For example, `object()` validator accepts an object which contains validators
+to examine fields of a target object of the current validation session.
+
 
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
@@ -36,12 +167,45 @@ const obj1 = {
 console.error( t_person( obj1 ) ); // true
 ```
 
-The functions that are defined in `schema` are merely factories of various
-validators. In the example above, `schema.string` and `schema.number` are factories
-of validators.
+This enables you to create more complex validators.
 
-They are merely utilities and not requirement; you can create a validator
-manually on the fly. For example, the following example works, too:
+
+ Defining Validators
+--------------------------------------------------------------------------------
+There are two ways of defining a new validator: one is using SVDL as seen in
+above and another way is manually writing your own validator as JavaScript
+functions.
+
+When you decided to create your validator as JavaScript functions, add a
+factory function of the validator as a property of your schema object as
+following:
+
+
+```javascript
+import  { schema } from 'vanilla-schema-validator';
+
+schema.is_green = ()=>(v)=>v === 'green';
+schema.is_red   = ()=>(v)=>v === 'red';
+schema.is_blue  = ()=>(v)=>v === 'blue';
+
+schema.is_green()( "green" ) // true
+schema.is_red()( "red" )     // true
+schema.is_green()( "white" ) // false
+
+schema.define`
+  t_color : or(
+    is_green(),
+    is_red(),
+    is_blue(),
+  ),
+`;
+
+schema.t_color()( "green" ) // true
+schema.t_color()( "red" )   // true
+schema.t_color()( "white" ) // false
+```
+
+The following is another example:
 
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
@@ -78,34 +242,39 @@ can accomplish validation in most cases without these complicated frameworks.
  Design Goal of **vanilla-schema-validator**
 --------------------------------------------------------------------------------
 
-The desigin concept of **vanilla-schema-validator** is based on my hypothesis
-explains that in JavaScript, it is impossible to precisely determine a type of
-an object via its run-time type information and `duck typing` is the only way
-to accomplish it.
+The desigin concept of **vanilla-schema-validator** is based on my own hypothesis. 
+My hypothesis states that in JavaScript it is impossible to determine the type
+of an object via runtime/compile-time type information; `duck typing` is the
+only way to accomplish it.
 
-A Type in JavaScript is merely the least expectation to an object. For example,
+A type in JavaScript is merely the least expectation to an object. For example,
 if you get an object, you might expect that there is a property which name is
 `product_id` and as long as there is the property, your code will work as you
 expected; otherwise it won't. That is the least expectation to an object.
 
-Its design goal is to exhaustively determine a type of an object in the sense
-of described above, with the maximum coverage of those various corner cases
-which occur caused via ambiguously defined JavaScript type system.
+The design goal of **vanilla-schema-validator** is to exhaustively determine a
+type of an object in the sense of described above, with the maximum coverage of
+those various corner cases which occur caused via ambiguously defined
+JavaScript type system.
 
-Especially the first concern of **vanilla-schema-validator** is by no means readability; if you
-expect those sweet syntax suger with function chaining, this is not for you.
+The first concern of **vanilla-schema-validator** is by no means readability;
+if you expect those sweet syntax suger with function chaining, this is not for
+you.
 
 
- The Basic Rules of the Convention of **vanilla-schema-validator**
+ Terminology of **vanilla-schema-validator**
 --------------------------------------------------------------------------------
 
-The convention of **vanilla-schema-validator** recommends the type determinors are formed by the
-following three elements.
+Usually a validator can be accessed as:
 
 ```javascript
   schema.string()('value')
   |  1  |   2    |   3   |
 ```
+
+In this statement, there are three parts. 
+
+Each part are named as following:
 
 1. `Namespace` ... We call this part `Namespace` . A namespace object keeps a
    number of `Factory` which is explained in 2.
@@ -115,24 +284,12 @@ following three elements.
    which returns `true` if the given value is as expected; otherwise returns
    `false`.
 
-If you define a factory of a validator as following :
-```javascript
-  schema.hello_validator = ()=>(o)=>o === 'hello';
-```
-
-you can use the validator as following:
-
-```javascript
-  schema.hello_validator()( 'hello' ) // returns true 
-```
-
-
   `prevent-undefined`
 --------------------------------------------------------------------------------
 
 [prevent-undefined][] is a debugging tool that prevents generating `undefined`
 values via accessing properties by incorrect property names.
-`prevent-undefined` supports the convention of **vanilla-schema-validator**.
+`prevent-undefined` supports **vanilla-schema-validator**.
 
 The way to use [prevent-undefined][] with **vanilla-schema-validator** is as following:
 
@@ -157,11 +314,9 @@ For further information, see [prevent-undefined][].
 [prevent-undefined]:  https://www.npmjs.com/package/prevent-undefined
 
 
- Basic Validators
+ Reference of Predefined Validators
 --------------------------------------------------------------------------------
-**vanilla-schema-validator** offers some basic validators as default. These validators are there
-only for your convenience; again, it is not mandatory to use them as long as
-the functions you offer are following the **vanilla-schema-validator**'s convention.
+**vanilla-schema-validator** offers a number of basic validators as default.
 
 Available validators are:
 
@@ -315,7 +470,7 @@ object.  If the all validators return `true`, `array()` returns `true`;
 otherwise returns `false`.
 
 If the number of elements in the target array is not equal to the number of
-specified validators, this validator returns `false`.  **v1.0.0**
+specified validators, this validator returns `false`.
 
 
 ```javascript
@@ -331,17 +486,6 @@ specified validators, this validator returns `false`.  **v1.0.0**
   console.log( validator(['a','b','c', 'd' ])); //true 
   console.log( validator(['a','b'          ])); // false 
 ```
-
-##### Compatibility Note #####
-
-1. Prior to **v1.0.0**, this validator was refererred  as `array_of()`.
-2. Prior to **v1.0.0**, this validator did not check the number of elements : 
-
-> If the number of elements in the target array is greater than the number of the
-> specified validators, `array()` ignores the remaining elements.
-> 
-> If the number of elements in the target array object is less than the number of
-> validators given in the parameter, this validator returns `false`.
  
 #### `array_of()` ####
 `array_of()` checks if all of the elements of the given array object conform to a
@@ -355,14 +499,11 @@ schema.array_of(schema.number())([1,2,'3']); // return false
 schema.array_of(schema.or( schema.string(), schema.number()))([1,2,'3']); // return true
 ```
 
-##### Compatibility Note #####
-1. Prior to **v1.0.0**, this validator was refererred  as `array()`.
-
-
 #### `equals()` ####
 `equals()` takes a parameter as a target value and creates a validator which
 compares with the target value. The validator returns `true` if and only if
 the given value is strictly equal to the target value.
+
 ```javascript
 schema.equals(1)(1); // true
 schema.equals(1)('1'); // false
@@ -389,51 +530,14 @@ schema.uuid()( 1  ) // false
 schema.uuid()( false ) // false
 ```
 
-
- Create Validators via Statement Script Compiler
+ Reference of Schema Validator Definition Language
 --------------------------------------------------------------------------------
-The `schema` offers a template literal function which is called Statement
-Script Compiler.  Statement compiler helps to build various validators:
+TODO
 
-```javascript
-const type = schema.compile`
-  object(
-    foo : number(),
-    bar : string(),
-  )
-`();
+#### JavaScript Values in Statement Compiler ####
 
-const v = {
-  foo:42,
-  bar:'hello',
-};
-console.error( type( v ) ); // true;
-
-const v2 = {
-  foo: false,
-  bar: BigInt(1),
-};
-console.error( type( v2 ) ); // false;
-```
-
-In this document, sometimes a reference to `schema` object is called `namespace`.
-In JavaScript, in order to build complex validators, it is necessary to specify
-a desired namespace reference everytime you refer the validator factories. In
-Statement Script, it is possible to omit the namespace specifier.
-
-The statement compiler may help you to build your validators with less
-boilerplate.
-
-**a note for backward compatibility** : former to v0.1.2, `schema` object can be
-used as a template literal function. This behavior is deprecated. Though it is
-still available to be used as a template literal, this will be removed in the
-future version. The new project should not rely on this behavior.
-
-
- JavaScript Values in Statement Compiler
---------------------------------------------------------------------------------
-In the statemet string, regions surrounded by `<<` and `>>` are treated as 
-raw JavaScript values.
+In the SVDL, regions surrounded by `<<` and `>>` are treated as raw JavaScript
+values.
 
 For example,
 
@@ -454,39 +558,16 @@ const type = schema.object({
 })
 ```
 
- Extending Template Literal Validator Builder
+
+ Namespace 
 --------------------------------------------------------------------------------
-You can add your own validators by setting factorys of your desired validators
-as properties on the `schema` object.
+The imported `schema` object is the place to store all validators. If you use
+modules that depends on **vanilla-schema-validator** while your module depends
+on **vanilla-schema-validator**, chances are names of validators are conflict.
 
-```javascript
-const type = schema.compile`
-  object(
-    foo : Foo(),
-    bar : Bar(),
-  )
-`();
+In order to avoid name conflict, name your validator a long descriptive name. 
 
-schema.Foo = (...defs)=>(o)=>typeof o ==='number';
-schema.Bar = (...defs)=>(o)=>typeof o ==='string';
-
-const v = {
-  foo:42,
-  bar:'hello',
-};
-console.error( type( v ) ); // true;
-```
-
-**Correction** in `v0.1.6`, this part has been corrected. It is necessary to
-set factories of validators, not validators themself.
-
-
- Create Your Own Namespace for **vanilla-schema-validator** 
---------------------------------------------------------------------------------
-You usually don't want to set your own evaluators to the global `schema` object
-because setting to the global `schema` object causes id confliction with the
-other projects. In order to avoid confliction, you can create your own `schema`
-object by `clone()` method.
+Another way to avoid name conflict is use a separated name space.
 
 ```javascript
 import  { schema } from 'vanilla-schema-validator';
@@ -518,77 +599,6 @@ const type1 = schema.compile`
 `();
 console.error( type1( v ) ); // error;
 ```
-
-
- `make_vali_factory()`
---------------------------------------------------------------------------------
-`make_vali_factory` is a helper function to create a reliable validator function:
-
-```javascript
-  const INFO   = Symbol.for( 'dump information' ); 
-  const create_info_gen_from_string = ( info_gen_string )=>{
-    if ( typeof info_gen_string === 'string' ) {
-      return ()=>info_gen_string;
-    } else {
-      throw new TypeError('found an invalid argument');
-    }
-  };
-
-  const make_vali_factory = ( vali_gen, info_gen=(...defs)=>"unknown", chk_args=(...defs)=>{} )=>{
-    if ( typeof info_gen === 'string' ) {
-      info_gen = create_info_gen_from_string( info_gen );
-    }
-    return (...defs)=>{
-      chk_args(...defs);
-      const vali = vali_gen(...defs);
-      const info = info_gen(...defs);
-      return (o)=>o=== INFO ? info : vali(o);
-    }
-  };
-```
-
-#### The Definition of the Parameters ####
-
-- `vali_gen` is a function to create the evaluator.
-- `info_gen` is a function to create a string value to express the type name;
-  can also be a string.
-- `chk_args` is a function which offers a chance to check the arguments.
-
-#### Example ####
-
-The following example implements a null checker.
-
-```javascript
-  const null_checker = make_vali_factory(
-    // a closure that does the evaluation
-    (...defs)=>(o)=>o === null 
-
-    // a closure that returns the name of the type
-    (...defs)=>"null",
-
-    // null checker takes no argument
-    (...defs)=>{
-      if ( defs.length !== 0 ) {
-        throw new RangeError( 'no definition can be specified' );
-      }
-    }, 
-  );
-```
-
-#### Compatibility Note ####
-
-
-##### `makeValiFactory()` #####
-At the version **v0.1.5** `makeValiFactory()` was renamed to
-`make_vali_factory()`. Even though  `makeValiFactory()` is still available, new
-projects should not use it.
-
-
-##### Renamed `array()` and `array_of()`  #####
-At the version **v1.0.0** the identifiers `array()` and `array_of()` are
-renamed so that `array_of` becomes `array` and `array()` becomes `array_of()`
-for the sake of naming consistency.
-
 
 
   History
@@ -643,6 +653,13 @@ arguments.
 - v2.0.4 (Sun, 08 Jan 2023 14:20:08 +0900)
   - Added `vali_to_string()`
   - Removed an experimental method `define()`
+
+- v3.0.0 (Fri, 17 Feb 2023 16:02:06 +0900)
+  - Migrated `node:test` from `jest`.
+  - Added validator-tracer.
+  - Added SVDL and abondaned the previous "statemnt script compiler". Though,
+    SDL is still almost compatible with statement script compiler", some
+    features may break backward-compatibility.
 
 
  Conclusion
