@@ -51,7 +51,7 @@ const rename_validator = (factory_name,validator)=>{
 };
 
 const path_to_str = (p)=>{
-  return `.(${p.id}:${vali_to_str(p.validator)})`;
+  return `->{${p.id}:${vali_to_str(p.validator)}}`;
 };
 const vali_to_str = (v)=>{
   if ( SCHEMA_VALIDATOR_NAME in v ) {
@@ -101,7 +101,7 @@ class SchemaValidatorContext {
     return [ ...this.result_stack ];
   }
   toString() {
-    return this.result().map( e=>bool_to_str( e.value ) + ' : ' + ( e.path.map(path_to_str).join('')  ) ).join('\n');
+    return this.result().map( e=>bool_to_str( e.value ) + ' === ' + ( e.path.map(path_to_str).join('')  ) ).join('\n');
   }
 }
 
@@ -117,7 +117,7 @@ const null_context = new NullSchemaValidatorContext();
 const trace_validator = (validator, value )=>{
   const context = new SchemaValidatorContext();
   try {
-    context.enter( 'root', validator );
+    context.enter( 'begin', validator );
     const result = context.notify( validator( value, context ) );
     return {
       result, 
@@ -128,14 +128,6 @@ const trace_validator = (validator, value )=>{
     };
   } finally {
     context.leave();
-  }
-};
-
-const create_info_gen_from_string = ( info_gen_string )=>{
-  if ( typeof info_gen_string === 'string' ) {
-    return ()=>info_gen_string;
-  } else {
-    throw new TypeError('found an invalid argument');
   }
 };
 
@@ -162,38 +154,6 @@ function vali_to_string( vali ) {
     return Function.prototype.toString.call( vali );
   }
 }
-
-function make_vali_factory(nargs) {
-  let {
-    name,
-    source = name,
-    factory,
-  } = nargs;
-
-  if ( name === undefined ) {
-    throw new RangeError('`name` was not specified');
-  }
-  if ( typeof name !== 'string' ) {
-    throw new RangeError('name is not a string value');
-  }
-  if ( typeof source !== 'string' ) {
-    throw new RangeError( 'source is not a string value');
-  }
-  if ( factory === undefined ) {
-    throw new ReferenceError( 'factory is not specified' );
-  }
-  if ( typeof factory !== 'function' ) {
-    throw new ReferenceError( 'factory is not a function' );
-  }
-
-  const __validator_factory = function validator_factory( ...defs ) {
-    const validator = factory.apply( this, defs );
-    return validator;
-  };
-  return __validator_factory;
-};
-
-const makeValiFactory = make_vali_factory;
 
 const check_if_proper_vali = func=>{
   if ( func === null ) {
@@ -236,7 +196,7 @@ const check_if_proper_vali = func=>{
  * schema    = valifac
  *
  */
-const joinStringsAndValues = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
+const join_strings_and_values = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
 
 function __parse(input) {
   class CompileError extends Error {
@@ -618,7 +578,7 @@ function schema_validator_template_literal_compile( strings, ... values ) {
     throw new TypeError( 'the array of the first argument contains a non-string value' );
   }
 
-  const input = joinStringsAndValues( strings, values );
+  const input = join_strings_and_values( strings, values );
   const compiled = schema_validator_script_compiler( input );
   const result   = compiled.factory_factory.call( this );
 
@@ -638,7 +598,7 @@ function schema_validator_template_literal_execute( strings, ... values ) {
     throw new TypeError( 'the array of the first argument contains a non-string value' );
   }
 
-  const input = joinStringsAndValues( strings, values );
+  const input = join_strings_and_values( strings, values );
   const compiled = schema_validator_script_compiler( input );
   const result   = compiled.factory_factory.call( this );
 
@@ -739,7 +699,7 @@ const standardValis = {
       name_validator( "not", (o,c=null_context)=>{
         return (
           ! (()=>{
-            c.enter('->',def);
+            c.enter('op',def);
             try {
               return c.notify( def( o,c ) );
             } finally {
@@ -759,7 +719,7 @@ const standardValis = {
       name_validator( "thru", (o,c=null_context)=>{
         return (
           (()=>{
-            c.enter('->',def);
+            c.enter('op',def);
             try {
               return c.notify( def( o,c ) );
             } finally {
@@ -881,6 +841,4 @@ const schema = (()=>{
   return schema;
 })();
 
-
-const newRtti = createSchema;
 

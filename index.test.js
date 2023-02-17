@@ -564,10 +564,7 @@ describe('check clone', ()=>{
     const rtti1 = schema.clone();
 
     // set a validator factory as `hello`.
-    rtti1.hello = make_vali_factory({
-      factory: ()=>(o)=>o === 'hello' ,
-      name : 'hello',
-    });
+    rtti1.hello = ()=>(o)=>o === 'hello' ;
 
     // this should be false.
     assert.equal( rtti1.statement`hello()`()( v ) ,  false );
@@ -576,10 +573,7 @@ describe('check clone', ()=>{
     const rtti2 = schema.clone();
 
     // override `hello` as a different factory.
-    rtti2.hello = make_vali_factory({
-      factory: ()=>(o)=>o === 'HELLO' ,
-      name : 'HELLO',
-    });
+    rtti2.hello =()=>(o)=>o === 'HELLO';
 
     // `hello` should refer different factories depends on which namespace it is
     // called with.
@@ -747,7 +741,19 @@ describe( 'check context', ()=>{
       attrs : object(
         foo: equals( << "hello world" >> ),
         bar: number(),
+        not_attrs : not(
+          object(
+          ),
+        ),
+        sub_attrs : object(
+          baz : object(
+            qux : object(
+              hello : string(),
+            ),
+          ),
+        ),
       ),
+
       arr_test : array_of(
         not( number()),
       ),
@@ -755,7 +761,6 @@ describe( 'check context', ()=>{
   `;
 
   it( 'as', ()=>{
-    const c = new SchemaValidatorContext();
     const o = {
       name : 'hello',
       age : 15,
@@ -763,10 +768,18 @@ describe( 'check context', ()=>{
       attrs : {
         foo : 'hello world',
         bar : 15,
+        sub_attrs : {
+          baz : {
+            qux : {
+              hello : "aaa",
+            },
+          },
+        },
       },
       arr_test : [ false, 'boo', 15 ],
     };
     console.log( trace_validator( factory(), o ).report() );
+    // const c = new SchemaValidatorContext();
     // const r = factory()(o ,c);
     // console.log( 'source', factory[SCHEMA_VALIDATOR_SOURCE], 'result', c.toString() );
   });
