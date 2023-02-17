@@ -1,6 +1,6 @@
 {
   "name": "rtti.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "`rtti.js` is a non-opinionated, non-framework, extensible schema validator. ",
   "main": "index.mjs",
   "type": "module",

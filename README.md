@@ -5,7 +5,7 @@
 
 Use [vanilla-schema-validator][]
 
-[vanilla-schema-validator]: (https://www.npmjs.com/package/vanilla-schema-validator)
+[vanilla-schema-validator]: https://www.npmjs.com/package/vanilla-schema-validator
 
  Documentation
 --------------------------------------------------------------------------------
