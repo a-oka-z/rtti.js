@@ -1,6 +1,6 @@
 {
   "name": "rtti.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "`rtti.js` is a non-opinionated, non-framework, extensible schema validator. ",
   "main": "index.mjs",
   "type": "module",
@@ -38,11 +38,11 @@
   },
   "author": {
     "name": "Atsushi Oka",
-    "url": "https://github.com/a-oka-z/vanilla-schema-validator.js"
+    "url": "https://github.com/apupu-framework/vanilla-schema-validator"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/a-oka-z/vanilla-schema-validator.js"
+    "url": "https://github.com/apupu-framework/vanilla-schema-validator"
   },
   "license": "ISC",
   "devDependencies": {

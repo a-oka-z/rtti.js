@@ -1,6 +1,18 @@
  rtti.js
 =====================
 
+**rtti.js** is deprecated. 
+
+Use [vanilla-schema-validator][]
+
+[vanilla-schema-validator]: (https://www.npmjs.com/package/vanilla-schema-validator)
+
+ Documentation
+--------------------------------------------------------------------------------
+> **rtti.js** is renamed to [vanilla-schema-validator][] on Dec 27 2022. This
+> documentation is kept for historical reason. Use [vanilla-schema-validator][]
+> for new projects.
+
 **rtti.js** is a non-opinionated simple convention to determine a type of an
 object in JavaScript. 
 
