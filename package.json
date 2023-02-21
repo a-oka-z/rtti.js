@@ -1,6 +1,6 @@
 {
   "name": "vanilla-schema-validator",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "`vanilla-schema-validator` is yet another schema validator which is not based on framework.",
   "main": "index.mjs",
   "type": "module",

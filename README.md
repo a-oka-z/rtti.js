@@ -2,7 +2,7 @@
 ================================================================================ 
 
 **vanilla-schema-validator** is a non-opinionated schema validator. It examines
-if a specified object conforms to a specified schema definitions. It could also
+if a specified object conforms to a specified schema definition. It could also
 be used as a runtime type detector, validation of JSON objects, etc.
 
 Defining schema definition is done with a simple language called Schema
@@ -130,7 +130,7 @@ There are a number of predefined validators.
 - uuid()
 
 These validators are self-descriptively named so that you might be able to
-intuitively use these.
+intuitively grasp how these should be used.
 
 In `vanilla-schema-validator`, every validator is provided as a factory
 function which creates and returns a validator function. 
@@ -660,6 +660,9 @@ arguments.
   - Added SVDL and abondaned the previous "statemnt script compiler". Though,
     SDL is still almost compatible with statement script compiler", some
     features may break backward-compatibility.
+- v3.0.1 (Tue, 21 Feb 2023 13:24:41 +0900)
+  - All validators that all compiled validator factories generate return its
+    SVDL source code when `toString()` function on a validator is called.
 
 
  Conclusion

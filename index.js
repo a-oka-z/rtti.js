@@ -362,6 +362,15 @@ function __parse(input) {
       this.children = [];
       this.is_closed_element = false;
     }
+    range() {
+      const s = this.token       ?.src?.position ?? null;
+      const e = this.token_at_end?.src?.position ?? null;
+      if ( s !== null && e !== null ) {
+        return [s,e];
+      } else {
+        return null;
+      }
+    }
   }
 
   {
@@ -485,6 +494,15 @@ function __parse(input) {
   }
 }
 
+function get_source( input, elem ){
+  const r = elem.range();
+  if ( r === null ) {
+    return 'no source';
+  } else {
+    return '`' + input.substring( r[0], r[1] + 1 ).replaceAll( /[`]/gm, '\\`' ) + '`';
+  }
+}
+
 function __compile( parsed ) {
   const compiled_buf = [];
   const output = (...args)=>compiled_buf.push(...args);
@@ -543,6 +561,7 @@ function __compile( parsed ) {
   let type_name = null;
   for ( const elem of parsed.definitions ) {
     type_name = elem.val_id ?? 't_anonymous';
+
     output( `  "${type_name}" : (function ${type_name}(...args) {` );
     output( `    const schema = this === undefined ? self : this;` );
     output( `    try {` );
@@ -552,8 +571,26 @@ function __compile( parsed ) {
     remove_last_comma();
 
     output( `      );` );
-    output( `      validator.${SCHEMA_VALIDATOR_NAME} = "${type_name}";` );
-    output( `      validator.${SCHEMA_VALIDATOR_FACTORY_NAME} = "${type_name}";` );
+    output( `      Object.defineProperties(validator,{` );
+    output( `        "${SCHEMA_VALIDATOR_NAME}" : {`);
+    output( `          value : "${type_name}", `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_FACTORY_NAME}" : {`);
+    output( `          value : "${type_name}", `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "toString" : {`);
+    output( `          value : ()=>${get_source(parsed.source, elem)} , `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `      });` );
     output( `      return validator;` );
     output( `    } catch ( e ) {` );
     output( `      e.source = ${type_name}.toString();` );
