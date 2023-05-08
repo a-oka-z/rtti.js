@@ -18,7 +18,7 @@ const SCHEMA_VALIDATOR_NAME = 'validator_name';
  * When a factory names a validator , the name should be taken as both a
  * facotry name and as a validator name. And the factory name is immutable so
  * that it cannot be modified. When a user renames a validator, it only changes
- * its validator name and its validator factory name will not be changed. 
+ * its validator name and its validator factory name will not be changed.
  */
 const name_validator   = (factory_name,validator)=>{
   Object.defineProperties( validator, {
@@ -131,10 +131,13 @@ class SchemaValidatorContext {
     return this.path_stack.pop();
   }
   report() {
-    return this.notified_values.map( e=>( e.map( (ee,idx,arr)=>path_to_str(ee,arr.length-1===idx) ).join('') ) ).join('\n');
+    return this.notified_values.map( e=>( e.map( (ee,idx,arr)=>'  ' + path_to_str(ee,arr.length-1===idx) ).join('') ) ).join('\n');
   }
   toString() {
     return this.report();
+  }
+  [Symbol.for('nodejs.util.inspect.custom')](depth, inspectOptions, inspect) {
+    return `\n${this.report()}`;
   }
 }
 
@@ -172,7 +175,7 @@ function vali_to_string( vali ) {
     console.error(e);
     // safely ignorable
   }
-    
+
   if ( 'source' in vali ) {
     return vali.source;
   } else if ( 'script' in vali ) {
@@ -243,7 +246,7 @@ function __parse(input) {
         key : id,
         value: p1,
       });
-      return id + '()'; 
+      return id + '()';
     });
   }
 
@@ -299,7 +302,7 @@ function __parse(input) {
     }
   }
 
-  //                2                 3     4     5     6     
+  //                2                 3     4     5     6
   const pattern = /(([0-9a-zA-Z\$_]+)|([(])|([)])|([,])|([:]))/g;
   const tokens = [];
   for(;;) {
@@ -379,7 +382,7 @@ function __parse(input) {
 
     /*
      * Notify the end of the current element.
-     * There are two posibillities that ends the current element : 
+     * There are two posibillities that ends the current element :
      *   1. an end of a pair of parenthesis
      *   2. a parameter separator  ( comma )
      * See the code bellow.
@@ -408,7 +411,7 @@ function __parse(input) {
             }
           }
 
-          work_elem.fac_id = current_token.value; 
+          work_elem.fac_id = current_token.value;
 
           break;
         };
@@ -508,7 +511,7 @@ function __compile( parsed ) {
   const output = (...args)=>compiled_buf.push(...args);
   const remove_last_comma = ()=>{
     const i = compiled_buf.length -1;
-    compiled_buf[ i ] = compiled_buf[ i ].replaceAll( /,\s*$/gm ,'' ); 
+    compiled_buf[ i ] = compiled_buf[ i ].replaceAll( /,\s*$/gm ,'' );
   }
 
   output( '"use strict";' );
@@ -551,7 +554,7 @@ function __compile( parsed ) {
       output( indent + `${elem.val_id ? elem.val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
     }
     for ( const sub_elem of elem.children ) {
-      output_elem( sub_elem, indent_level + 1 ); 
+      output_elem( sub_elem, indent_level + 1 );
     }
     remove_last_comma();
     output( indent + `${paren_e}),` );
@@ -867,9 +870,9 @@ const standardValis = {
 
   "uuid"    : (...defs)=>{
     return (
-      name_validator( 
-        "uuid", 
-        (o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o ) 
+      name_validator(
+        "uuid",
+        (o)=>(typeof o ==='string') && (/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/).test( o )
       )
     );
   },

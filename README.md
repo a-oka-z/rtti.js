@@ -664,6 +664,9 @@ arguments.
   - All validators that all compiled validator factories generate return its
     SVDL source code when `toString()` function on a validator is called.
 
+- v3.0.2 (Mon, 08 May 2023 19:10:53 +0900)
+  - Stringify instances of SchemaValidatorContext when util.inspect() is called.
+
 
  Conclusion
 --------------------------------------------------------------------------------
