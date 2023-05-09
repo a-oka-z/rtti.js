@@ -813,6 +813,10 @@ const standardValis = {
           return false;
         }
 
+        // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
+        o = unprevent(o);
+        // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
+
         // This implements `object` operator; check every element before
         // determine the result to obtain a user-friendly diagnosis report.
 
@@ -843,6 +847,9 @@ const standardValis = {
         if ( ! Array.isArray( o ) ) {
           return false;
         }
+        // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
+        o = unprevent(o);
+        // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
         return defs.every(
           (def)=>o.every(e=>def(e)));
       })
@@ -861,6 +868,9 @@ const standardValis = {
         if ( o.length != defs.length ) {
           return false;
         }
+        // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
+        o = unprevent(o);
+        // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
         return defs.every( (def,i)=>def( o[i] ) );
       })
     );
@@ -896,6 +906,56 @@ const standardValis = {
   "clone" : cloneSchema,
 };
 
+
+
+/*
+ * *****  WARNING FOR A SPECIAL HARD CODING *****
+ *
+ * 1. The module `prevent-undefined` already has a dependency ot the module
+ *    `vanilla-schema-validator` as a reference to `trace_validator()`
+ *    function.
+ * 2. The module `prevent-undefined` is built via `sqlmacro` simple build
+ *    system which only supports single-index.js-projects.
+ * 3. That is, any circular dependencies are not allowed since index.js is not
+ *    easily split up to submodules.
+ * 4. The operators sucha as array()/array_of()/object() in
+ *    `vanilla-schema-validator` should call `unprevent()` before they process
+ *    their objects specified as arguments to have `undefined()` operator work
+ *    properly.
+ *
+ * The following block of code is copied from the module
+ * `prevent-undefined/index.js`; and it should be synchronized to the original
+ * block of code.
+ *
+ * (Tue, 09 May 2023 16:31:43 +0900)
+ *
+ *
+ * BEGIN HARD CODING >>>
+ *
+ */
+const __UNPREVENT__                            = Symbol.for( '__UNPREVENT__' );
+const __IS_PREVENTED_UNDEFINED__               = Symbol.for( '__IS_PREVENTED_UNDEFINED__' );
+function isUndefinedPrevented(o){
+  if ( o && Object.hasOwn( o, __IS_PREVENTED_UNDEFINED__ ) ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function unprevent(o) {
+  if ( isUndefinedPrevented(o) ) {
+    return unprevent( o[__UNPREVENT__] );
+  } else {
+    return o;
+  }
+}
+/*
+ * <<< END HARD CODING
+ *
+ * (Tue, 09 May 2023 16:31:43 +0900)
+ *
+ */
 
 
 function createSchema() {
