@@ -840,7 +840,7 @@ const standardValis = {
 
   "array_of"    : (...defs)=>{
     return (
-      name_validator( "array_of", (o)=>{
+      name_validator( "array_of", (o,c=null_context)=>{
         if ( o === null || o === undefined ) {
           return false;
         }
@@ -850,28 +850,64 @@ const standardValis = {
         // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
         o = unprevent(o);
         // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
-        return defs.every(
-          (def)=>o.every(e=>def(e)));
+
+        const r = defs.map(
+          (def,di)=>{
+            return o.map( (e,i)=>{
+              c.enter( `${i}`, def);
+              try {
+                return c.notify( def(e,c) );
+              } finally {
+                c.leave();
+              }
+            })
+          });
+        // check if every element is true.
+        return  r.every(e1=>e1.every(e2=>!!e2));
+        // return defs.every( (def)=>o.every(e=>def(e)));
       })
     );
   },
 
   "array"    : (...defs)=>{
     return (
-      name_validator( "array", (o)=>{
+      name_validator( "array", (o,c=null_context)=>{
         if ( o === null || o === undefined ) {
           return false;
         }
         if ( ! Array.isArray( o ) ) {
           return false;
         }
-        if ( o.length != defs.length ) {
-          return false;
-        }
+
         // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
         o = unprevent(o);
         // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
-        return defs.every( (def,i)=>def( o[i] ) );
+
+        const r = defs.map( (def,i)=>{
+          c.enter( `${i}`, def);
+          try {
+            return c.notify( def( o[i], c ) );
+          } finally {
+            c.leave();
+          }
+        });
+
+        const rr = (()=>{
+          if ( o.length != defs.length ) {
+            c.enter( `arr:${o.length}!==def:${defs.length}` , {[SCHEMA_VALIDATOR_NAME]: 'length-comparator'  } );
+            try {
+              return c.notify( false );
+            } finally {
+              c.leave();
+            }
+          } else {
+            return true;
+          }
+        })();
+
+        return rr && r.every(e1=>!!e1);
+
+        // return defs.every( (def,i)=>def( o[i] ) );
       })
     );
   },

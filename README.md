@@ -667,6 +667,9 @@ arguments.
 - v3.0.2 (Mon, 08 May 2023 19:10:53 +0900)
   - Stringify instances of SchemaValidatorContext when util.inspect() is called.
 
+- v3.0.3 (Wed, 10 May 2023 19:43:27 +0900)
+  - Now `array()` and `array_of()` support `trace_validator`.
+
 
  Conclusion
 --------------------------------------------------------------------------------

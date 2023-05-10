@@ -70,7 +70,7 @@ describe('basic',()=>{
       ()=>{
         debugger;
         return schema.or(schema.number())();
-      } 
+      }
     );
   });
   it('as and OK'    , ()=>{  assert.doesNotThrow( ()=>schema.and   (schema.number() )(                )   ); } );
@@ -189,7 +189,7 @@ describe('check object with date', ()=>{
     since   : { is_wrong_date  : true }
   };
 
-  it( '0', ()=>assert.equal( t_person( val4 ), true )); 
+  it( '0', ()=>assert.equal( t_person( val4 ), true ));
   it( '1', ()=>assert.equal( t_person( val5 ), false ));
 });
 
@@ -217,7 +217,7 @@ test('STATEMENT COMPILER test basic 1', ()=>{
     )
   `;
 
-  assert.equal( factory.toString() , 
+  assert.equal( factory.toString() ,
 `function t_anonymous(...args) {
     const schema = this === undefined ? self : this;
     try {
@@ -403,7 +403,7 @@ describe( 'check any', ()=>{
 
 /**
  *
- * JavaScript Blocks in the Statement Compiler 
+ * JavaScript Blocks in the Statement Compiler
  *
  */
 // it's much time consuming to create compiler test in this way; skip this until another way is invented.
@@ -513,7 +513,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       )
     `;
 
-    assert.equal( factory.toString() , 
+    assert.equal( factory.toString() ,
         'function t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
       '    try {\n' +
@@ -548,7 +548,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       '      e.schema = schema;\n' +
       '      throw e;\n' +
       '    }\n' +
-      '  }' 
+      '  }'
     );
 
     const vali = factory();
@@ -557,8 +557,8 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 
   it('as JavaScript Blocks No.3', ()=>{
     const factory = schema.statement`equals(<<10>>)`;
-    assert.equal( 
-      factory.toString() , 
+    assert.equal(
+      factory.toString() ,
 
       'function t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
@@ -584,7 +584,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 
   it('as JavaScript Blocks No.4', ()=>{
     const factory = schema.statement`number(<<>>)`;
-    assert.equal( factory.toString() , 
+    assert.equal( factory.toString() ,
       'function t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
       '    try {\n' +
@@ -652,11 +652,11 @@ describe('check clone', ()=>{
 
     // factory_by_rtti2 is called in the context of rtti1; this should refer
     // `rtti1.hello`; so this should be false.
-    assert.equal( rtti1.hello2()( v ) ,  false ); 
+    assert.equal( rtti1.hello2()( v ) ,  false );
 
     // if `factory_by_rtti2` is called without namespace, it refers the `rtti2`
     // where `factory_by_rtti2` comes from.
-    assert.equal( factory_by_rtti2()( v ) ,  true ); 
+    assert.equal( factory_by_rtti2()( v ) ,  true );
 
   });
 });
@@ -822,9 +822,18 @@ describe( 'check context', ()=>{
         ),
       ),
 
-      arr_test : array_of(
-        not( number()),
-      ),
+      arr_test : and(
+        array_of(
+          not( null()),
+          not( undefined()),
+        ),
+        array(
+          boolean(),
+          string(),
+          number(),
+          number(),
+        ),
+      )
     )
   `;
 
@@ -846,6 +855,7 @@ describe( 'check context', ()=>{
       },
       arr_test : [ false, 'boo', 15 ],
     };
+    console.log( 'trace_validator' );
     console.log( trace_validator( factory(), o ).report() );
     // const c = new SchemaValidatorContext();
     // const r = factory()(o ,c);
@@ -928,7 +938,7 @@ describe( 'new_standard_template_literal', ()=>{
         foo : and(
           number(),
           equals( << 1 >> ),
-          // aaa   
+          // aaa
           /*
           foo(), // ee
           bar(),
@@ -992,7 +1002,7 @@ describe( "new_standard_template_literal 2",()=>{
       age : number(),
       attrs : object(
         favorite_color : or(
-          t_color(), 
+          t_color(),
           null(),
         ),
       ),
@@ -1035,7 +1045,7 @@ describe( "escaping illegal characters" ,()=>{
         age : number(),
         attrs : object(
           favorite_color : or(
-            t_color(), 
+            t_color(),
             null(),
           ),
         ),
