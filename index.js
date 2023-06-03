@@ -529,7 +529,7 @@ function __compile( parsed ) {
     output( `const ${key} = ()=>(${check_escaped_block(value)});` );
   }
 
-  function output_elem( elem, indent_level ) {
+  function output_elem( parent_elem, elem, indent_level ) {
     const indent  = " ".repeat( (indent_level + 4 ) * 2 );
     const {
       paren_b,
@@ -551,10 +551,14 @@ function __compile( parsed ) {
     if ( indent_level === 0 ) {
       output( indent +                                        `${schema_name}${elem.fac_id}(${paren_b}` );
     } else {
-      output( indent + `${elem.val_id ? elem.val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
+      // >>> MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
+      // >>> omit output val_id when the parent factory id is not an object.
+      const tmp_val_id = parent_elem.fac_id === 'object' ? elem.val_id : null;
+      output( indent + `${tmp_val_id ? tmp_val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
+      // <<< MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
     }
     for ( const sub_elem of elem.children ) {
-      output_elem( sub_elem, indent_level + 1 );
+      output_elem( elem, sub_elem, indent_level + 1 );
     }
     remove_last_comma();
     output( indent + `${paren_e}),` );
@@ -570,7 +574,7 @@ function __compile( parsed ) {
     output( `    try {` );
     output( `      const validator = schema.thru(` );
 
-    output_elem( elem, 0 );
+    output_elem( null, elem, 0 );
     remove_last_comma();
 
     output( `      );` );

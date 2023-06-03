@@ -21,8 +21,8 @@ schema.define`
     name : string(),
     age : number(),
     attrs : object(
-      favorite_color : or( 
-        t_color(), 
+      favorite_color : or(
+        t_color(),
         null(),
       ),
     ),
@@ -669,6 +669,43 @@ arguments.
 
 - v3.0.3 (Wed, 10 May 2023 19:43:27 +0900)
   - Now `array()` and `array_of()` support `trace_validator`.
+
+- v3.0.4 (Sat, 03 Jun 2023 15:08:52 +0900)
+  - Now field name specifiers are available for any type of validators in
+    schema compiler;
+
+BEFORE: v3.0.4
+```
+  object(
+    foo : number(), // << okay
+    bar : number(), // << okay
+  ),
+  array(
+    foo : number(), // << error
+    bar : number(), // << error
+  ),
+  or(
+    foo : number(), // << error
+    bar : number(), // << error
+  ),
+```
+
+AFTER: v3.0.4
+```
+  object(
+    foo : number(), // << okay
+    bar : number(), // << okay
+  ),
+  array(
+    foo : number(), // << okay
+    bar : number(), // << okay
+  ),
+  or(
+    foo : number(), // << okay
+    bar : number(), // << okay
+  ),
+```
+AFTER:
 
 
  Conclusion
