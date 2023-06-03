@@ -671,8 +671,9 @@ arguments.
   - Now `array()` and `array_of()` support `trace_validator`.
 
 - v3.0.4 (Sat, 03 Jun 2023 15:08:52 +0900)
-  - Now field name specifiers are available for any type of validators in
-    schema compiler;
+  - Now field name specifiers are available for any types of validators in
+    schema compiler; field name specifiers on types other than objects are
+    simply ignored, though.
 
 BEFORE: v3.0.4
 ```
@@ -705,7 +706,6 @@ AFTER: v3.0.4
     bar : number(), // << okay
   ),
 ```
-AFTER:
 
 
  Conclusion
