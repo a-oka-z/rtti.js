@@ -161,6 +161,25 @@ const trace_validator = ( validator, value )=>{
   }
 };
 
+class TypeCastError extends TypeError {
+  constructor(...args){
+    super(...args);
+  }
+}
+
+const typecast = ( validator, value )=>{
+  const context = trace_validator( validator, value );
+  if ( ! context.value ) {
+    throw new TypeCastError(
+      'an invalid type:\nthe value (' +
+      inspect( value ) +
+      ") does not conform to the type:\n" +
+      vali_to_str( value ) + "\n" +
+      context.report() );
+  }
+  return value;
+};
+
 function vali_to_string( vali ) {
   if ( typeof vali !== 'function' ) {
     throw new TypeError( 'vali is not a function' );

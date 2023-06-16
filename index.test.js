@@ -1058,3 +1058,57 @@ describe( "escaping illegal characters" ,()=>{
   });
 });
 
+
+describe( "typecast" ,()=>{
+  it( 'as 0', ()=>{
+    const s = schema.clone();
+    s.define`
+      t_color : or(
+        equals( << "red" >>),
+        equals( << "blue\`"  >>),
+        equals( << "yellow" >>),
+      ),
+      t_person : object(
+        name : string(),
+        age : number(),
+        attrs : object(
+          favorite_color : or(
+            t_color(),
+            null(),
+          ),
+        ),
+      )
+    `;
+
+    assert.doesNotThrow(()=>{
+      console.error( 'source', typecast( s.t_color(), 'red' ) );
+    });
+    assert.doesNotThrow(()=>{
+      console.error( 'source', typecast( s.t_person(), {
+        name : 'hello',
+        age : 10,
+        attrs : {
+          favorite_color : 'red',
+        },
+      }));
+    });
+    assert.throws(()=>{
+      console.error('source', typecast( s.t_color(), 'green') );
+    });
+    assert.throws(()=>{
+      try {
+        console.error( 'source', typecast( s.t_person(), {
+          name : 'hello',
+          age : 10,
+          attrs : {
+            favorite_color : 'green',
+          },
+        }));
+      } catch (e) {
+        console.error('expected error',e);
+        throw e;
+      }
+    });
+  });
+});
+

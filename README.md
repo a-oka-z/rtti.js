@@ -632,9 +632,9 @@ console.error( type1( v ) ); // error;
 
 (Tue, 27 Dec 2022 17:33:45 +0900) `rtti.statement` is renamed `schema.compile`.
 `vanilla-schema-validator` is one-hundred percent backward compatible with
-former `rtti.js` though.  
+former `rtti.js` though.
 
-- v2.0.1 
+- v2.0.1
 
 Fixed the issue that `statement compiler` throws an error when a comma is
 placed after a specified statement.
@@ -706,6 +706,9 @@ AFTER: v3.0.4
     bar : number(), // << okay
   ),
 ```
+
+- v3.0.5 (Fri, 16 Jun 2023 14:55:29 +0900)
+  - Added `typecast` feature.
 
 
  Conclusion

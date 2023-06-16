@@ -15,6 +15,7 @@ export {
   schema,
   vali_to_string,
   trace_validator,
+  typecast,
   SCHEMA_VALIDATOR_SOURCE,
   SCHEMA_VALIDATOR_NAME,
 };
