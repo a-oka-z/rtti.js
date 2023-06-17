@@ -16,6 +16,7 @@ export {
   vali_to_string,
   trace_validator,
   typecast,
+  typeassert,
   SCHEMA_VALIDATOR_SOURCE,
   SCHEMA_VALIDATOR_NAME,
 };

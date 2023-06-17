@@ -180,6 +180,14 @@ const typecast = ( validator, value )=>{
   return value;
 };
 
+const typeassert = (...args)=>{
+  try {
+    return typecast( ...args );
+  } catch ( e ){
+    console.error( e );
+  }
+};
+
 function vali_to_string( vali ) {
   if ( typeof vali !== 'function' ) {
     throw new TypeError( 'vali is not a function' );

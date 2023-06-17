@@ -708,7 +708,12 @@ AFTER: v3.0.4
 ```
 
 - v3.0.5 (Fri, 16 Jun 2023 14:55:29 +0900)
-  - Added `typecast` feature.
+  - Added `typecast` feature that examines the type of the specified value and
+    throw an error if the type is not as expected.
+
+- v3.0.6  (Sat, 17 Jun 2023 18:38:57 +0900)
+  - Added `typeassert` feature that only examines the type of the specified
+    value and show as console.error.
 
 
  Conclusion
