@@ -35,7 +35,9 @@
     "url": "https://github.com/apupu-framework/vanilla-schema-validator"
   },
   "license": "ISC",
-  "devDependencies": {
+  "bak-devDependencies": {
     "sqlmacro": "^0.1.0"
+  },
+  "devDependencies": {
   }
 }

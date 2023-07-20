@@ -1,6 +1,6 @@
 node_modules/
-package-lock.json
-index.cjs
-index.mjs
-index.test.cjs
-index.test.mjs
+# package-lock.json
+# index.cjs
+# index.mjs
+# index.test.cjs
+# index.test.mjs
