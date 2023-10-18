@@ -27,15 +27,15 @@
     "package.json"
   ],
   "author": {
-    "name": "Atsushi Oka",
-    "url": "https://github.com/apupu-framework/vanilla-schema-validator"
+    "name": "Atsushi Oka (Kombucha.js)",
+    "url": "https://github.com/kombucha-js/vanilla-schema-validator"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apupu-framework/vanilla-schema-validator"
+    "url": "https://github.com/kombucha-js/vanilla-schema-validator"
   },
   "license": "ISC",
-  "bak-devDependencies": {
+  "devDependencies": {
     "sqlmacro": "^0.1.0"
   },
   "devDependencies": {
