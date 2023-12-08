@@ -1,10 +1,4 @@
 
-util.inspect.defaultOptions.depth = null;
-util.inspect.defaultOptions.maxArrayLength = null;
-util.inspect.defaultOptions.maxStringLength = null;
-util.inspect.defaultOptions.breakLength = 1;
-util.inspect.defaultOptions.compact =false;
-
 
 function getStackFromError(o) {
   if ( o == null ) {
