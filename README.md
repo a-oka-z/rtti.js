@@ -334,6 +334,7 @@ Available validators are:
 - not()
 - object()
 - array()
+- nargs()
 - equals()
 - uuid()
 
@@ -498,6 +499,126 @@ schema.array_of(schema.number())([1,2,3]); // return true
 schema.array_of(schema.number())([1,2,'3']); // return false
 schema.array_of(schema.or( schema.string(), schema.number()))([1,2,'3']); // return true
 ```
+
+#### `nargs()` ####
+The `nargs()` validator is used for validation of named arguments. It is named
+after abbreviation of "Named Arguments".
+
+The basic idea is:
+
+```javascript
+  const t_test_named_arguments = schema.statement`
+    nargs(
+      age: number(),
+      name: string(),
+      is_admin: boolean(),
+    )`();
+
+  const fn = ( ...args )=>{
+    if ( ! t_test_named_arguments( args ) ) {
+      throw new Error( 'invalid arguments' );
+    }
+  };
+
+  // okay
+  fn({ age:       23, name:'John', is_admin:false });
+
+  // error
+  fn({ age: 'twenty', name:'John', is_admin:false });
+```
+
+It has a special protocol that enables overriding. The protocol is based on a
+simple rule. The rule is, when multiple arguments are specified, a left-side
+argument always overrides the objects in its right-side.
+
+```javascript
+  // okay
+  fn({ age:23,            }, {          name:'John', is_admin:false} );
+
+  // okay
+  fn({ age:23             }, {age:null, name:'John', is_admin:false} );
+
+  // error
+  fn({ age:null,          }, {age: 23 , name:'John', is_admin:false} );
+```
+
+This protocol was designed for being used with object-delegation in mind.  In
+object programming, it is very common to delegate an object by multiple objects.
+In such case, sometime it is preferable to override an argument value which is
+specified to a delegator before passing the argument to its delegatee.
+
+```javascript
+const obj1 ={
+  a_method({ hello, world }) {
+    console.log( hello, world );
+  }
+};
+
+const obj2 ={
+  a_method({ hello, world }) {
+    obj1.a_method({hello:'MODIFIED',world});
+  }
+};
+
+obj2.a_method({hello:'hello', world:'world'});
+```
+
+One problem in the code above is that it is always necessary to manage all
+argument names beforehand.  The code above should have been re-written with
+three dot spread syntax as following:
+
+```javascript
+const obj1 ={
+  a_method({ hello,world }) {
+    console.log( hello, world );
+  }
+};
+
+const obj2 ={
+  a_method(...nargs) {
+    obj1.a_method(...nargs);
+  }
+};
+
+obj2.a_method({hello:'hello', world:'world'});
+```
+
+Three dot syntax is useful. But in this case, it is slightly difficult to
+implement overriding named-arguments.
+
+
+```javascript
+const obj1 ={
+  a_method({ hello,world }) {
+    console.log( hello, world );
+  }
+};
+
+const obj2 ={
+  a_method(...nargs) {
+    const nargs2 = Object.assign({},...nargs,{hello:'MODIFIED'});
+    obj1.a_method(...nargs2);
+  }
+};
+
+obj2.a_method({hello:'hello', world:'world'});
+```
+
+There is no common consensus about the preferable behavior when multiple named
+argument objects are specified. I thought, what if there is a protocol which
+states the named argument object in the left-side always takes precedence to the
+objects right-side. I thought this would simplify the problem.
+
+The idea has been implemented in the module [`fold-args`][fold-args] and the
+module [`runtime-typesafety`][runtime-typesafety].
+
+[fold-args]: (https://github.com/kombucha-js/fold-args)
+[runtime-typesafety]: (https://github.com/kombucha-js/runtime-typesafety)
+
+This protocol is extensively used in the framework [Kombucha.js][kombucha]
+
+[kombucha]: (https://github.com/kombucha-js)
+
 
 #### `equals()` ####
 `equals()` takes a parameter as a target value and creates a validator which

@@ -534,6 +534,10 @@ function get_source( input, elem ){
   }
 }
 
+function is_named_args( elem ) {
+  return elem.fac_id === 'object' || elem.fac_id === 'nargs';
+}
+
 function __compile( parsed ) {
   const compiled_buf = [];
   const output = (...args)=>compiled_buf.push(...args);
@@ -562,7 +566,7 @@ function __compile( parsed ) {
     const {
       paren_b,
       paren_e
-    } = elem.fac_id === 'object' ? {
+    } = is_named_args( elem ) ? {
       paren_b : '{',
       paren_e : '}',
     } : {
@@ -581,7 +585,7 @@ function __compile( parsed ) {
     } else {
       // >>> MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
       // >>> omit output val_id when the parent factory id is not an object.
-      const tmp_val_id = parent_elem.fac_id === 'object' ? elem.val_id : null;
+      const tmp_val_id = is_named_args( parent_elem ) ? elem.val_id : null;
       output( indent + `${tmp_val_id ? tmp_val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
       // <<< MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
     }
@@ -940,6 +944,61 @@ const standardValis = {
         return rr && r.every(e1=>!!e1);
 
         // return defs.every( (def,i)=>def( o[i] ) );
+      })
+    );
+  },
+
+
+  "nargs" : (...defs)=>{
+    if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
+      throw new RangeError( 'every argument must be an object' );
+    }
+
+    return (
+      /*
+       * the following code was duplicated from object() and modified.
+       * (Fri, 22 Dec 2023 15:03:14 +0900)
+       */
+      name_validator( "nargs", (o,c=null_context)=>{
+        if ( o === null || o === undefined ) {
+          return false;
+        }
+
+        if ( ! Array.isArray( o ) ) {
+          return false;
+        }
+
+        if ( defs.length === 0 ) {
+          return true;
+        }
+
+        // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
+        o = unprevent(o);
+        // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
+
+        /*
+         * Merge all arguments into one; a left-side object always overrides
+         * all of the objects on its right-side.
+         */
+        const obj_nargs = Object.assign({}, ...( o.toReversed() ) );
+
+        // This implements `object` operator; check every element before
+        // determine the result to obtain a user-friendly diagnosis report.
+
+        // `r` is an two-dimentional array of boolean.
+        const r =
+          defs.map(
+            def=>Object.entries(def).map(
+              ([key,value])=>{
+                c.enter(key,value);
+                try {
+                  return c.notify( value( obj_nargs[key], c ) );
+                } finally {
+                  c.leave();
+                }
+              }));
+        // check if every element is true.
+        return  r.every(e1=>e1.every(e2=>!!e2));
       })
     );
   },

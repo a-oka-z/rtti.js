@@ -1113,3 +1113,64 @@ describe( "typecast" ,()=>{
   });
 });
 
+
+
+test( 'nargs No.1', ()=>{
+  const validator = schema.statement`
+    nargs(
+      foo: equals( << 'a' >> ),
+      bar: equals( << 'b' >> ),
+      baz: equals( << 'c' >> ),
+    )`();
+
+
+  assert.equal( validator( [                     {foo:'a',bar:'b',baz:'c'},                           ] ),  true );
+  assert.equal( validator( [                     {foo:'a',bar:'b',baz:'c'}, {foo:'A',bar:'B',baz:'C'} ] ),  true );
+  assert.equal( validator( [                     {foo:'a',bar:'b',       }, {foo:'A',bar:'B',baz:'c'} ] ),  true );
+  assert.equal( validator( [ {foo:'INCORRECT' }, {foo:'a',bar:'b',baz:'c'}, {foo:'A',bar:'B',baz:'C'} ] ), false );
+
+
+});
+
+test( 'nargs No.2',()=>{
+  const t_test_named_arguments = schema.statement`
+    nargs(
+      age: number(),
+      name: string(),
+      is_admin: boolean(),
+    )`();
+
+  const fn = ( ...args )=>{
+    if ( ! t_test_named_arguments( args ) ) {
+      throw new Error( 'invalid arguments' );
+    }
+  };
+
+  assert.doesNotThrow(()=>{
+    fn({age:20,       name:'bar',is_admin:false });
+  });
+
+  assert.throws(()=>{
+    fn({age:'twenty', name:'bar',is_admin:false });
+  });
+
+
+  // okay
+  assert.doesNotThrow(()=>{
+    fn({ age:23,            }, {          name:'John', is_admin:false} );
+  });
+
+  // okay
+  assert.doesNotThrow(()=>{
+    fn({ age:23             }, {age:null, name:'John', is_admin:false} );
+  });
+
+  // error
+  assert.throws(()=>{
+    fn({ age:null,          }, {age: 23 , name:'John', is_admin:false} );
+  });
+
+});
+
+
+
