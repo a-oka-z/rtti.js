@@ -539,7 +539,8 @@ function get_source( input, elem ){
   if ( r === null ) {
     return 'no source';
   } else {
-    return '`' + input.substring( r[0], r[1] + 1 ).replaceAll( /[`]/gm, '\\`' ) + '`';
+    // \u0060 `
+    return '\u0060' + input.substring( r[0], r[1] + 1 ).replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
   }
 }
 
