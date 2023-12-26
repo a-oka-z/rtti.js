@@ -12,6 +12,7 @@ function inspect(s) {
 <%=body %>
 
 
+module.exports.fold_nargs        = fold_nargs;
 module.exports.schema            = schema;
 module.exports.vali_to_string    = vali_to_string;
 module.exports.trace_validator   = trace_validator;

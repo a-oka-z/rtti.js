@@ -23,6 +23,11 @@ const SCHEMA_VALIDATOR_NAME = 'validator_name';
 
 
 /*
+ * ADDED ON (Tue, 26 Dec 2023 15:39:16 +0900)
+ */
+const fold_nargs = (args)=>Object({}, ...(args.toReversed()));
+
+/*
  * (Thu, 16 Feb 2023 18:54:50 +0900)
  *
  * When a factory names a validator , the name should be taken as both a
@@ -1109,6 +1114,7 @@ const schema = (()=>{
 
 
 export {
+  fold_nargs,
   schema,
   vali_to_string,
   trace_validator,

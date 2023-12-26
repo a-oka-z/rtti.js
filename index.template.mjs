@@ -12,6 +12,7 @@ function inspect(s) {
 <%=body%>
 
 export {
+  fold_nargs,
   schema,
   vali_to_string,
   trace_validator,
