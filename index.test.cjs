@@ -1173,4 +1173,28 @@ test( 'nargs No.2',()=>{
 });
 
 
+test( 'regexp0', ()=>{
+  assert.equal( schema.regexp( /hello/ )( 'hello' ), true );
+  assert.equal( schema.regexp( /hello/ )( 'hell' ),  false );
+  assert.equal( schema.statement` regexp( << /hello/ >> ) `()( 'hello' ), true );
+  assert.equal( schema.statement` regexp( << /hello/ >> ) `()( 'HELLO' ), false );
+  assert.throws(
+    ()=>schema.statement` regexp( << 'hello' >> ) `()( 'HELLO' )
+  );
+
+});
+
+test( 'regexp1', ()=>{
+  const validator = schema.statement`
+    nargs(
+      hello: regexp( << /hello/ >> ),
+      world: regexp( << /world/ >> ),
+    )`();
+
+
+  assert.equal( validator( [                     {hello:'hello', world:'world', },                           ] ), true  );
+  assert.equal( validator( [                     {hello:'hello', world:'worl',  },                           ] ), false );
+
+
+});
 

@@ -651,6 +651,31 @@ schema.uuid()( 1  ) // false
 schema.uuid()( false ) // false
 ```
 
+#### `nargs()` ####
+`nargs()` validator is designed to validate arguments which are passed to a
+function at runtime.
+
+TODO
+
+#### `regexp()` ####
+`regexp(arg0)` validator checks if the given value is a string value and confoms
+to the pattern which is specified by a RegExp object which is specified as
+`arg0`.
+
+```javascript
+  schema.regexp( /hello/ )( 'hello' ); // returns true
+  schema.regexp( /hello/ )( 'HELLO' ); // returns false
+
+  schema.statement` regexp( << /hello/ >> ) `()( 'hello' );
+  // returns true
+
+  schema.statement` regexp( << 'hello' >> ) `()( 'HELLO' );
+  // throws "Error: the only argument must be an instance of RegExp() class"
+
+```
+
+
+
  Reference of Schema Validator Definition Language
 --------------------------------------------------------------------------------
 TODO
@@ -835,6 +860,9 @@ AFTER: v3.0.4
 - v3.0.6  (Sat, 17 Jun 2023 18:38:57 +0900)
   - Added `typeassert` feature that only examines the type of the specified
     value and show as console.error.
+
+- v3.0.7  (Fri, 19 Jan 2024 15:56:24 +0900)
+  - Added `nargs()` and `regexp()` validator.
 
 
  Conclusion

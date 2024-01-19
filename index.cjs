@@ -1029,6 +1029,23 @@ const standardValis = {
     );
   },
 
+  "regexp"    : (...defs)=>name_validator("regexp" , (
+    (o)=>{
+      if ( o === undefined )
+        return false;
+
+      if ( o === null )
+        return false;
+
+      const regexp = defs?.[0];
+
+      if ( !( regexp instanceof RegExp ) )
+        throw new Error('the only argument must be an instance of RegExp() class' );
+
+      return regexp.test( o.toString() );
+    }
+  )),
+
   [SCHEMA_VALIDATOR_COMPILE] : schema_validator_template_literal_compile,
   [SCHEMA_VALIDATOR_DEFINE] : schema_validator_template_literal_define,
 
