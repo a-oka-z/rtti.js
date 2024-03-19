@@ -195,7 +195,105 @@ describe('check object with date', ()=>{
 /*
  * the standard statement compiler ( v2 )
  */
-test('STATEMENT COMPILER test basic 1', ()=>{
+test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
+  const factory = schema.statement`
+    foo
+    bar
+    object(
+      name : string(),
+      age  : number(),
+      field : or( number(), string() ),
+      attrs : object(
+        foo: string(),
+        bar: number(),
+      ),
+      arr_test : array_of(
+        not( number()),
+      ),
+    )
+  `;
+
+  assert.equal( factory.toString() ,
+`function t_anonymous(...args) {
+    const schema = this === undefined ? self : this;
+    try {
+      const validator = schema.thru(
+        schema.object({
+          name:schema.string(),
+          age:schema.number(),
+          field:schema.or(
+            schema.number(),
+            schema.string()
+          ),
+          attrs:schema.object({
+            foo:schema.string(),
+            bar:schema.number()
+          }),
+          arr_test:schema.array_of(
+            schema.not(
+              schema.number()
+            )
+          )
+        })
+      );
+` +
+     '      Object.defineProperties(validator,{\n' +
+     '        "validator_name" : {\n' +
+     '          value : "t_anonymous", \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : true,    \n' +
+     '        },\n' +
+     '        "factory_name" : {\n' +
+     '          value : "t_anonymous", \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : true,    \n' +
+     '        },\n' +
+     '        "toString" : {\n' +
+     '          value : ()=>`object(\n' +
+     '      name : string(),\n' +
+     '      age  : number(),\n' +
+     '      field : or( number(), string() ),\n' +
+     '      attrs : object(\n' +
+     '        foo: string(),\n' +
+     '        bar: number(),\n' +
+     '      ),\n' +
+     '      arr_test : array_of(\n' +
+     '        not( number()),\n' +
+     '      ),\n' +
+     '    )` , \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : true,    \n' +
+     '        },\n' +
+     '        "annotations" : {\n' +
+     '          value        : [ "foo","bar" ],\n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : true,    \n' +
+     '        },\n' +
+     '      });' +
+`
+      return validator;
+    } catch ( e ) {
+      e.source = t_anonymous.toString();
+      e.schema = schema;
+      throw e;
+    }
+  }`
+  );
+
+  const vali = factory();
+  console.error({factory,vali});
+});
+
+
+
+// note that this test is identical with test basic 1.1
+// The only difference is absence of the annotations.
+// see 'annotations'
+test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
   const factory = schema.statement`
     object(
       name : string(),
@@ -265,6 +363,12 @@ test('STATEMENT COMPILER test basic 1', ()=>{
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
+     '        "annotations" : {\n' +
+     '          value        : [  ],\n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : true,    \n' +
+     '        },\n' +
      '      });' +
 `
       return validator;
@@ -279,6 +383,23 @@ test('STATEMENT COMPILER test basic 1', ()=>{
   const vali = factory();
   console.error({factory,vali});
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 describe('STATEMENT COMPILER test basic 2', ()=>{
   it( '0', ()=>assert.equal( schema.statement`string()`()('hello') ,  true  ));
@@ -1190,4 +1311,74 @@ test( 'regexp1', ()=>{
 
 
 });
+
+
+/**
+ * Mon, 18 Mar 2024 13:53:44 +0900
+ */
+describe( "typecast" ,()=>{
+  it( 'as 0', ()=>{
+    const s = schema.clone();
+    s.define`
+      col dre
+      t_color : or(
+        equals( << "red" >>),
+        equals( << "blue"  >>),
+        equals( << "yellow" >>),
+      ),
+
+      foo
+      bar
+      t_person : object(
+        name   : string(),
+        age    : number(),
+        attrs : object(
+          favorite_color : or(
+            t_color(),
+            null(),
+          ),
+        ),
+      )
+    `;
+
+    assert.doesNotThrow(()=>{
+      console.error();
+      console.error( 'source of t_color()');
+      console.error( s.t_color().toString() );
+      console.error( s.t_color.toString() );
+      console.error();
+      console.error( 'source of t_person()' );
+      console.error( s.t_person().toString() );
+      console.error( s.t_person.toString() );
+    });
+    assert.doesNotThrow(()=>{
+      console.error( 't_person()', typecast( s.t_person(), {
+        name : 'hello',
+        age : 10,
+        attrs : {
+          favorite_color : 'red',
+        },
+      }));
+    });
+    assert.throws(()=>{
+      console.error('source', typecast( s.t_color(), 'green') );
+    });
+    assert.throws(()=>{
+      try {
+        console.error( 'source', typecast( s.t_person(), {
+          name : 'hello',
+          age : 10,
+          attrs : {
+            favorite_color : 'green',
+          },
+        }));
+      } catch (e) {
+        console.error('expected error',e);
+        throw e;
+      }
+    });
+  });
+});
+
+
 

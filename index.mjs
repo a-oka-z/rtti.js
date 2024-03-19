@@ -19,6 +19,7 @@ const SCHEMA_VALIDATOR_CURRENT_DEFINE  = "vanilla-schema-validator.define";
 const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
 const SCHEMA_VALIDATOR_FACTORY_NAME   = 'factory_name' ;
 const SCHEMA_VALIDATOR_NAME = 'validator_name';
+const FIELD_NAME_OF_ANNOTATIONS = 'annotations';
 
 
 
@@ -270,6 +271,9 @@ const check_if_proper_vali = func=>{
  */
 const join_strings_and_values = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
 
+const create_static_value_interpolator_id = (c)=>'t__static_value_' + ( c ) + '_interpolator';
+
+
 function __parse(input) {
   class CompileError extends Error {
     constructor(...args) {
@@ -283,10 +287,11 @@ function __parse(input) {
   function escape_blocks( s ) {
     return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
       const c = escaped_blocks.length;
-      const id = 't__static_value_' + ( c ) + '_interpolator';
+      const id = create_static_value_interpolator_id( c );
       escaped_blocks.push({
         key : id,
         value: p1,
+        match,
       });
       return id + '()';
     });
@@ -358,6 +363,7 @@ function __parse(input) {
         type : KWD,
         value : m[2],
         src :{
+          input : m.input,
           position: m.index,
         },
       }));
@@ -366,6 +372,7 @@ function __parse(input) {
         type : BGN,
         value : m[3],
         src :{
+          input : m.input,
           position: m.index,
         },
       }));
@@ -374,6 +381,7 @@ function __parse(input) {
         type : END,
         value : m[4],
         src :{
+          input : m.input,
           position: m.index,
         },
       }));
@@ -382,6 +390,7 @@ function __parse(input) {
         type : PSP,
         value : m[5],
         src :{
+          input : m.input,
           position: m.index,
         },
       }));
@@ -390,6 +399,7 @@ function __parse(input) {
         type : KSP,
         value : m[6],
         src :{
+          input : m.input,
           position: m.index,
         },
       }));
@@ -406,6 +416,7 @@ function __parse(input) {
       this.fac_id = null;
       this.children = [];
       this.is_closed_element = false;
+      this.is_annotation = false;
     }
     range() {
       const s = this.token       ?.src?.position ?? null;
@@ -414,6 +425,12 @@ function __parse(input) {
         return [s,e];
       } else {
         return null;
+      }
+    }
+    source() {
+      const r = this.range();
+      if ( r ) {
+        return this.token?.src?.input.substring( r[0], r[1] +1 ) ?? null;
       }
     }
   }
@@ -435,19 +452,30 @@ function __parse(input) {
       }
     };
 
+    const notify_begin_of_elem = ( current_token )=>{
+      // begin a new definition
+      work_elem = new Elem( current_token );
+      elem_stack[ elem_stack.length-1 ].children.push( work_elem );
+    };
+
     for ( const current_token of tokens ) {
       switch ( current_token.type ) {
         case KWD : {
 
           if ( work_elem === null ) {
-            // begin a new definition
-            work_elem = new Elem( current_token );
-            elem_stack[ elem_stack.length-1].children.push( work_elem );
+            notify_begin_of_elem( current_token );
           }
 
           if ( work_elem.fac_id !== null ) {
             if ( work_elem.val_id === null ) {
-              throw new CompileError({message: 'missing colon' });
+              // MODIFIED (Tue, 19 Mar 2024 18:39:51 +0900)
+              // throw new CompileError({message: 'missing colon' });
+
+              // Notify the end of the current element.
+              notify_end_of_elem( work_elem, current_token );
+              work_elem.is_annotation = true; // ADDED ON Tue, 19 Mar 2024 20:17:00 +0900
+              work_elem = null;
+              notify_begin_of_elem( current_token );
             } else {
               throw new CompileError({message: 'missing comma' });
             }
@@ -506,10 +534,10 @@ function __parse(input) {
             throw new CompileError({message: 'no validator was specified' });
           }
           if ( work_elem.fac_id === null ) {
-            throw new CompileError({message:'no factory was specified' });
+            throw new CompileError({message: 'no factory was specified' });
           }
           if ( work_elem.val_id !== null ) {
-            throw new CompileError({message:'duplicate colon error' });
+            throw new CompileError({message: 'duplicate colon error' });
           }
           work_elem.val_id = work_elem.fac_id;
           work_elem.fac_id = null;
@@ -539,14 +567,15 @@ function __parse(input) {
   }
 }
 
-function get_source( input, elem ){
-  const r = elem.range();
-  if ( r === null ) {
-    return 'no source';
-  } else {
-    // \u0060 `
-    return '\u0060' + input.substring( r[0], r[1] + 1 ).replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
-  }
+function get_source( parsed, elem ){
+  let source = elem.source();
+  source = source.replace( /\bt__static_value_([0-9]+)_interpolator\b\(\)/gm , (match,p1)=>{
+    return ' ' + parsed.escaped_blocks[ Number(p1) ].match.trim() + ' ';
+  });
+
+  // source = source + 'hello';
+  source = '\u0060' + source.replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
+  return source;
 }
 
 function is_named_args( elem ) {
@@ -607,13 +636,22 @@ function __compile( parsed ) {
     for ( const sub_elem of elem.children ) {
       output_elem( elem, sub_elem, indent_level + 1 );
     }
+    // if ( elem.children.length === 0 ) {
+    //   output( '// YO ' + elem.fac_id );
+    // }
     remove_last_comma();
     output( indent + `${paren_e}),` );
   }
 
+  const annotations_elem_stack = [];
+
   output( 'const result = ({' );
   let type_name = null;
   for ( const elem of parsed.definitions ) {
+    if ( elem.is_annotation ) {
+      annotations_elem_stack.push( elem );
+      continue;
+    }
     type_name = elem.val_id ?? 't_anonymous';
 
     output( `  "${type_name}" : (function ${type_name}(...args) {` );
@@ -639,7 +677,13 @@ function __compile( parsed ) {
     output( `          configurable : true,    `);
     output( `        },`);
     output( `        "toString" : {`);
-    output( `          value : ()=>${get_source(parsed.source, elem)} , `);
+    output( `          value : ()=>${get_source(parsed, elem)} , `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "${FIELD_NAME_OF_ANNOTATIONS}" : {`);
+    output( `          value        : [ ${ annotations_elem_stack.map( elem=>'"'+elem.fac_id + '"' ) } ],`);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
@@ -652,6 +696,8 @@ function __compile( parsed ) {
     output( `      throw e;` );
     output( `    }` );
     output( `  }),` );
+
+    annotations_elem_stack.length = 0;
   }
   output('});' );
   if ( type_name !== null ) {
