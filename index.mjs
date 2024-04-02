@@ -25,8 +25,11 @@ const FIELD_NAME_OF_ANNOTATIONS      = 'annotations';
 /*
  * ADDED ON (Tue, 02 Apr 2024 16:12:59 +0900)
  */
-const VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA  = Symbol( 'vanilla-schema-validator.definition_data ' );
-const VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE  = Symbol( 'vanilla-schema-validator.definition_flag ' );
+
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA_ID  = 'vanilla-schema-validator.definition_data ';
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE_ID  = 'vanilla-schema-validator.definition_flag ';
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA     = Symbol.for( VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA_ID );
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE     = Symbol.for( VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE_ID );
 
 
 
@@ -51,18 +54,6 @@ const name_validator   = (factory_name,validator)=>{
       writable : true,
       configurable : true,
     },
-    [SCHEMA_VALIDATOR_NAME]: {
-      value : factory_name,
-      enumerable : true,
-      writable : true,
-      configurable : true,
-    },
-  });
-  return validator;
-};
-
-const rename_validator = (factory_name,validator)=>{
-  Object.defineProperties( validator, {
     [SCHEMA_VALIDATOR_NAME]: {
       value : factory_name,
       enumerable : true,
@@ -589,14 +580,27 @@ function get_source( parsed, elem ) {
   return source;
 }
 
+
+/*
+ * ADDED ON (Tue, 02 Apr 2024 16:12:59 +0900)
+ */
 function get_config_function() {
   return (`
             (nargs)=>{
               const {
                 command,
+                value,
               } = nargs;
               switch (command) {
                 case 'name':
+                  Object.defineProperties( validator_factory, {
+                    'name' : {
+                      value : value,
+                      enumerable   : false,
+                      writable     : false,
+                      configurable : true,
+                    },
+                  });
                   return validator_factory;
                 case 'self':
                   return validator_factory;

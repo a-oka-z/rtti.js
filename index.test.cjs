@@ -1422,5 +1422,35 @@ describe( "validator_config" ,()=>{
 
     assert.equal( s.t_person, result );
   });
+
+  it( 'as 1', ()=>{
+    const s = schema.clone();
+    s.define`
+      col dre
+      t_color : or(
+        equals( << "red" >>),
+        equals( << "blue"  >>),
+        equals( << "yellow" >>),
+      ),
+
+      foo
+      bar
+      t_person : object(
+        name   : string(),
+        age    : number(),
+        attrs : object(
+          favorite_color : or(
+            t_color(),
+            null(),
+          ),
+        ),
+      )
+    `;
+    console.log( 's.t_person', s.t_person );
+    assert.equal( s.t_person.name, 't_person'  );
+    s.t_person.validator_config({command:'name', value:'t_foo_bar_bum'});
+    assert.equal( s.t_person.name, 't_foo_bar_bum'  );
+    console.log( 's.t_person', s.t_person );
+  })
 });
 
