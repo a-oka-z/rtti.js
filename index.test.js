@@ -196,7 +196,7 @@ describe('check object with date', ()=>{
  * the standard statement compiler ( v2 )
  */
 test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
-  const factory = schema.statement`
+  const factory = schema./*st*/compile`
     foo
     bar
     object(
@@ -294,7 +294,7 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
 // The only difference is absence of the annotations.
 // see 'annotations'
 test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
-  const factory = schema.statement`
+  const factory = schema./*st*/compile`
     object(
       name : string(),
       age  : number(),
@@ -402,29 +402,29 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
 
 
 describe('STATEMENT COMPILER test basic 2', ()=>{
-  it( '0', ()=>assert.equal( schema.statement`string()`()('hello') ,  true  ));
-  it( '1', ()=>assert.equal( schema.statement`string()`()( 123   ) ,  false ));
-  it( '2', ()=>assert.equal( schema.statement`number()`()( 123   ) ,  true  ));
-  it( '3', ()=>assert.equal( schema.statement`number()`()('hello') ,  false ));
+  it( '0', ()=>assert.equal( schema./*st*/compile`string()`()('hello') ,  true  ));
+  it( '1', ()=>assert.equal( schema./*st*/compile`string()`()( 123   ) ,  false ));
+  it( '2', ()=>assert.equal( schema./*st*/compile`number()`()( 123   ) ,  true  ));
+  it( '3', ()=>assert.equal( schema./*st*/compile`number()`()('hello') ,  false ));
 });
 
 
 describe( 'check compiler', ()=>{
-  it('as undefined' , ()=>{  assert.equal       (     schema.statement`undefined ()`           ()(undefined   ), true        ); } );
-  it('as null'      , ()=>{  assert.equal       (     schema.statement`null      ()`           ()(null        ), true        ); } );
-  it('as boolean 1' , ()=>{  assert.equal       (     schema.statement`boolean   ()`           ()(true        ), true        ); } );
-  it('as boolean 2' , ()=>{  assert.equal       (     schema.statement`boolean   ()`           ()(false       ), true        ); } );
-  it('as number'    , ()=>{  assert.equal       (     schema.statement`number    ()`           ()(100000      ), true        ); } );
-  it('as string'    , ()=>{  assert.equal       (     schema.statement`string    ()`           ()("fooo"      ), true        ); } );
-  it('as bigint'    , ()=>{  assert.equal       (     schema.statement`bigint    ()`           ()(BigInt(1)   ), true        ); } );
-  it('as symbol'    , ()=>{  assert.equal       (     schema.statement`symbol    ()`           ()(Symbol('1') ), true        ); } );
-  it('as function'  , ()=>{  assert.equal       (     schema.statement`function  ()`           ()(()=>{}      ), true        ); } );
-  it('as not ERR'   , ()=>{  assert.throws      ( ()=>schema.statement`not       (           )`()(            ),  RangeError ); } );
-  it('as or ERR'    , ()=>{  assert.throws      ( ()=>schema.statement`or        (           )`()(            ),  RangeError ); } );
-  it('as and ERR'   , ()=>{  assert.throws      ( ()=>schema.statement`and       (           )`()(            ),  RangeError ); } );
-  it('as not OK'    , ()=>{  assert.doesNotThrow( ()=>schema.statement`not       (number()   )`()(            ),             ); } );
-  it('as or OK'     , ()=>{  assert.doesNotThrow( ()=>schema.statement`or        (number()   )`()(            ),             ); } );
-  it('as and OK'    , ()=>{  assert.doesNotThrow( ()=>schema.statement`and       (number()   )`()(            ),             ); } );
+  it('as undefined' , ()=>{  assert.equal       (     schema./*st*/compile`undefined ()`           ()(undefined   ), true        ); } );
+  it('as null'      , ()=>{  assert.equal       (     schema./*st*/compile`null      ()`           ()(null        ), true        ); } );
+  it('as boolean 1' , ()=>{  assert.equal       (     schema./*st*/compile`boolean   ()`           ()(true        ), true        ); } );
+  it('as boolean 2' , ()=>{  assert.equal       (     schema./*st*/compile`boolean   ()`           ()(false       ), true        ); } );
+  it('as number'    , ()=>{  assert.equal       (     schema./*st*/compile`number    ()`           ()(100000      ), true        ); } );
+  it('as string'    , ()=>{  assert.equal       (     schema./*st*/compile`string    ()`           ()("fooo"      ), true        ); } );
+  it('as bigint'    , ()=>{  assert.equal       (     schema./*st*/compile`bigint    ()`           ()(BigInt(1)   ), true        ); } );
+  it('as symbol'    , ()=>{  assert.equal       (     schema./*st*/compile`symbol    ()`           ()(Symbol('1') ), true        ); } );
+  it('as function'  , ()=>{  assert.equal       (     schema./*st*/compile`function  ()`           ()(()=>{}      ), true        ); } );
+  it('as not ERR'   , ()=>{  assert.throws      ( ()=>schema./*st*/compile`not       (           )`()(            ),  RangeError ); } );
+  it('as or ERR'    , ()=>{  assert.throws      ( ()=>schema./*st*/compile`or        (           )`()(            ),  RangeError ); } );
+  it('as and ERR'   , ()=>{  assert.throws      ( ()=>schema./*st*/compile`and       (           )`()(            ),  RangeError ); } );
+  it('as not OK'    , ()=>{  assert.doesNotThrow( ()=>schema./*st*/compile`not       (number()   )`()(            ),             ); } );
+  it('as or OK'     , ()=>{  assert.doesNotThrow( ()=>schema./*st*/compile`or        (number()   )`()(            ),             ); } );
+  it('as and OK'    , ()=>{  assert.doesNotThrow( ()=>schema./*st*/compile`and       (number()   )`()(            ),             ); } );
 });
 
 
@@ -474,25 +474,25 @@ describe('check equals',()=>{
     // 1. set constructor `hello` to the first cloned object.
     rtti1.hello = hello;
     assert.equal( 'hello' in rtti1 ,  true );
-    assert.doesNotThrow( ()=>rtti1.statement`hello()`( value ) );
+    assert.doesNotThrow( ()=>rtti1./*st*/compile`hello()`( value ) );
 
     // 2. clone again and confirm if the constructor `hello` is available on the
     //    second cloned object.
     const rtti2 = rtti1.clone();
     assert.equal( 'hello' in rtti2 ,  true );
-    assert.doesNotThrow( ()=>rtti2.statement`hello()`( value ) );
+    assert.doesNotThrow( ()=>rtti2./*st*/compile`hello()`( value ) );
 
     // 3.  confirm that setting `hello` does not affect to the original schema
     //     object.
     assert.equal( 'hello' in schema ,  false );
-    assert.throws( ()=>schema.statement`hello()`( value ) );
+    assert.throws( ()=>schema./*st*/compile`hello()`( value ) );
 
     // 4.  set constructor `world to the second cloned object.
     rtti2.world = world;
     assert.equal( 'world' in rtti2 ,  true );
     assert.equal( 'world' in rtti1 ,  false );
-    assert.doesNotThrow( ()=>rtti2.statement`world()`( value ) );
-    assert.throws( ()=>rtti1.statement`world()`( value ) );
+    assert.doesNotThrow( ()=>rtti2./*st*/compile`world()`( value ) );
+    assert.throws( ()=>rtti1./*st*/compile`world()`( value ) );
   });
 });
 
@@ -525,7 +525,7 @@ describe( 'check any', ()=>{
 // (Mon, 20 Feb 2023 18:09:28 +0900)
 describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
   it('as JavaScript Blocks No.1', ()=>{
-    const factory = schema.statement`
+    const factory = schema./*st*/compile`
       object(
         name : string(),
         age  : number(),
@@ -613,7 +613,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 
 
   it('as JavaScript Blocks No.2', ()=>{
-    const factory = schema.statement`
+    const factory = schema./*st*/compile`
       object(
         name : equals( << "John Coltrane" >> ),
         age  : number(),
@@ -671,7 +671,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
   });
 
   it('as JavaScript Blocks No.3', ()=>{
-    const factory = schema.statement`equals(<<10>>)`;
+    const factory = schema./*st*/compile`equals(<<10>>)`;
     assert.equal(
       factory.toString() ,
 
@@ -698,7 +698,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
   });
 
   it('as JavaScript Blocks No.4', ()=>{
-    const factory = schema.statement`number(<<>>)`;
+    const factory = schema./*st*/compile`number(<<>>)`;
     assert.equal( factory.toString() ,
       'function t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
@@ -725,7 +725,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 
   it('as JavaScript Blocks No.5', ()=>{
     assert.throws( ()=>{
-      const factory = schema.statement`number(<<1 + >><<2 + >><<3>>)`;
+      const factory = schema./*st*/compile`number(<<1 + >><<2 + >><<3>>)`;
       assert.equal( factory.toString() , `schema.number(1 + 2 + 3)`.trim());
       const vali = factory();
       console.error({factory,vali});
@@ -746,7 +746,7 @@ describe('check clone', ()=>{
     rtti1.hello = ()=>(o)=>o === 'hello' ;
 
     // this should be false.
-    assert.equal( rtti1.statement`hello()`()( v ) ,  false );
+    assert.equal( rtti1./*st*/compile`hello()`()( v ) ,  false );
 
     // create namespace2.
     const rtti2 = schema.clone();
@@ -756,11 +756,11 @@ describe('check clone', ()=>{
 
     // `hello` should refer different factories depends on which namespace it is
     // called with.
-    assert.equal( rtti1.statement`hello()`()( v ) ,  false );
-    assert.equal( rtti2.statement`hello()`()( v ) ,  true );
+    assert.equal( rtti1./*st*/compile`hello()`()( v ) ,  false );
+    assert.equal( rtti2./*st*/compile`hello()`()( v ) ,  true );
 
     // this looks like it refers `rtti2.hello`
-    const factory_by_rtti2 = rtti2.statement`hello()`;
+    const factory_by_rtti2 = rtti2./*st*/compile`hello()`;
 
     // set its namespace to `rtti1`
     rtti1.hello2 = factory_by_rtti2;
@@ -778,7 +778,7 @@ describe('check clone', ()=>{
 
 
 test( 'check array No.1', ()=>{
-  const validator = schema.statement`
+  const validator = schema./*st*/compile`
     array(
       equals( << 'a' >> ),
       equals( << 'b' >> ),
@@ -795,7 +795,7 @@ test( 'check array No.1', ()=>{
 
 
 test( 'object with undefined No.1', ()=>{
-  assert.equal( schema.statement`
+  assert.equal( schema./*st*/compile`
     object(
       a: or(
         undefined(),
@@ -805,7 +805,7 @@ test( 'object with undefined No.1', ()=>{
       {
       }
     ),  true );
-  assert.equal( schema.statement`
+  assert.equal( schema./*st*/compile`
     object(
       a: string()
     )`()(
@@ -816,7 +816,7 @@ test( 'object with undefined No.1', ()=>{
 
 
 // test( 'informative error message No.1 ', ()=>{
-//   assert.equal( ()=>schema.statement`
+//   assert.equal( ()=>schema./*st*/compile`
 //     object(
 //       a: string
 //     )`()(
@@ -830,7 +830,7 @@ test( 'object with undefined No.1', ()=>{
 // it's much time consuming to create compiler test in this way; skip this until another way is invented.
 // (Mon, 20 Feb 2023 18:09:28 +0900)
 test('check statement compiler 2 / returned validators have `script` property 1', { skip : true },  ()=>{
-  const factory = schema.statement`
+  const factory = schema./*st*/compile`
     object(
       name : string(),
       age  : number(),
@@ -887,7 +887,7 @@ test('check statement compiler 2 / returned validators have `script` property 1'
 // it's much time consuming to create compiler test in this way; skip this until another way is invented.
 // (Mon, 20 Feb 2023 18:09:28 +0900)
 test('check statement compiler 3 / returned validators have `script` property 2', { skip : true }, ()=>{
-  const factory = schema.statement`   << (e)=>e===1>>   `;
+  const factory = schema./*st*/compile`   << (e)=>e===1>>   `;
 
   assert.equal( factory()( 1 ) ,  true );
   assert.equal( factory()( 2 ) ,  false );
@@ -916,7 +916,7 @@ test('check statement compiler 3 / returned validators have `script` property 2'
 
 
 describe( 'check context', ()=>{
-  const factory = schema.statement`
+  const factory = schema./*st*/compile`
     t_test_hello:object(
       name : string(),
       age  : number(),
@@ -1230,7 +1230,7 @@ describe( "typecast" ,()=>{
 
 
 test( 'nargs No.1', ()=>{
-  const validator = schema.statement`
+  const validator = schema./*st*/compile`
     nargs(
       foo: equals( << 'a' >> ),
       bar: equals( << 'b' >> ),
@@ -1247,7 +1247,7 @@ test( 'nargs No.1', ()=>{
 });
 
 test( 'nargs No.2',()=>{
-  const t_test_named_arguments = schema.statement`
+  const t_test_named_arguments = schema./*st*/compile`
     nargs(
       age: number(),
       name: string(),
@@ -1290,16 +1290,16 @@ test( 'nargs No.2',()=>{
 test( 'regexp0', ()=>{
   assert.equal( schema.regexp( /hello/ )( 'hello' ), true );
   assert.equal( schema.regexp( /hello/ )( 'hell' ),  false );
-  assert.equal( schema.statement` regexp( << /hello/ >> ) `()( 'hello' ), true );
-  assert.equal( schema.statement` regexp( << /hello/ >> ) `()( 'HELLO' ), false );
+  assert.equal( schema./*st*/compile` regexp( << /hello/ >> ) `()( 'hello' ), true );
+  assert.equal( schema./*st*/compile` regexp( << /hello/ >> ) `()( 'HELLO' ), false );
   assert.throws(
-    ()=>schema.statement` regexp( << 'hello' >> ) `()( 'HELLO' )
+    ()=>schema./*st*/compile` regexp( << 'hello' >> ) `()( 'HELLO' )
   );
 
 });
 
 test( 'regexp1', ()=>{
-  const validator = schema.statement`
+  const validator = schema./*st*/compile`
     nargs(
       hello: regexp( << /hello/ >> ),
       world: regexp( << /world/ >> ),

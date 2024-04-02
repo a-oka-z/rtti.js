@@ -507,7 +507,7 @@ after abbreviation of "Named Arguments".
 The basic idea is:
 
 ```javascript
-  const t_test_named_arguments = schema.statement`
+  const t_test_named_arguments = schema.compile`
     nargs(
       age: number(),
       name: string(),
@@ -666,10 +666,10 @@ to the pattern which is specified by a RegExp object which is specified as
   schema.regexp( /hello/ )( 'hello' ); // returns true
   schema.regexp( /hello/ )( 'HELLO' ); // returns false
 
-  schema.statement` regexp( << /hello/ >> ) `()( 'hello' );
+  schema.compile` regexp( << /hello/ >> ) `()( 'hello' );
   // returns true
 
-  schema.statement` regexp( << 'hello' >> ) `()( 'HELLO' );
+  schema.compile` regexp( << 'hello' >> ) `()( 'HELLO' );
   // throws "Error: the only argument must be an instance of RegExp() class"
 
 ```
