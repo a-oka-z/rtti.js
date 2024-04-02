@@ -7,9 +7,16 @@ const SCHEMA_VALIDATOR_CURRENT_COMPILE  = "vanilla-schema-validator.compile";
 const SCHEMA_VALIDATOR_CURRENT_DEFINE  = "vanilla-schema-validator.define";
 
 const SCHEMA_VALIDATOR_SOURCE = Symbol.for( 'vanilla-schema-validator.source' );
-const SCHEMA_VALIDATOR_FACTORY_NAME   = 'factory_name' ;
-const SCHEMA_VALIDATOR_NAME = 'validator_name';
-const FIELD_NAME_OF_ANNOTATIONS = 'annotations';
+const SCHEMA_VALIDATOR_FACTORY_NAME  = 'factory_name' ;
+const SCHEMA_VALIDATOR_CONFIG        = 'validator_config';
+const SCHEMA_VALIDATOR_NAME          = 'validator_name';
+const FIELD_NAME_OF_ANNOTATIONS      = 'annotations';
+
+/*
+ * ADDED ON (Tue, 02 Apr 2024 16:12:59 +0900)
+ */
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA  = Symbol( 'vanilla-schema-validator.definition_data ' );
+const VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE  = Symbol( 'vanilla-schema-validator.definition_flag ' );
 
 
 
@@ -557,15 +564,40 @@ function __parse(input) {
   }
 }
 
-function get_source( parsed, elem ){
+function escape_backticks( source ) {
+  return '\u0060' + source.replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
+}
+
+function get_source( parsed, elem ) {
   let source = elem.source();
   source = source.replace( /\bt__static_value_([0-9]+)_interpolator\b\(\)/gm , (match,p1)=>{
     return ' ' + parsed.escaped_blocks[ Number(p1) ].match.trim() + ' ';
   });
 
   // source = source + 'hello';
-  source = '\u0060' + source.replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
+  source = escape_backticks( source );
   return source;
+}
+
+function get_config_function() {
+  return (`
+            (nargs)=>{
+              const {
+                command,
+              } = nargs;
+              switch (command) {
+                case 'name':
+                  Object.defineProperties({
+
+                    validator_factory;
+                  })
+                case 'self':
+                  return validator_factory;
+                default :
+                  return undefined;
+              }
+              return validator_factory
+            }`);
 }
 
 function is_named_args( elem ) {
@@ -644,7 +676,8 @@ function __compile( parsed ) {
     }
     type_name = elem.val_id ?? 't_anonymous';
 
-    output( `  "${type_name}" : (function ${type_name}(...args) {` );
+    output( `  "${type_name}" : (()=>{`);
+    output( `    const validator_factory = function ${type_name}(...args) {` );
     output( `    const schema = this === undefined ? self : this;` );
     output( `    try {` );
     output( `      const validator = schema.thru(` );
@@ -685,7 +718,18 @@ function __compile( parsed ) {
     output( `      e.schema = schema;` );
     output( `      throw e;` );
     output( `    }` );
-    output( `  }),` );
+    output( `    }` );
+    output( `    Object.defineProperties( validator_factory,{` );
+    output( `        "${SCHEMA_VALIDATOR_CONFIG}" : {`);
+    output( `          value : ${get_config_function(parsed, elem)}, `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `    })` );
+    output( `    return validator_factory;` );
+    output( `    }` );
+    output( `  )(),` );
 
     annotations_elem_stack.length = 0;
   }
@@ -761,6 +805,25 @@ function schema_validator_template_literal_define( strings, ... values ) {
   return result;
 }
 
+
+function BEGIN_DEFINITION( definition_module_name ) {
+  if (this[VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA] !== null ) {
+    throw new Error( 'a duplicate call of BEGIN_DEFINITION() was detected' );
+  }
+
+  this[VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA] = {
+    [VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE] : true,
+    module_name,
+    validator_list : [],
+  };
+}
+
+function END_DEFINITION() {
+  if ( this[VANILLA_SCHEMA_VALIDATOR_DEFINITION_DATA]?.[VANILLA_SCHEMA_VALIDATOR_DEFINITION_TYPE] !== true ) {
+    throw new Error( 'a missing call of BEGIN_DEFINITION() was detected' );
+  }
+
+}
 
 
 
@@ -1089,6 +1152,7 @@ const standardValis = {
   [SCHEMA_VALIDATOR_CURRENT_DEFINE] : schema_validator_template_literal_define,
 
   "statement" : function statement(...args) {
+    console.warn( '`statement` is deprecated; use `compile`, instead.' );
     return this[SCHEMA_VALIDATOR_CURRENT_COMPILE].call(this,...args);
   },
   "compile" : function compile(...args) {
@@ -1097,7 +1161,8 @@ const standardValis = {
   "define" : function define(...args) {
     return this[SCHEMA_VALIDATOR_CURRENT_DEFINE].call(this,...args);
   },
-
+  "BEGIN_DEFINITION" : BEGIN_DEFINITION,
+  "END_DEFINITION" : END_DEFINITION,
   "clone" : cloneSchema,
 };
 

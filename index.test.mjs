@@ -288,7 +288,7 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
       e.schema = schema;
       throw e;
     }
-  }`
+    }`
   );
 
   const vali = factory();
@@ -384,7 +384,7 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
       e.schema = schema;
       throw e;
     }
-  }`
+    }`
   );
 
   const vali = factory();
@@ -610,6 +610,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       e.source = t_anonymous.toString();
       e.schema = schema;
       throw e;
+    }
     }
   }`);
 
@@ -1388,4 +1389,38 @@ describe( "typecast" ,()=>{
 });
 
 
+
+describe( "validator_config" ,()=>{
+  it( 'as 0', ()=>{
+    const s = schema.clone();
+    s.define`
+      col dre
+      t_color : or(
+        equals( << "red" >>),
+        equals( << "blue"  >>),
+        equals( << "yellow" >>),
+      ),
+
+      foo
+      bar
+      t_person : object(
+        name   : string(),
+        age    : number(),
+        attrs : object(
+          favorite_color : or(
+            t_color(),
+            null(),
+          ),
+        ),
+      )
+    `;
+
+    console.log('asdf',s.t_person().toString() );
+    console.log('asdf',Object.getOwnPropertyDescriptors( s.t_person) );
+    const result = s.t_person.validator_config({command:'self'});
+    console.log('asdf', result );
+
+    assert.equal( s.t_person, result );
+  });
+});
 
