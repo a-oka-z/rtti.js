@@ -719,7 +719,7 @@ function __compile( parsed ) {
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
     output( `        },`);
-    output( `        "${SCHEMA_VALIDATOR_FACTORY_NAME}" : {`);
+    output( `        "${SCHEMA_VALIDATOR_FACTORY_NAME}" : {` );
     output( `          value : "${type_name}", `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
@@ -815,6 +815,9 @@ function schema_validator_template_literal_compile( strings, ... values ) {
   // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
   // console.log( 'decompiled',   result.t_default.toString() );
 
+  // notify_validator_factory
+  result.t_default[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
+
   return result.t_default;
 }
 
@@ -832,6 +835,14 @@ function schema_validator_template_literal_define( strings, ... values ) {
   const compiled = schema_validator_script_compiler( input );
   const result   = compiled.factory_factory.call( this );
 
+
+  for ( const [key,value] of Object.entries( result ) ) {
+    console.log( 'define', 'key',key , 'value', value );
+    if ( key === 't_default' ) continue;
+    const validator_factory = value;
+    validator_factory[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
+  }
+
   // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
   Object.assign( this, result );
   return result;
@@ -839,8 +850,9 @@ function schema_validator_template_literal_define( strings, ... values ) {
 
 
 function BEGIN_MODULE( definition_module_name ) {
-  if (this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] !== null ) {
-    throw new Error( 'a duplicate call of BEGIN_MODULE() was detected' );
+  console.log( 'HDSDFS', this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] );
+  if ( this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] !== null ) {
+    throw new Error( 'a duplicate call of BEGIN_MODULE() was detected', this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] );
   }
   this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] = {
     [VANILLA_SCHEMA_VALIDATOR_MODULE_TYPE] : true,
@@ -860,6 +872,8 @@ function get_schema_module_data( schema ) {
   return module_data;
 }
 
+
+
 function END_MODULE() {
   const module_data = get_schema_module_data(this);
   console.log( module_data );
@@ -869,17 +883,51 @@ function END_MODULE() {
  * `this` would be a schema object.
  */
 function VISIT_MODULE( validator_factory, nargs ) {
+  console.log( 'VISIT_MODULE', 'validator_factory', validator_factory, nargs );
   const schema = this;
   const {
     command,
     value,
   } = nargs;
 
+  const module_data = schema?.[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA];
+  if ( ! module_data ) {
+    return undefined;
+  }
+  if ( module_data[VANILLA_SCHEMA_VALIDATOR_MODULE_TYPE] !== true  ) {
+    throw new Error( 'it is prohibited to call the validator module methods to other than vanilla-schema-validator internal-objects.' );
+  }
+
   switch (command) {
-    case 'notify':
-      const module_data = get_schema_module_data( schema );
-      module_data.validator_list.push( value );
+    case 'notify_validator_factory': {
+      module_data.validator_list.push( validator_factory );
       return value;
+    }
+    case 'notify_typesafe_input':{
+      console.log( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_input' );
+      Object.defineProperties( validator_factory, {
+        'name' : {
+          value        : `t_vtype_${value}_INPUT`,
+          enumerable   : false,
+          writable     : false,
+          configurable : true,
+        },
+      });
+      return validator_factory;
+    }
+    case 'notify_typesafe_output': {
+      console.log( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_output' );
+      Object.defineProperties( validator_factory, {
+        'name' : {
+          value        : `t_vtype_${value}_OUTPUT`,
+          enumerable   : false,
+          writable     : false,
+          configurable : true,
+        },
+      });
+      return validator_factory;
+      return null;
+    }
     case 'name':
       Object.defineProperties( validator_factory, {
         'name' : {
@@ -1237,6 +1285,7 @@ const standardValis = {
   "BEGIN_MODULE"   : BEGIN_MODULE,
   "END_MODULE"     : END_MODULE,
   "VISIT_MODULE"   : VISIT_MODULE,
+  [VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] : null,
   "clone" : cloneSchema,
 };
 

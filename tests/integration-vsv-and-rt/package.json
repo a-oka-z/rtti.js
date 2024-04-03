@@ -1,0 +1,11 @@
+{
+  "name": "integration-vsv-and-rt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "bash -c 'cd ../..; npm run make;'; node index.test.mjs "
+  },
+  "author": "",
+  "license": "ISC"
+}
