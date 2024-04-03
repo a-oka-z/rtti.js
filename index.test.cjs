@@ -257,8 +257,8 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
-     '        "toString" : {\n' +
-     '          value : ()=>`object(\n' +
+     '        "validator_source" : {\n' +
+     '          value : `object(\n' +
      '      name : string(),\n' +
      '      age  : number(),\n' +
      '      field : or( number(), string() ),\n' +
@@ -270,6 +270,12 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '        not( number()),\n' +
      '      ),\n' +
      '    )` , \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "toString" : {\n' +
+     '          value : ()=>this.validator_source, \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
@@ -353,8 +359,8 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
-     '        "toString" : {\n' +
-     '          value : ()=>`object(\n' +
+     '        "validator_source" : {\n' +
+     '          value : `object(\n' +
      '      name : string(),\n' +
      '      age  : number(),\n' +
      '      field : or( number(), string() ),\n' +
@@ -366,6 +372,12 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '        not( number()),\n' +
      '      ),\n' +
      '    )` , \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "toString" : {\n' +
+     '          value : ()=>this.validator_source, \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
@@ -1390,7 +1402,7 @@ describe( "typecast" ,()=>{
 
 
 
-describe( "validator_config" ,()=>{
+describe( "validator_command" ,()=>{
   it( 'as 0', ()=>{
     const s = schema.clone();
     s.define`
@@ -1417,7 +1429,7 @@ describe( "validator_config" ,()=>{
 
     console.log('asdf',s.t_person().toString() );
     console.log('asdf',Object.getOwnPropertyDescriptors( s.t_person) );
-    const result = s.t_person.validator_config({command:'self'});
+    const result = s.t_person.validator_command({command:'self'});
     console.log('asdf', result );
 
     assert.equal( s.t_person, result );
@@ -1448,7 +1460,7 @@ describe( "validator_config" ,()=>{
     `;
     console.log( 's.t_person', s.t_person );
     assert.equal( s.t_person.name, 't_person'  );
-    s.t_person.validator_config({command:'name', value:'t_foo_bar_bum'});
+    s.t_person.validator_command({command:'name', value:'t_foo_bar_bum'});
     assert.equal( s.t_person.name, 't_foo_bar_bum'  );
     console.log( 's.t_person', s.t_person );
   })
