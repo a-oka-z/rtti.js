@@ -866,10 +866,18 @@ function VISIT_MODULE( validator_factory, nargs ) {
   } = nargs;
 
   switch (command) {
-    case 'notify':
+    case 'notify_validator_factory':
       const module_data = get_schema_module_data( schema );
       module_data.validator_list.push( value );
       return value;
+    case 'notify_typesafe_input':
+      console.log( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_input' );
+      const module_data = get_schema_module_data( schema );
+      return null;
+    case 'notify_typesafe_output':
+      console.log( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_output' );
+      const module_data = get_schema_module_data( schema );
+      return null;
     case 'name':
       Object.defineProperties( validator_factory, {
         'name' : {
