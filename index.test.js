@@ -250,7 +250,13 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
-     '        "validator_source" : {\n' +
+     '        "validator_is_anonymous" : {\n' +
+     '          value : true, \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
      '      name : string(),\n' +
      '      age  : number(),\n' +
@@ -265,6 +271,11 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '    )` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "validator_source" : {\n' +
+     '          get(){ return this.validator_raw_source }, \n' +
+     '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
      '        "toString" : {\n' +
@@ -352,7 +363,13 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
-     '        "validator_source" : {\n' +
+     '        "validator_is_anonymous" : {\n' +
+     '          value : true, \n' +
+     '          enumerable   : false,   \n' +
+     '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
      '      name : string(),\n' +
      '      age  : number(),\n' +
@@ -367,6 +384,11 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '    )` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
+     '          configurable : false,   \n' +
+     '        },\n' +
+     '        "validator_source" : {\n' +
+     '          get(){ return this.validator_raw_source }, \n' +
+     '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
      '        "toString" : {\n' +

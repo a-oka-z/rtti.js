@@ -19,6 +19,8 @@ const SCHEMA_VALIDATOR_CURRENT_DEFINE  = "vanilla-schema-validator.define";
 const SCHEMA_VALIDATOR_FACTORY_NAME  = 'factory_name' ;
 const SCHEMA_VALIDATOR_COMMAND       = 'validator_command';
 const SCHEMA_VALIDATOR_NAME          = 'validator_name';
+const SCHEMA_VALIDATOR_IS_ANONYMOUS  = 'validator_is_anonymous';
+const SCHEMA_VALIDATOR_RAW_SOURCE    = 'validator_raw_source' ;
 const SCHEMA_VALIDATOR_SOURCE        = 'validator_source' ;
 const FIELD_NAME_OF_ANNOTATIONS      = 'annotations';
 
@@ -700,7 +702,8 @@ function __compile( parsed ) {
       annotations_elem_stack.push( elem );
       continue;
     }
-    type_name = elem.val_id ?? 't_anonymous';
+    const is_anonymous = ! elem.val_id;
+    type_name = is_anonymous ? 't_anonymous' : elem.val_id;
     const validator_source_text = get_source(parsed, elem);
 
     output( `  "${type_name}" : (()=>{`);
@@ -726,10 +729,21 @@ function __compile( parsed ) {
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
     output( `        },`);
-    output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
+    output( `        "${SCHEMA_VALIDATOR_IS_ANONYMOUS}" : {`);
+    output( `          value : ${is_anonymous}, `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : false,   `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_RAW_SOURCE}" : {`);
     output( `          value : ${validator_source_text} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
+    output( `          configurable : false,   `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
+    output( `          get(){ return this.${SCHEMA_VALIDATOR_RAW_SOURCE} }, `);
+    output( `          enumerable   : false,   `);
     output( `          configurable : false,   `);
     output( `        },`);
     output( `        "toString" : {`);
@@ -759,7 +773,7 @@ function __compile( parsed ) {
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
     output( `        },`);
-    output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
+    output( `        "${SCHEMA_VALIDATOR_RAW_SOURCE}" : {`);
     output( `          value : ${validator_source_text} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
@@ -786,6 +800,14 @@ function __compile( parsed ) {
   let factory_factory = null;
   try {
     factory_factory = new Function( compiled_source );
+    Object.defineProperties( factory_factory,{
+      name: {
+        value        : 'factory_factory',
+        enumerable   : false,
+        writable     : false,
+        configurable : true,
+      }
+    });
   } catch (e){
     e.message += ' in\n---\n' + compiled_source.replaceAll( /^/gm, ' '.repeat(4) ) + '\n---\n';
     e.source = compiled_source;
@@ -817,15 +839,19 @@ function schema_validator_template_literal_compile( strings, ... values ) {
 
   const input = join_strings_and_values( strings, values );
   const compiled = schema_validator_script_compiler( input );
-  const result   = compiled.factory_factory.call( this );
+  try {
+    const result   = compiled.factory_factory.call( this );
 
-  // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
-  // console.log( 'decompiled',   result.t_default.toString() );
+    // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
+    // console.log( 'decompiled',   result.t_default.toString() );
 
-  // notify_validator_factory
-  result.t_default[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
+    // notify_validator_factory
+    result.t_default[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
 
-  return result.t_default;
+    return result.t_default;
+  } catch (e) {
+    throw new Error( 'an error was occured when executing an internal function named `factory_factory`\n' + compiled.compiled_source, {cause:e});
+  }
 }
 
 function schema_validator_template_literal_define( strings, ... values ) {
@@ -840,19 +866,22 @@ function schema_validator_template_literal_define( strings, ... values ) {
 
   const input = join_strings_and_values( strings, values );
   const compiled = schema_validator_script_compiler( input );
-  const result   = compiled.factory_factory.call( this );
 
+  try {
+    const result   = compiled.factory_factory.call( this );
+    for ( const [key,value] of Object.entries( result ) ) {
+      console.log( 'define', 'key',key , 'value', value );
+      if ( key === 't_default' ) continue;
+      const validator_factory = value;
+      validator_factory[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
+    }
 
-  for ( const [key,value] of Object.entries( result ) ) {
-    console.log( 'define', 'key',key , 'value', value );
-    if ( key === 't_default' ) continue;
-    const validator_factory = value;
-    validator_factory[SCHEMA_VALIDATOR_COMMAND]({command:'notify_validator_factory'});
+    // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
+    Object.assign( this, result );
+    return result;
+  } catch (e) {
+    throw new Error( 'an error was occured when executing an internal function named `factory_factory`\n' + compiled.compiled_source, {cause:e});
   }
-
-  // console.log( 'compiled_buf', compiled.compiled_buf.join('\n') );
-  Object.assign( this, result );
-  return result;
 }
 
 
@@ -884,7 +913,7 @@ function get_schema_module_data( schema ) {
 function END_MODULE() {
   const module_data = get_schema_module_data(this);
   console.log( 'END_MODULE' );
-  console.log( module_data.validator_list.map( (e,i)=>`${i}:${e.validator_source}` ).join('\n') );
+  console.log( module_data.validator_list.map( (e,i)=>`${i}:${e?.[SCHEMA_VALIDATOR_SOURCE]}` ).join('\n') );
 }
 
 /*
