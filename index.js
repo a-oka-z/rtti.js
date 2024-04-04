@@ -403,16 +403,17 @@ function __parse(input) {
   class Elem {
     constructor(token) {
       this.token  = token;
+      this.token_at_begining = token;
       this.token_at_end = null;
-      this.val_id = null;
-      this.fac_id = null;
+      this.left_id = null;  // this was called as `vali_id` formerly.
+      this.right_id = null; // this was called as  `fac_id` previously.
       this.children = [];
       this.is_closed_element = false;
       this.is_annotation = false;
     }
     range() {
-      const s = this.token       ?.src?.position ?? null;
-      const e = this.token_at_end?.src?.position ?? null;
+      const s = this.token_at_begining ?.src?.position ?? null;
+      const e = this.token_at_end      ?.src?.position ?? null;
       if ( s !== null && e !== null ) {
         return [s,e];
       } else {
@@ -431,6 +432,12 @@ function __parse(input) {
     let elem_stack = [ new Elem(null) ];
     let work_elem = null;
 
+
+    const notify_beginning_of_elem = (work_elem,current_token)=>{
+      if ( work_elem !== null ) {
+        work_elem.token_at_begining = current_token;
+      }
+    };
     /*
      * Notify the end of the current element.
      * There are two posibillities that ends the current element :
@@ -458,8 +465,8 @@ function __parse(input) {
             notify_begin_of_elem( current_token );
           }
 
-          if ( work_elem.fac_id !== null ) {
-            if ( work_elem.val_id === null ) {
+          if ( work_elem.right_id !== null ) {
+            if ( work_elem.left_id === null ) {
               // MODIFIED (Tue, 19 Mar 2024 18:39:51 +0900)
               // throw new CompileError({message: 'missing colon' });
 
@@ -473,7 +480,9 @@ function __parse(input) {
             }
           }
 
-          work_elem.fac_id = current_token.value;
+          notify_beginning_of_elem( work_elem, current_token );
+
+          work_elem.right_id = current_token.value;
 
           break;
         };
@@ -525,14 +534,14 @@ function __parse(input) {
           if ( work_elem === null ) {
             throw new CompileError({message: 'no validator was specified' });
           }
-          if ( work_elem.fac_id === null ) {
+          if ( work_elem.right_id === null ) {
             throw new CompileError({message: 'no factory was specified' });
           }
-          if ( work_elem.val_id !== null ) {
+          if ( work_elem.left_id !== null ) {
             throw new CompileError({message: 'duplicate colon error' });
           }
-          work_elem.val_id = work_elem.fac_id;
-          work_elem.fac_id = null;
+          work_elem.left_id = work_elem.right_id;
+          work_elem.right_id = null;
 
           break;
         };
@@ -619,7 +628,7 @@ function get_config_function2() {
 }
 
 function is_named_args( elem ) {
-  return elem.fac_id === 'object' || elem.fac_id === 'nargs';
+  return elem.right_id === 'object' || elem.right_id === 'nargs';
 }
 
 function __compile( parsed ) {
@@ -658,26 +667,26 @@ function __compile( parsed ) {
       paren_e : '',
     };
 
-    const schema_name = elem.fac_id.match( /^t__static_value_[0-9]_interpolator$/ ) ? '' : 'schema.';
+    const schema_name = elem.right_id.match( /^t__static_value_[0-9]_interpolator$/ ) ? '' : 'schema.';
 
     // Omit to output validator id on the first indent level.  The first indent
     // level should be treated specially because  it should be enclosed by a
     // function call. If it is without the enclosing, it would be implemented
     // symmetrically.
     if ( indent_level === 0 ) {
-      output( indent +                                        `${schema_name}${elem.fac_id}(${paren_b}` );
+      output( indent +                                        `${schema_name}${elem.right_id}(${paren_b}` );
     } else {
       // >>> MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
-      // >>> omit output val_id when the parent factory id is not an object.
-      const tmp_val_id = is_named_args( parent_elem ) ? elem.val_id : null;
-      output( indent + `${tmp_val_id ? tmp_val_id +':' : '' }${schema_name}${elem.fac_id}(${paren_b}` );
+      // >>> omit output left_id when the parent factory id is not an object.
+      const tmp_val_id = is_named_args( parent_elem ) ? elem.left_id : null;
+      output( indent + `${tmp_val_id ? tmp_val_id +':' : '' }${schema_name}${elem.right_id}(${paren_b}` );
       // <<< MODIFIED ON (Sat, 03 Jun 2023 14:35:24 +0900)
     }
     for ( const sub_elem of elem.children ) {
       output_elem( elem, sub_elem, indent_level + 1 );
     }
     // if ( elem.children.length === 0 ) {
-    //   output( '// YO ' + elem.fac_id );
+    //   output( '// YO ' + elem.right_id );
     // }
     remove_last_comma();
     output( indent + `${paren_e}),` );
@@ -692,8 +701,8 @@ function __compile( parsed ) {
       annotations_elem_stack.push( elem );
       continue;
     }
-    const is_anonymous = ! elem.val_id;
-    type_name = is_anonymous ? 't_anonymous' : elem.val_id;
+    const is_anonymous = ! elem.left_id;
+    type_name = is_anonymous ? 't_anonymous' : elem.left_id;
     const validator_source_text = get_source(parsed, elem);
 
     output( `  "${type_name}" : (()=>{`);
@@ -732,18 +741,18 @@ function __compile( parsed ) {
     output( `          configurable : false,   `);
     output( `        },`);
     output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
-    output( `          get(){ return this.${SCHEMA_VALIDATOR_RAW_SOURCE} }, `);
+    output( `          get(){ return this?.${SCHEMA_VALIDATOR_RAW_SOURCE} ?? "UNDEFINED" }, `);
     output( `          enumerable   : false,   `);
     output( `          configurable : false,   `);
     output( `        },`);
     output( `        "toString" : {`);
-    output( `          value : ()=>this.${SCHEMA_VALIDATOR_SOURCE}, `);
+    output( `          value : ()=>this?.${SCHEMA_VALIDATOR_SOURCE} ?? "UNDEFINED(S)", `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
     output( `        },`);
     output( `        "${FIELD_NAME_OF_ANNOTATIONS}" : {`);
-    output( `          value        : [ ${ annotations_elem_stack.map( elem=>'"'+elem.fac_id + '"' ) } ],`);
+    output( `          value        : [ ${ annotations_elem_stack.map( elem=>'"'+elem.right_id + '"' ) } ],`);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
@@ -767,6 +776,11 @@ function __compile( parsed ) {
     output( `          value : ${validator_source_text} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
+    output( `          configurable : false,   `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
+    output( `          get(){ return this?.${SCHEMA_VALIDATOR_RAW_SOURCE} ?? "UNDEFINED" }, `);
+    output( `          enumerable   : false,   `);
     output( `          configurable : false,   `);
     output( `        },`);
     output( `    })` );

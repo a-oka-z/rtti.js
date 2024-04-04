@@ -274,12 +274,12 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_source" : {\n' +
-     '          get(){ return this.validator_raw_source }, \n' +
+     '          get(){ return this?.validator_raw_source ?? "UNDEFINED" }, \n' +
      '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
      '        "toString" : {\n' +
-     '          value : ()=>this.validator_source, \n' +
+     '          value : ()=>this?.validator_source ?? "UNDEFINED(S)", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
@@ -387,12 +387,12 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_source" : {\n' +
-     '          get(){ return this.validator_raw_source }, \n' +
+     '          get(){ return this?.validator_raw_source ?? "UNDEFINED" }, \n' +
      '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
      '        "toString" : {\n' +
-     '          value : ()=>this.validator_source, \n' +
+     '          value : ()=>this?.validator_source ?? "UNDEFINED(S)", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
