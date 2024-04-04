@@ -1398,6 +1398,7 @@ describe( "typecast" ,()=>{
 describe( "validator_command" ,()=>{
   it( 'as 0', ()=>{
     const s = schema.clone();
+    s.BEGIN_MODULE('hello');
     s.define`
       col dre
       t_color : or(
@@ -1419,6 +1420,7 @@ describe( "validator_command" ,()=>{
         ),
       )
     `;
+    s.END_MODULE();
 
     console.log('asdf',s.t_person().toString() );
     console.log('asdf',Object.getOwnPropertyDescriptors( s.t_person) );
@@ -1430,6 +1432,7 @@ describe( "validator_command" ,()=>{
 
   it( 'as 1', ()=>{
     const s = schema.clone();
+    s.BEGIN_MODULE('hello');
     s.define`
       col dre
       t_color : or(
@@ -1449,8 +1452,9 @@ describe( "validator_command" ,()=>{
             null(),
           ),
         ),
-      )
+      ),
     `;
+    s.END_MODULE('hello');
     console.log( 's.t_person', s.t_person );
     assert.equal( s.t_person.name, 't_person'  );
     s.t_person.validator_command({command:'name', value:'t_foo_bar_bum'});

@@ -691,6 +691,7 @@ function __compile( parsed ) {
       continue;
     }
     type_name = elem.val_id ?? 't_anonymous';
+    const validator_source_text = get_source(parsed, elem);
 
     output( `  "${type_name}" : (()=>{`);
     output( `    const validator_factory = function ${type_name}(...args) {` );
@@ -716,7 +717,7 @@ function __compile( parsed ) {
     output( `          configurable : true,    `);
     output( `        },`);
     output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
-    output( `          value : ${get_source(parsed, elem)} , `);
+    output( `          value : ${validator_source_text} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : false,   `);
@@ -747,6 +748,12 @@ function __compile( parsed ) {
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
+    output( `          value : ${validator_source_text} , `);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : false,   `);
     output( `        },`);
     output( `    })` );
     output( `    return validator_factory;` );
@@ -866,7 +873,8 @@ function get_schema_module_data( schema ) {
 
 function END_MODULE() {
   const module_data = get_schema_module_data(this);
-  console.log( module_data );
+  console.log( 'END_MODULE' );
+  console.log( module_data.validator_list.map( (e,i)=>`${i}:${e.validator_source}` ).join('\n') );
 }
 
 /*
@@ -881,16 +889,22 @@ function VISIT_MODULE( validator_factory, nargs ) {
   } = nargs;
 
   const module_data = schema?.[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA];
-  if ( ! module_data ) {
-    return undefined;
-  }
-  if ( module_data[VANILLA_SCHEMA_VALIDATOR_MODULE_TYPE] !== true  ) {
-    throw new Error( 'it is prohibited to call the validator module methods to other than vanilla-schema-validator internal-objects.' );
-  }
+  const is_module_data_available = (()=>{
+    if ( ! module_data ) {
+      return false;
+    }
+    if ( module_data[VANILLA_SCHEMA_VALIDATOR_MODULE_TYPE] !== true  ) {
+      throw new Error( 'it is prohibited to call the validator module methods to other than vanilla-schema-validator internal-objects.' );
+    }
+    return true;
+  })();
+
 
   switch (command) {
     case 'notify_validator_factory': {
-      module_data.validator_list.push( validator_factory );
+      if ( is_module_data_available ) {
+        module_data.validator_list.push( validator_factory );
+      }
       return value;
     }
     case 'notify_typesafe_input':{
@@ -916,7 +930,6 @@ function VISIT_MODULE( validator_factory, nargs ) {
         },
       });
       return validator_factory;
-      return null;
     }
     case 'name':
       Object.defineProperties( validator_factory, {
