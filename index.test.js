@@ -214,7 +214,7 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
   `;
 
   assert.equal( factory.toString() ,
-`function t_anonymous(...args) {
+`function __t_anonymous(...args) {
     const schema = this === undefined ? self : this;
     try {
       const validator = schema.thru(
@@ -239,22 +239,16 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
 ` +
      '      Object.defineProperties(validator,{\n' +
      '        "validator_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
      '        "factory_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
-     '        },\n' +
-     '        "validator_is_anonymous" : {\n' +
-     '          value : true, \n' +
-     '          enumerable   : false,   \n' +
-     '          writable     : false,   \n' +
-     '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
@@ -274,7 +268,21 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_source" : {\n' +
-     '          get(){ return this?.validator_raw_source ?? "UNDEFINED" }, \n' +
+     '          get: \n' +
+     '            (function (nargs) {\n' +
+     "              if ( this?.validator_name == '__t_anonymous' ) {\n" +
+     '                return (\n' +
+     '                  this?.validator_raw_source ?? ""\n' +
+     '                )\n' +
+     '              } else {\n' +
+     '                return (\n' +
+     '                    ( this?.validator_name ?? "" )\n' +
+     '                  + ":"\n' +
+     '                  + ( this?.validator_raw_source ?? "")\n' +
+     '                );\n' +
+     '              }\n' +
+     '            })\n' +
+     '          , \n' +
      '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
@@ -294,7 +302,7 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
 `
       return validator;
     } catch ( e ) {
-      e.source = t_anonymous.toString();
+      e.source = __t_anonymous.toString();
       e.schema = schema;
       throw e;
     }
@@ -327,7 +335,7 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
   `;
 
   assert.equal( factory.toString() ,
-`function t_anonymous(...args) {
+`function __t_anonymous(...args) {
     const schema = this === undefined ? self : this;
     try {
       const validator = schema.thru(
@@ -352,22 +360,16 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
 ` +
      '      Object.defineProperties(validator,{\n' +
      '        "validator_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
      '        "factory_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
-     '        },\n' +
-     '        "validator_is_anonymous" : {\n' +
-     '          value : true, \n' +
-     '          enumerable   : false,   \n' +
-     '          writable     : false,   \n' +
-     '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
@@ -387,7 +389,21 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '          configurable : false,   \n' +
      '        },\n' +
      '        "validator_source" : {\n' +
-     '          get(){ return this?.validator_raw_source ?? "UNDEFINED" }, \n' +
+     '          get: \n' +
+     '            (function (nargs) {\n' +
+     "              if ( this?.validator_name == '__t_anonymous' ) {\n" +
+     '                return (\n' +
+     '                  this?.validator_raw_source ?? ""\n' +
+     '                )\n' +
+     '              } else {\n' +
+     '                return (\n' +
+     '                    ( this?.validator_name ?? "" )\n' +
+     '                  + ":"\n' +
+     '                  + ( this?.validator_raw_source ?? "")\n' +
+     '                );\n' +
+     '              }\n' +
+     '            })\n' +
+     '          , \n' +
      '          enumerable   : false,   \n' +
      '          configurable : false,   \n' +
      '        },\n' +
@@ -407,7 +423,7 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
 `
       return validator;
     } catch ( e ) {
-      e.source = t_anonymous.toString();
+      e.source = __t_anonymous.toString();
       e.schema = schema;
       throw e;
     }
@@ -575,7 +591,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
     `;
 
     assert.equal( factory.toString() ,
-`function t_anonymous(...args) {
+`function __t_anonymous(...args) {
     const schema = this === undefined ? self : this;
     try {
       const validator = schema.thru(
@@ -602,13 +618,13 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 ` +
      '      Object.defineProperties(validator,{\n' +
      '        "validator_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
      '        },\n' +
      '        "factory_name" : {\n' +
-     '          value : "t_anonymous", \n' +
+     '          value : "__t_anonymous", \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
@@ -634,7 +650,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
 `
       return validator;
     } catch ( e ) {
-      e.source = t_anonymous.toString();
+      e.source = __t_anonymous.toString();
       e.schema = schema;
       throw e;
     }
@@ -664,7 +680,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
     `;
 
     assert.equal( factory.toString() ,
-        'function t_anonymous(...args) {\n' +
+        'function __t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
       '    try {\n' +
       '      const validator = schema.thru(\n' +
@@ -690,11 +706,11 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       '          )\n' +
       '        })\n' +
       '      );\n' +
-      '      validator.validator_name = "t_anonymous";\n' +
-      '      validator.factory_name = "t_anonymous";\n' +
+      '      validator.validator_name = "__t_anonymous";\n' +
+      '      validator.factory_name = "__t_anonymous";\n' +
       '      return validator;\n' +
       '    } catch ( e ) {\n' +
-      '      e.source = t_anonymous.toString();\n' +
+      '      e.source = __t_anonymous.toString();\n' +
       '      e.schema = schema;\n' +
       '      throw e;\n' +
       '    }\n' +
@@ -710,7 +726,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
     assert.equal(
       factory.toString() ,
 
-      'function t_anonymous(...args) {\n' +
+      'function __t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
       '    try {\n' +
       '      const validator = schema.thru(\n' +
@@ -718,11 +734,11 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       '          t__static_value_0_interpolator()\n' +
       '        )\n' +
       '      );\n' +
-      '      validator.validator_name = "t_anonymous";\n' +
-      '      validator.factory_name = "t_anonymous";\n' +
+      '      validator.validator_name = "__t_anonymous";\n' +
+      '      validator.factory_name = "__t_anonymous";\n' +
       '      return validator;\n' +
       '    } catch ( e ) {\n' +
-      '      e.source = t_anonymous.toString();\n' +
+      '      e.source = __t_anonymous.toString();\n' +
       '      e.schema = schema;\n' +
       '      throw e;\n' +
       '    }\n' +
@@ -735,7 +751,7 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
   it('as JavaScript Blocks No.4', ()=>{
     const factory = schema./*st*/compile`number(<<>>)`;
     assert.equal( factory.toString() ,
-      'function t_anonymous(...args) {\n' +
+      'function __t_anonymous(...args) {\n' +
       '    const schema = this === undefined ? self : this;\n' +
       '    try {\n' +
       '      const validator = schema.thru(\n' +
@@ -743,11 +759,11 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
       '          t__static_value_0_interpolator()\n' +
       '        )\n' +
       '      );\n' +
-      '      validator.validator_name = "t_anonymous";\n' +
-      '      validator.factory_name = "t_anonymous";\n' +
+      '      validator.validator_name = "__t_anonymous";\n' +
+      '      validator.factory_name = "__t_anonymous";\n' +
       '      return validator;\n' +
       '    } catch ( e ) {\n' +
-      '      e.source = t_anonymous.toString();\n' +
+      '      e.source = __t_anonymous.toString();\n' +
       '      e.schema = schema;\n' +
       '      throw e;\n' +
       '    }\n' +
@@ -881,7 +897,7 @@ test('check statement compiler 2 / returned validators have `script` property 1'
   `;
 
   assert.equal( factory.toString() ,
-    'function t_anonymous(...args) {\n' +
+    'function __t_anonymous(...args) {\n' +
     '    const schema = this === undefined ? self : this;\n' +
     '    try {\n' +
     '      const validator = schema.thru(\n' +
@@ -905,11 +921,11 @@ test('check statement compiler 2 / returned validators have `script` property 1'
     '          )\n' +
     '        })\n' +
     '      );\n' +
-    '      validator.validator_name = "t_anonymous";\n' +
-    '      validator.factory_name = "t_anonymous";\n' +
+    '      validator.validator_name = "__t_anonymous";\n' +
+    '      validator.factory_name = "__t_anonymous";\n' +
     '      return validator;\n' +
     '    } catch ( e ) {\n' +
-    '      e.source = t_anonymous.toString();\n' +
+    '      e.source = __t_anonymous.toString();\n' +
     '      e.schema = schema;\n' +
     '      throw e;\n' +
     '    }\n' +
@@ -928,17 +944,17 @@ test('check statement compiler 3 / returned validators have `script` property 2'
   assert.equal( factory()( 2 ) ,  false );
 
   assert.equal( factory.toString().trim() ,
-    'function t_anonymous(...args) {\n' +
+    'function __t_anonymous(...args) {\n' +
     '    const schema = this === undefined ? self : this;\n' +
     '    try {\n' +
     '      const validator = schema.thru(\n' +
     '        t__static_value_0_interpolator()\n' +
     '      );\n' +
-    '      validator.validator_name = "t_anonymous";\n' +
-    '      validator.factory_name = "t_anonymous";\n' +
+    '      validator.validator_name = "__t_anonymous";\n' +
+    '      validator.factory_name = "__t_anonymous";\n' +
     '      return validator;\n' +
     '    } catch ( e ) {\n' +
-    '      e.source = t_anonymous.toString();\n' +
+    '      e.source = __t_anonymous.toString();\n' +
     '      e.schema = schema;\n' +
     '      throw e;\n' +
     '    }\n' +
