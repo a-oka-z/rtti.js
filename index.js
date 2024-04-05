@@ -1322,6 +1322,26 @@ const standardValis = {
     );
   },
 
+  "mirror" : (()=>{
+    const mirror_validator_factory = function mirror(...def) {
+      if ( this === undefined ) {
+        throw new Error( 'mirror cannot be exeduted without `schema` object.' );
+      }
+      const validator_factory_name = mirror_validator_factory.name ?? 'mirror';
+      const target_validator_factory = this[ validator_factory_name ];
+
+      if ( target_validator_factory === undefined ) {
+        throw new Error( `a validator factory which is named '${validator_factory_name}' does not exist.` );
+      }
+
+      if ( mirror_validator_factory === target_validator_factory ) {
+        throw new Error( 'cannot execute a mirror validator factory without binding to a schema.' );
+      }
+
+      return target_validator_factory.call(this,...def);
+    };
+    return mirror_validator_factory;
+  })(),
 
   "nargs" : (...defs)=>{
     if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
