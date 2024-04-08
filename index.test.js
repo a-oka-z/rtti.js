@@ -252,17 +252,17 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '        },\n' +
      '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
-     '      name : string(),\n' +
-     '      age  : number(),\n' +
-     '      field : or( number(), string() ),\n' +
-     '      attrs : object(\n' +
-     '        foo: string(),\n' +
-     '        bar: number(),\n' +
-     '      ),\n' +
-     '      arr_test : array_of(\n' +
-     '        not( number()),\n' +
-     '      ),\n' +
-     '    )` , \n' +
+     '            name : string(),\n' +
+     '            age  : number(),\n' +
+     '            field : or( number(), string() ),\n' +
+     '            attrs : object(\n' +
+     '              foo: string(),\n' +
+     '              bar: number(),\n' +
+     '            ),\n' +
+     '            arr_test : array_of(\n' +
+     '              not( number()),\n' +
+     '            ),\n' +
+     '          )` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : false,   \n' +
@@ -270,13 +270,15 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '        "validator_source" : {\n' +
      '          get: \n' +
      '            (function (nargs) {\n' +
-     "              if ( this?.validator_name == '__t_anonymous' ) {\n" +
+     "              if ( this?.validator_name === '__t_anonymous' ) {\n" +
      '                return (\n' +
-     '                  this?.validator_raw_source ?? ""\n' +
+     '                    "          "\n' +
+     '                  + this?.validator_raw_source ?? ""\n' +
      '                )\n' +
      '              } else {\n' +
      '                return (\n' +
-     '                    ( this?.validator_name ?? "" )\n' +
+     '                    "          "\n' +
+     '                  + ( this?.validator_name ?? "" )\n' +
      '                  + ":"\n' +
      '                  + ( this?.validator_raw_source ?? "")\n' +
      '                );\n' +
@@ -373,17 +375,17 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '        },\n' +
      '        "validator_raw_source" : {\n' +
      '          value : `object(\n' +
-     '      name : string(),\n' +
-     '      age  : number(),\n' +
-     '      field : or( number(), string() ),\n' +
-     '      attrs : object(\n' +
-     '        foo: string(),\n' +
-     '        bar: number(),\n' +
-     '      ),\n' +
-     '      arr_test : array_of(\n' +
-     '        not( number()),\n' +
-     '      ),\n' +
-     '    )` , \n' +
+     '            name : string(),\n' +
+     '            age  : number(),\n' +
+     '            field : or( number(), string() ),\n' +
+     '            attrs : object(\n' +
+     '              foo: string(),\n' +
+     '              bar: number(),\n' +
+     '            ),\n' +
+     '            arr_test : array_of(\n' +
+     '              not( number()),\n' +
+     '            ),\n' +
+     '          )` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : false,   \n' +
@@ -391,13 +393,15 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '        "validator_source" : {\n' +
      '          get: \n' +
      '            (function (nargs) {\n' +
-     "              if ( this?.validator_name == '__t_anonymous' ) {\n" +
+     "              if ( this?.validator_name === '__t_anonymous' ) {\n" +
      '                return (\n' +
-     '                  this?.validator_raw_source ?? ""\n' +
+     '                    "          "\n' +
+     '                  + this?.validator_raw_source ?? ""\n' +
      '                )\n' +
      '              } else {\n' +
      '                return (\n' +
-     '                    ( this?.validator_name ?? "" )\n' +
+     '                    "          "\n' +
+     '                  + ( this?.validator_name ?? "" )\n' +
      '                  + ":"\n' +
      '                  + ( this?.validator_raw_source ?? "")\n' +
      '                );\n' +
@@ -631,17 +635,17 @@ describe( 'check statement compiler 1 JavaScript Block',{skip:true},()=>{
      '        },\n' +
      '        "toString" : {\n' +
      '          value : ()=>`object(\n' +
-     '        name : string(),\n' +
-     '        age  : number(),\n' +
-     '        field : or( number(), string() ),\n' +
-     '        attrs : object(\n' +
-     '          foo: string(),\n' +
-     '          bar: number(),\n' +
-     '        ),\n' +
-     '        arr_test : array_of(\n' +
-     '          not( number()),\n' +
-     '        ),\n' +
-     '      )` , \n' +
+     '            name : string(),\n' +
+     '            age  : number(),\n' +
+     '            field : or( number(), string() ),\n' +
+     '            attrs : object(\n' +
+     '              foo: string(),\n' +
+     '              bar: number(),\n' +
+     '            ),\n' +
+     '            arr_test : array_of(\n' +
+     '              not( number()),\n' +
+     '            ),\n' +
+     '          )` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : true,    \n' +
@@ -1499,5 +1503,31 @@ describe( "validator_command" ,()=>{
     assert.equal( s.t_person.name, 't_foo_bar_bum'  );
     console.log( 's.t_person', s.t_person );
   })
+});
+
+
+
+describe( "mirror" ,()=>{
+  it( 'as 0', ()=>{
+    const s = schema.clone();
+    assert.throws(()=>{
+      s.mirror();
+    }, { message : 'cannot call a bound mirror validator which is not named.'} );
+  });
+
+  it( 'as 1', ()=>{
+    const s = schema.clone();
+    assert.throws(()=>{
+      s.mirror.bind(s)();
+    }, { message : 'cannot call a bound mirror validator which is not named.' } );
+  });
+
+  it( 'as 2', ()=>{
+    const s = schema.clone();
+    assert.doesNotThrow(()=>{
+      s.mirror.validator_command({command:'name', value:'hello' })();
+    }  );
+  });
+
 });
 

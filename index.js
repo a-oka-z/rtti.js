@@ -819,7 +819,7 @@ function __compile( parsed ) {
     output( `          configurable : true,    `);
     output( `        },`);
     output( `        "${SCHEMA_VALIDATOR_RAW_SOURCE}" : {`);
-    output( `          value : ${validator_source_text} , `);
+    output( `          value : ${validator_source_text.trim()} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : false,   `);
@@ -863,7 +863,7 @@ function __compile( parsed ) {
     output( `          configurable : true,    `);
     output( `        },`);
     output( `        "${SCHEMA_VALIDATOR_RAW_SOURCE}" : {`);
-    output( `          value : ${validator_source_text} , `);
+    output( `          value : ${validator_source_text.trim()} , `);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : false,   `);
@@ -1068,14 +1068,8 @@ function VISIT_MODULE( validator_factory, nargs ) {
       return validator_factory;
     }
     case 'name':
-      Object.defineProperties( validator_factory, {
-        'name' : {
-          value        : value,
-          enumerable   : false,
-          writable     : false,
-          configurable : true,
-        },
-      });
+      console.log( 'WUHxGUtDSZnJcPxml', 'name' );
+      set_validator_name( `${value}` );
       return validator_factory;
     case 'self':
       return validator_factory;
@@ -1323,24 +1317,40 @@ const standardValis = {
   },
 
   "mirror" : (()=>{
-    const mirror_validator_factory = function mirror(...def) {
-      if ( this === undefined ) {
-        throw new Error( 'mirror cannot be exeduted without `schema` object.' );
-      }
-      const validator_factory_name = mirror_validator_factory.name ?? 'mirror';
-      const target_validator_factory = this[ validator_factory_name ];
+    const mirror_validator_factory_factory = ()=>{
 
-      if ( target_validator_factory === undefined ) {
-        throw new Error( `a validator factory which is named '${validator_factory_name}' does not exist.` );
-      }
+      const mirror_validator_factory = function mirror(...def) {
+        const current_schema =  validator_state.current_schema ?? this;
+        if ( ! current_schema  ) {
+          throw new Error( 'cannot execute a mirror validator factory without binding to a schema, or without being directly called as a method of a schema.' );
+        }
+        const validator_factory_name = mirror_validator_factory.name ?? 'mirror';
+        const target_validator_factory = this[ validator_factory_name ];
 
-      if ( mirror_validator_factory === target_validator_factory ) {
-        throw new Error( 'cannot execute a mirror validator factory without binding to a schema.' );
-      }
+        if ( target_validator_factory === undefined ) {
+          throw new Error( `a validator factory which is named '${validator_factory_name}' does not exist.` );
+        }
 
-      return target_validator_factory.call(this,...def);
-    };
-    return mirror_validator_factory;
+        if ( mirror_validator_factory === target_validator_factory ) {
+          throw new Error( 'cannot call a bound mirror validator which is not named.' );
+        }
+
+        return target_validator_factory.call(this,...def);
+      };
+
+      Object.defineProperties( mirror_validator_factory, {
+        // CODE HERE (Fri, 05 Apr 2024 18:56:26 +0900)
+        // [SCHEMA_VALIDATOR_COMMAND] : {
+        //   value : (...nargs)=>{
+        //     this.
+        //   },
+        //   configurable : false,
+        // },
+      });
+
+      return mirror_validator_factory;
+    });
+    return mirror_validator_factory_factory();
   })(),
 
   "nargs" : (...defs)=>{
