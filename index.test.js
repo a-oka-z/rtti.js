@@ -1496,7 +1496,7 @@ describe( "validator_command" ,()=>{
         ),
       ),
     `;
-    s.END_MODULE('hello');
+    s.END_MODULE();
     console.log( 's.t_person', s.t_person );
     assert.equal( s.t_person.name, 't_person'  );
     s.t_person.validator_command({command:'name', value:'t_foo_bar_bum'});
