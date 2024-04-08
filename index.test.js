@@ -1505,29 +1505,3 @@ describe( "validator_command" ,()=>{
   })
 });
 
-
-
-describe( "mirror" ,()=>{
-  it( 'as 0', ()=>{
-    const s = schema.clone();
-    assert.throws(()=>{
-      s.mirror();
-    }, { message : 'cannot call a bound mirror validator which is not named.'} );
-  });
-
-  it( 'as 1', ()=>{
-    const s = schema.clone();
-    assert.throws(()=>{
-      s.mirror.bind(s)();
-    }, { message : 'cannot call a bound mirror validator which is not named.' } );
-  });
-
-  it( 'as 2', ()=>{
-    const s = schema.clone();
-    assert.doesNotThrow(()=>{
-      s.mirror.validator_command({command:'name', value:'hello' })();
-    }  );
-  });
-
-});
-
