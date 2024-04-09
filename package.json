@@ -11,6 +11,10 @@
     ".": {
       "import": "./lib/index.mjs",
       "require": "./lib/index.cjs"
+    },
+    "./transpile": {
+      "import": "./lib/transpile.mjs",
+      "require": "./lib/transpile.cjs"
     }
   },
   "scripts": {
