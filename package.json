@@ -12,7 +12,7 @@
       "import": "./lib/index.mjs",
       "require": "./lib/index.cjs"
     },
-    "./transpile": {
+    "./transpiler": {
       "import": "./lib/transpile.mjs",
       "require": "./lib/transpile.cjs"
     }
@@ -21,13 +21,16 @@
     "test-esm": "node --test-reporter='spec' --test-name-pattern='.*' lib/index.test.mjs",
     "test-cjs": "node --test-reporter='spec' --test-name-pattern='.*' lib/index.test.cjs",
     "test-simple": "npm run make; npm run test-cs",
-    "test": "npm run make; npm run test-esm; npm run test-cjs",
-    "make": "node ./make.js"
+    "test-all": "npm run make; npm run test-esm; npm run test-cjs",
+    "make": "node ./make.js",
+    "test": "npm run make ; mkdir -p ./transpiler-test-output; node ./lib/transpile.mjs run --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'"
   },
   "files": [
     "README.md",
-    "index.cjs",
-    "index.mjs",
+    "lib/index.cjs",
+    "lib/index.mjs",
+    "lib/transpiler.cjs",
+    "lib/transpiler.mjs",
     "package.json"
   ],
   "author": {
@@ -39,9 +42,7 @@
     "url": "git+https://github.com/kombucha-js/vanilla-schema-validator.git"
   },
   "license": "ISC",
-  "devDependencies": {
-    "sqlmacro": "^0.1.0"
-  },
-  "devDependencies": {
+  "dependencies": {
+    "yargs": "^17.7.2"
   }
 }
