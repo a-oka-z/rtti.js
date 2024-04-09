@@ -989,7 +989,7 @@ function schema_validator_template_literal_define( strings, ... values ) {
 }
 
 
-function BEGIN_MODULE( definition_module_name ) {
+function BEGIN_MODULE({ module_name =null, header=null, footer=null }) {
   console.log( 'HDSDFS', this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] );
   if ( this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] !== null ) {
     throw new Error( 'a duplicate call of BEGIN_MODULE() was detected', this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] );
@@ -997,6 +997,8 @@ function BEGIN_MODULE( definition_module_name ) {
   this[VANILLA_SCHEMA_VALIDATOR_MODULE_DATA] = {
     [VANILLA_SCHEMA_VALIDATOR_MODULE_TYPE] : true,
     module_name,
+    header,
+    footer,
     validator_list : [],
   };
 }
@@ -1012,12 +1014,35 @@ function get_schema_module_data( schema ) {
   return module_data;
 }
 
+function module_data_to_source(module_data) {
+  let s='';
+  function output( l ) {
+    s = s+l;
+  }
+
+  output( 'import { schema } from "vanilla-schema-validator";\n' );
+  if ( module_data.header ) {
+    output( module_data.header );
+  }
+  output( '\n' );
+  output( 'schema.define\`\n' );
+  output( module_data.validator_list.map( (e,i)=>`${e?.[SCHEMA_VALIDATOR_SOURCE]},\n` ).join('\n') );
+  output( '`' );
+
+  if ( module_data.footer ) {
+    output( module_data.footer );
+  }
+
+  return s;
+}
 
 
 function END_MODULE() {
   const module_data = get_schema_module_data(this);
   console.log( 'END_MODULE' );
-  console.log( module_data.validator_list.map( (e,i)=>`${i}:\n${e?.[SCHEMA_VALIDATOR_SOURCE]}\n` ).join('\n') );
+  // console.log( module_data.validator_list.map( (e,i)=>`${i}:\n${e?.[SCHEMA_VALIDATOR_SOURCE]}\n` ).join('\n') );
+  // console.log( module_data.validator_list.map( (e,i)=>`${e?.[SCHEMA_VALIDATOR_SOURCE]}\n` ).join('\n') );
+  console.log( module_data_to_source( module_data ) );
 }
 
 /*
