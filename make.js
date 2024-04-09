@@ -14,7 +14,7 @@ async function asyncProc(templateFilename, bodyFilename, outputFilename ){
 }
 
 
-asyncProc( 'index.template.cjs',      'index.js',      'index.cjs'      ).then(v=>console.log(v)).catch(v=>console.error(v));
-asyncProc( 'index.template.mjs',      'index.js',      'index.mjs'      ).then(v=>console.log(v)).catch(v=>console.error(v));
-asyncProc( 'index.test.template.cjs', 'index.test.js', 'index.test.cjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
-asyncProc( 'index.test.template.mjs', 'index.test.js', 'index.test.mjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
+asyncProc( 'template/index.template.cjs',      'index.js',      'lib/index.cjs'      ).then(v=>console.log(v)).catch(v=>console.error(v));
+asyncProc( 'template/index.template.mjs',      'index.js',      'lib/index.mjs'      ).then(v=>console.log(v)).catch(v=>console.error(v));
+asyncProc( 'template/index.test.template.cjs', 'index.test.js', 'lib/index.test.cjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
+asyncProc( 'template/index.test.template.mjs', 'index.test.js', 'lib/index.test.mjs' ).then(v=>console.log(v)).catch(v=>console.error(v));
