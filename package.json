@@ -17,13 +17,17 @@
       "require": "./lib/transpiler.cjs"
     }
   },
+  "bin" : {
+    "vsv" : "bin/vsv.mjs"
+  },
   "scripts": {
     "test-esm": "node --test-reporter='spec' --test-name-pattern='.*' lib/index.test.mjs",
     "test-cjs": "node --test-reporter='spec' --test-name-pattern='.*' lib/index.test.cjs",
     "test-simple": "npm run make; npm run test-cs",
     "test-all": "npm run make; npm run test-esm; npm run test-cjs",
     "make": "node ./make.js",
-    "test": "npm run make ; mkdir -p ./transpiler-test-output; node ./lib/transpiler.mjs run --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'"
+    "test2": "npm run make ; node ./lib/transpiler.mjs transpile --input='./tests/transpiler-test/dir_a/dir_b/test.mjs'",
+    "test": "npm run make ; mkdir -p ./transpiler-test-output; vsv build --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'"
   },
   "files": [
     "README.md",

@@ -7,6 +7,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const  { schema, trace_validator, typecast, SCHEMA_VALIDATOR_SOURCE, SCHEMA_VALIDATOR_NAME } = require( 'vanilla-schema-validator' );
 const { rip_comments, rip_directives } = require( 'rip_comments' );
+const child_process = require( 'node:child_process' );
 
 function inspect(s) {
   return JSON.stringify( s, (k,v)=>typeof v === 'function' ? v.toString() : v, 2 );
@@ -18,5 +19,5 @@ function inspect(s) {
 
 <%=body %>
 
-
-
+module.exports.build = build;
+module.exports.transpile = transpile;

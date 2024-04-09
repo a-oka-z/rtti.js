@@ -1,4 +1,10 @@
 
+const compare_arrays = (a1, a2) =>
+  a1.length == a2.length &&
+  a1.every( (element, index) => element === a2[index] );
+
+const VANILLA_SCHEMA_VALIDATOR_DIRECTIVE_0 = [ 'VANILLA_SCHEMA_VALIDATOR', 'ENABLE', 'TRANSPILE' ];
+
 
 async function* getFiles( dir ) {
   const dirents = await fs.readdir(dir, { withFileTypes: true });
@@ -13,7 +19,7 @@ async function* getFiles( dir ) {
 }
 
 
-async function transpile(nargs) {
+async function build(nargs) {
   console.log(nargs);
   const {
     inputDir,
@@ -21,65 +27,96 @@ async function transpile(nargs) {
     extensions,
   }= nargs;
 
-  for await ( const i of getFiles( inputDir ) ) {
-    if ( extensions.some( e=>i.endsWith( e ) ) ) {
-      console.log( i );
 
+  for await ( const rel_path of getFiles( inputDir ) ) {
+    if ( extensions.some( e=>rel_path.endsWith( e ) ) ) {
+      const f = (await fs.readFile( rel_path )).toString();
+      const r = rip_directives( rip_comments( f ) ).map( s=>s.split( /\s+/ ).map(e=>e.trim() ) );
+      if ( r.some( arr=> compare_arrays( arr,  VANILLA_SCHEMA_VALIDATOR_DIRECTIVE_0 ) ) ) {
+
+        console.log( 'running vsv ', process.argv[0] );
+        const vsv = child_process.spawn( 'vsv' , [ 'run', 'transpile', rel_path ], {
+          cwd : process.cwd(),
+          env : {
+            ...process.env,
+            HELLO :'YES,HELLO',
+          },
+        });
+
+        vsv.stdout.on('data', (data) => {
+          console.log(`stdout: ${data}`);
+        });
+
+        vsv.stderr.on('data', (data) => {
+          console.error(`stderr: ${data}`);
+        });
+
+        vsv.on('close', (code) => {
+        });
+
+      } else {
+        // console.log( rel_path, 'ignored2', r );
+      }
     } else {
-      console.log( i, 'ignored' );
+      // console.log( rel_path, 'ignored' );
     }
   };
 
 }
 
+async function transpile(nargs) {
+  console.log(nargs);
 
-if ( import.meta.url.endsWith( process.argv[1] ) ) {
-  yargs(hideBin(process.argv))
-    .scriptName( "transpiler" )
-    .usage('$0 <cmd> [args]' )
-    .showHelpOnFail( true )
-    .command({
-      command : 'run',
-      desc : 'analyze progress status and update the (PROGRESS) tag',
-      builder : (yargs) =>{
-        yargs.positional( 'input-dir', {
-          type: 'string',
-          default: '.',
-          describe: 'the directory where the all transpiled files go'
-        });
-        yargs.positional( 'output-dir', {
-          type: 'string',
-          default: './out',
-          describe: 'the directory where the all transpiled files go'
-        });
-        yargs.positional( 'extensions', {
-          type: 'string',
-          default: [ 'mjs', 'cjs','js' ],
-          array : true,
-          describe: 'the directory where the all transpiled files go'
-        });
-      },
-      handler: (nargs)=>{
-        transpile(nargs);
-      }
-    })
-    .command({
-      command : 'report4excel',
-      desc : 'analyze progress status and update the (PROGRESS) tag',
-      builder : (yargs) =>{
-        // yargs.positional( 'name', {
-        //   type: 'string',
-        //   default: 'Cambi',
-        //   describe: 'the name to say hello to'
-        // })
-      },
-      handler: (argv)=>{
-        outputReportForExcel();
-      }
-    })
-    .help()
-    .demandCommand()
-    .argv
 }
 
 
+// if ( import.meta.url.endsWith( process.argv[1] ) ) {
+//   yargs(hideBin(process.argv))
+//     .scriptName( "transpiler" )
+//     .usage('$0 <cmd> [args]' )
+//     .showHelpOnFail( true )
+//     .command({
+//       command : 'build',
+//       desc : 'traverse all files under the specified directory and transpile them.',
+//       builder : (yargs) =>{
+//         yargs.positional( 'input-dir', {
+//           type: 'string',
+//           default: '.',
+//           describe: 'the directory where the all transpiled files go'
+//         });
+//         yargs.positional( 'output-dir', {
+//           type: 'string',
+//           default: './out',
+//           describe: 'the directory where the all transpiled files go'
+//         });
+//         yargs.positional( 'extensions', {
+//           type: 'string',
+//           default: [ 'mjs', 'cjs','js' ],
+//           array : true,
+//           describe: 'the directory where the all transpiled files go'
+//         });
+//       },
+//       handler: (nargs)=>{
+//         build(nargs);
+//       }
+//     })
+//     .command({
+//       command : 'transpile',
+//       desc : 'analyze progress status and update the (PROGRESS) tag',
+//       builder : (yargs) =>{
+//         yargs.option( 'input', {
+//           type: 'string',
+//           demandOption:true,
+//           describe: 'the file to transpile'
+//         });
+//       },
+//       handler: (argv)=>{
+//         transpile( argv );
+//       }
+//     })
+//     .help()
+//     .demandCommand()
+//     .argv
+// }
+//
+//
