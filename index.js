@@ -1002,7 +1002,7 @@ function module_to_source( module ) {
   }
   output( '\n' );
   output( 'schema.define\`\n' );
-  output( module.validator_list.map( (e,i)=>`${e?.[SCHEMA_VALIDATOR_SOURCE]},\n` ).join('\n') );
+  output( module.validator_list.map( (e,i)=>`${e?.[SCHEMA_VALIDATOR_SOURCE]}` ).map(e=>e.replace(/(\s*,\s*)+$/,'')).join(',\n') );
   output( '`' );
 
   if ( module.footer ) {

@@ -8,24 +8,24 @@ import { hideBin } from 'yargs/helpers'
 import { build, transpile } from "vanilla-schema-validator/transpiler";
 
   yargs(hideBin(process.argv))
-    .scriptName( "transpiler" )
+    .scriptName( "vsv" )
     .usage('$0 <cmd> [args]' )
     .showHelpOnFail( true )
     .command({
       command : 'build',
       desc : 'traverse all files under the specified directory and transpile them.',
       builder : (yargs) =>{
-        yargs.positional( 'input-dir', {
+        yargs.option( 'input-dir', {
           type: 'string',
           default: '.',
           describe: 'the directory where the all transpiled files go'
         });
-        yargs.positional( 'output-dir', {
+        yargs.option( 'output-dir', {
           type: 'string',
           default: './out',
           describe: 'the directory where the all transpiled files go'
         });
-        yargs.positional( 'extensions', {
+        yargs.option( 'extensions', {
           type: 'string',
           default: [ 'mjs', 'cjs','js' ],
           array : true,
@@ -33,6 +33,7 @@ import { build, transpile } from "vanilla-schema-validator/transpiler";
         });
       },
       handler: (nargs)=>{
+        console.log( 'starting `build` command...' );
         build(nargs);
       }
     })
