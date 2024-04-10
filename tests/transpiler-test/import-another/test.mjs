@@ -1,8 +1,10 @@
 
 import { schema } from "vanilla-schema-validator";
 
+import "subdir/index.mjs";
+
 /*
- * #VANILLA_SCHEMA_VALIDATOR disabled TRANSPILE
+ * #VANILLA_SCHEMA_VALIDATOR ENABLE TRANSPILE
  */
 
 schema.BEGIN_MODULE( import.meta );

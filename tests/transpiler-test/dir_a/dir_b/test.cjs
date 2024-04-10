@@ -10,7 +10,7 @@ schema.BEGIN_MODULE({ dirname: __dirname, filename:__filename });
 schema.define`
   test : object(
     name :string(),
-  ),
+  )
 `;
 
 

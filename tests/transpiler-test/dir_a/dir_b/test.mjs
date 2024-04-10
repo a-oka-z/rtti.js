@@ -10,7 +10,7 @@ schema.BEGIN_MODULE( import.meta );
 schema.define`
   test : object(
     name :string(),
-  ),
+  )
 `;
 
 
