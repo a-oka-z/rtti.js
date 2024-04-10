@@ -32,6 +32,7 @@ async function build(nargs) {
     if ( extensions.some( e=>rel_path.endsWith( e ) ) ) {
       const f = (await fs.readFile( rel_path )).toString();
       const r = rip_directives( rip_comments( f ) ).map( s=>s.split( /\s+/ ).map(e=>e.trim() ) );
+
       if ( r.some( arr=> compare_arrays( arr,  VANILLA_SCHEMA_VALIDATOR_DIRECTIVE_0 ) ) ) {
 
         console.log( 'running vsv ', process.argv[0] );

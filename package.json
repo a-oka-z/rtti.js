@@ -27,7 +27,8 @@
     "test-all": "npm run make; npm run test-esm; npm run test-cjs",
     "make": "node ./make.js",
     "test2": "npm run make ; node ./lib/transpiler.mjs transpile --input='./tests/transpiler-test/dir_a/dir_b/test.mjs'",
-    "test": "npm run make ; mkdir -p ./transpiler-test-output; vsv build --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'"
+    "test1": "npm run make ; mkdir -p ./transpiler-test-output; vsv build --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'",
+    "test":  "{ DIR='./transpiler-test-output'; npm run make; mkdir -p \"$DIR\"; vsv build --input-dir='./tests/transpiler-test/' --output-dir=\"$DIR\"; } "
   },
   "files": [
     "README.md",

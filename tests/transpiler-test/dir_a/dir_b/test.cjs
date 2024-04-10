@@ -1,11 +1,11 @@
 
-import { schema } from "vanilla-schema-validator";
+const { schema } = require( "vanilla-schema-validator" );
 
 /*
  * #VANILLA_SCHEMA_VALIDATOR ENABLE TRANSPILE
  */
 
-BEGIN_MODULE( import.meta );
+BEGIN_MODULE({ dirname: __dirname, filename:__filename });
 
 schema.define`
   test : object(

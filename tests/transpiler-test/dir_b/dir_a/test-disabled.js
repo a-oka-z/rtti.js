@@ -1,8 +1,9 @@
 
+
 import { schema } from "vanilla-schema-validator";
 
 /*
- * #VANILLA_SCHEMA_VALIDATOR ENABLE TRANSPILE
+ * #VANILLA_SCHEMA_VALIDATOR disabled TRANSPILE
  */
 
 BEGIN_MODULE( import.meta );
