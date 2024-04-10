@@ -27,6 +27,7 @@ async function build(nargs) {
     extensions,
   }= nargs;
 
+  const async_results = [];
 
   for await ( const rel_path of getFiles( inputDir ) ) {
     if ( extensions.some( e=>rel_path.endsWith( e ) ) ) {
@@ -34,27 +35,9 @@ async function build(nargs) {
       const r = rip_directives( rip_comments( f ) ).map( s=>s.split( /\s+/ ).map(e=>e.trim() ) );
 
       if ( r.some( arr=> compare_arrays( arr,  VANILLA_SCHEMA_VALIDATOR_DIRECTIVE_0 ) ) ) {
-
-        console.log( 'running vsv ', process.argv[0] );
-        const vsv = child_process.spawn( 'vsv' , [ 'run', 'transpile', rel_path ], {
-          cwd : process.cwd(),
-          env : {
-            ...process.env,
-            HELLO :'YES,HELLO',
-          },
-        });
-
-        vsv.stdout.on('data', (data) => {
-          console.log(`stdout: ${data}`);
-        });
-
-        vsv.stderr.on('data', (data) => {
-          console.error(`stderr: ${data}`);
-        });
-
-        vsv.on('close', (code) => {
-        });
-
+        const abs_path = path.resolve( process.cwd(), rel_path );
+        console.log( 'importing ', abs_path );
+        async_results.push( import( abs_path  ) );
       } else {
         // console.log( rel_path, 'ignored2', r );
       }
@@ -62,6 +45,11 @@ async function build(nargs) {
       // console.log( rel_path, 'ignored' );
     }
   };
+
+  await Promise.all( async_results );
+
+
+  console.error( schema );
 
 }
 

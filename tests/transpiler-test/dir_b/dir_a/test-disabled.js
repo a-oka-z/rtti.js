@@ -1,12 +1,11 @@
 
-
 import { schema } from "vanilla-schema-validator";
 
 /*
  * #VANILLA_SCHEMA_VALIDATOR disabled TRANSPILE
  */
 
-BEGIN_MODULE( import.meta );
+schema.BEGIN_MODULE( import.meta );
 
 schema.define`
   test : object(
@@ -15,5 +14,5 @@ schema.define`
 `;
 
 
-END_MODULE();
+schema.END_MODULE();
 
