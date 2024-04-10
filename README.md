@@ -867,6 +867,11 @@ AFTER: v3.0.4
 - v3.0.8 (Tue, 02 Apr 2024 15:19:31 +0900)
   - Migrated from `schema.statement` to `schema.compile`.
 
+- v3.0.9 (Wed, 10 Apr 2024 18:27:52 +0900)
+  - Added `vsv build` command to accumulate every type definition and output it
+    as ESM modules. This feature has not been published yet to NPM public
+    repository.
+
 
  Conclusion
 --------------------------------------------------------------------------------
