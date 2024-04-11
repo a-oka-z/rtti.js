@@ -1146,6 +1146,75 @@ function cloneSchema() {
   return schema;
 }
 
+const make_fold = (fold_right)=>{
+  return (...defs)=>{
+    //1
+    if ( defs.length < 1 ) {
+      throw new RangeError( 'no definition was specified in `and`' );
+    }
+
+    //2
+    defs.forEach( (e,i)=>{
+      const m = check_if_proper_vali( e );
+      if ( m !== null ) {
+        throw new RangeError(`the argument at or(${i}) is ${m}` );
+      }
+    });
+
+    return (
+      /*
+       * the following code was duplicated from object() and modified.
+       * (Fri, 22 Dec 2023 15:03:14 +0900)
+       */
+      name_validator( "fold", (o,c=null_context)=>{
+        if ( o === null || o === undefined ) {
+          return false;
+        }
+
+        if ( ! Array.isArray( o ) ) {
+          return false;
+        }
+
+        if ( defs.length === 0 ) {
+          return true;
+        }
+
+        // >>> ADDED (Tue, 09 May 2023 16:31:43 +0900)
+        o = unprevent(o);
+        // <<< ADDED (Tue, 09 May 2023 16:31:43 +0900)
+
+
+        /*
+         * a left-side object always overrides all of the objects on its
+         * right-side if the left parameter is true;
+         */
+        if ( fold_right ) {
+          o = o.toReversed();
+        }
+
+        /*
+         * Merge all arguments into one;
+         */
+        const folded_o = Object.assign({}, ...o );
+
+        // This implements the logical operator `and`; check every element
+        // before determine the result to obtain a user-friendly diagnosis
+        // report.
+        return (
+          defs.map( (f,i)=>{
+            c.enter(i,f);
+            try {
+              return c.notify( f(folded_o,c) );
+            } finally {
+              c.leave();
+            }
+          }).every(e=>!!e)
+        );
+      })
+    );
+  };
+};
+
 
 const standardValis = {
   "any"       : (...defs)=>name_validator("any"      ,(o)=>true ),
@@ -1375,6 +1444,10 @@ const standardValis = {
     );
   },
 
+  "fold" : make_fold( false ),
+
+  "fold_right" : make_fold( true ),
+
   "nargs" : (...defs)=>{
     if ( ! defs.every(e=>e!==null && e!==undefined && (typeof e ==='object'))) {
       throw new RangeError( 'every argument must be an object' );
@@ -1423,7 +1496,7 @@ const standardValis = {
                   c.leave();
                 }
               }));
-        // check if every element is true.
+        // check if every element is true; that is, this is an `and` operation.
         return  r.every(e1=>e1.every(e2=>!!e2));
       })
     );

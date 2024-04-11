@@ -871,6 +871,7 @@ AFTER: v3.0.4
   - Added `vsv build` command to accumulate every type definition and output it
     as ESM modules. This feature has not been published yet to NPM public
     repository.
+  - Added `fold()` and `fold_right()`. This hasn't been published,too.
 
 
  Conclusion
