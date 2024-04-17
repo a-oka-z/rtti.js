@@ -95,6 +95,7 @@ const bool_to_str = (v)=>{
   }
 };
 
+
 /*
  * SchemaValidatorContext : object(
  *   // this stores the current path elements
@@ -117,9 +118,11 @@ const bool_to_str = (v)=>{
  * ),
  */
 class SchemaValidatorContext {
-  constructor(...args) {
+  constructor({validator,target_value}) {
     this.path_stack = [];
     this.notified_values = [];
+    this.validator = validator;
+    this.target_value = target_value;
     this.value = null;
   }
   enter( id, validator ) {
@@ -148,8 +151,33 @@ class SchemaValidatorContext {
   leave() {
     return this.path_stack.pop();
   }
-  report() {
+  trace() {
     return this.notified_values.map( e=>( e.map( (ee,idx,arr)=>'  ' + path_to_str(ee,arr.length-1===idx) ).join('') ) ).join('\n');
+  }
+  report() {
+    const target_value_string     = inspect( this.target_value );
+    const validator_source_string = change_indentation( this.validator.validator_source , 2 );
+    const trace_string            = this.trace();
+
+    if ( this.value ) {
+      return (
+        'the value (\n' +
+        target_value_string +
+        "\n) conforms to the type (\n" +
+        validator_source_string +
+        + "\n)" +
+        trace_string
+      );
+    } else {
+      return (
+        'the value (\n' +
+        target_value_string +
+        "\n) does not conform to the type (\n" +
+        validator_source_string +
+        "\n)" +
+        trace_string
+      );
+    }
   }
   toString() {
     return this.report();
@@ -168,11 +196,11 @@ class NullSchemaValidatorContext {
 };
 const null_context = new NullSchemaValidatorContext();
 
-const trace_validator = ( validator, value )=>{
-  const context = new SchemaValidatorContext();
+const trace_validator = ( validator, target_value )=>{
+  const context = new SchemaValidatorContext({validator,target_value});
   try {
     context.enter( 'begin', validator );
-    const result = context.notify( validator( value, context ) );
+    const result = context.notify( validator( target_value, context ) );
     return context;
   } finally {
     context.leave();
@@ -185,17 +213,12 @@ class TypeCastError extends TypeError {
   }
 }
 
-const typecast = ( validator, value )=>{
-  const context = trace_validator( validator, value );
+const typecast = ( validator, target_value )=>{
+  const context = trace_validator( validator, target_value );
   if ( ! context.value ) {
-    throw new TypeCastError(
-      'an invalid type:\nthe value (' +
-      inspect( value ) +
-      ") does not conform to the type:\n" +
-      vali_to_str( value ) + "\n" +
-      context.report() );
+    throw new TypeCastError( context.report() );
   }
-  return value;
+  return target_value;
 };
 
 const typeassert = (...args)=>{
@@ -631,6 +654,10 @@ function normalize_indentation( s, length, replacer ) {
     lines[i] = new_line;
   }
   return lines.join( '\n' );
+}
+
+function change_indentation( source, level ) {
+  return normalize_indentation( source, minimum_indentation( source ), ' '.repeat(level) );
 }
 
 
