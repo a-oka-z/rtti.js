@@ -872,6 +872,8 @@ AFTER: v3.0.4
     as ESM modules. This feature has not been published yet to NPM public
     repository.
   - Added `fold()` and `fold_right()`. This hasn't been published,too.
+  - Print the dump of the target value and the source code of the current
+    validator. (Wed, 17 Apr 2024 16:03:25 +0900)
 
 
  Conclusion
