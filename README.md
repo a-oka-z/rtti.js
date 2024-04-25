@@ -875,6 +875,10 @@ AFTER: v3.0.4
   - Print the dump of the target value and the source code of the current
     validator. (Wed, 17 Apr 2024 16:03:25 +0900)
 
+- v3.0.10 (Thu, 25 Apr 2024 18:11:19 +0900)
+  - Fixed a bug that a validator fails when the number of static interpolators
+    exceeds 10. (not released)
+
 
  Conclusion
 --------------------------------------------------------------------------------

@@ -786,7 +786,7 @@ function __compile( parsed ) {
       paren_e : '',
     };
 
-    const schema_name = elem.right_id.match( /^t__static_value_[0-9]_interpolator$/ ) ? '' : 'schema.';
+    const schema_name = elem.right_id.match( /^t__static_value_[0-9]+_interpolator$/ ) ? '' : 'schema.';
 
     // Omit to output validator id on the first indent level.  The first indent
     // level should be treated specially because  it should be enclosed by a
