@@ -1042,6 +1042,27 @@ function module_to_source( module ) {
   return s;
 }
 
+function module_to_documentation( module ) {
+  let s='';
+  function output( l ) {
+    s = s+l;
+  }
+
+  output( 'import { schema } from "vanilla-schema-validator";\n' );
+  if ( module.header ) {
+    output( module.header );
+  }
+  output( '\n' );
+  output( 'schema.define\`\n' );
+  output( module.validator_list.map( (e,i)=>`${e?.[SCHEMA_VALIDATOR_SOURCE]}` ).map(e=>e.replace(/(\s*,\s*)+$/,'')).join(',\n') );
+  output( '`' );
+
+  if ( module.footer ) {
+    output( module.footer );
+  }
+
+  return s;
+}
 
 
 function BEGIN_MODULE({ module_name =null, header=null, footer=null, output_filename, filename, dirname }) {
@@ -1059,6 +1080,9 @@ function BEGIN_MODULE({ module_name =null, header=null, footer=null, output_file
     validator_list : [],
     transpile() {
       return module_to_source(this);
+    },
+    generate_documentation() {
+      return module_to_documentation(this);
     },
   });
 }

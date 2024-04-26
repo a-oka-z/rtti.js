@@ -22,7 +22,7 @@ import { build, build_doc } from "vanilla-schema-validator/transpiler";
         });
         yargs.option( 'output-dir', {
           type: 'string',
-          default: './out',
+          default: './types',
           describe: 'the directory where the all transpiled files go'
         });
         yargs.option( 'extensions', {
@@ -41,14 +41,26 @@ import { build, build_doc } from "vanilla-schema-validator/transpiler";
       command : 'build-doc',
       desc : 'read the specified JavaScript module and generate a documentation of all validators defined in it',
       builder : (yargs) =>{
-        yargs.option( 'input', {
+        yargs.option( 'input-dir', {
           type: 'string',
-          demandOption:true,
-          describe: 'the file to transpile'
+          default: '.',
+          describe: 'the directory where the all files go'
+        });
+        yargs.option( 'output-dir', {
+          type: 'string',
+          default: './docs',
+          describe: 'the directory where the all files go'
+        });
+        yargs.option( 'extensions', {
+          type: 'string',
+          default: [ 'mjs', 'cjs','js' ],
+          array : true,
+          describe: 'specify target file extensions'
         });
       },
-      handler: (argv)=>{
-        build_doc( argv );
+      handler: (nargs)=>{
+        console.log( 'starting `build-doc` command...' );
+        build_doc( nargs );
       }
     })
     .help()
