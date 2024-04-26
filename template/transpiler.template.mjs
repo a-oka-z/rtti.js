@@ -20,5 +20,5 @@ function inspect(s) {
 
 export {
   build,
-  transpile,
+  build_doc,
 };

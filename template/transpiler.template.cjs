@@ -20,4 +20,4 @@ function inspect(s) {
 <%=body %>
 
 module.exports.build = build;
-module.exports.transpile = transpile;
+module.exports.build_doc = build_doc;

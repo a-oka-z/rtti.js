@@ -5,7 +5,7 @@ console.error( 'VSV:env.HELLO', process.env.HELLO );
 
 import yargs from "yargs";
 import { hideBin } from 'yargs/helpers'
-import { build, transpile } from "vanilla-schema-validator/transpiler";
+import { build, build_doc } from "vanilla-schema-validator/transpiler";
 
   yargs(hideBin(process.argv))
     .scriptName( "vsv" )
@@ -38,8 +38,8 @@ import { build, transpile } from "vanilla-schema-validator/transpiler";
       }
     })
     .command({
-      command : 'transpile',
-      desc : 'analyze progress status and update the (PROGRESS) tag',
+      command : 'build-doc',
+      desc : 'read the specified JavaScript module and generate a documentation of all validators defined in it',
       builder : (yargs) =>{
         yargs.option( 'input', {
           type: 'string',
@@ -48,7 +48,7 @@ import { build, transpile } from "vanilla-schema-validator/transpiler";
         });
       },
       handler: (argv)=>{
-        transpile( argv );
+        build_doc( argv );
       }
     })
     .help()
