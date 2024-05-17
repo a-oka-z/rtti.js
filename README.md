@@ -878,6 +878,10 @@ AFTER: v3.0.4
 - v3.0.10 (Thu, 25 Apr 2024 18:11:19 +0900)
   - Fixed a bug that a validator fails when the number of static interpolators
     exceeds 10. (not released)
+  - (Fri, 17 May 2024 14:09:37 +0900)
+  - Added schema.none() validator which always returns `false`. (not released)
+  - Added some test suites to check some corner cases of and()/or() logical
+    operators. (not released)
 
 
  Conclusion

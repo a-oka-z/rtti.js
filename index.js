@@ -1219,6 +1219,7 @@ const make_fold = (fold_right)=>{
 
 const standardValis = {
   "any"       : (...defs)=>name_validator("any"      ,(o)=>true ),
+  "none"      : (...defs)=>name_validator("none"     ,(o)=>false ),
   "undefined" : (...defs)=>name_validator("undefined",(o)=>typeof o === "undefined"),
   "null"      : (...defs)=>name_validator("null"     ,(o)=>o === null ),
   "boolean"   : (...defs)=>name_validator("boolean"  ,(o)=>o !== undefined && o!==null && typeof o === "boolean" ),
