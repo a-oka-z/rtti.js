@@ -122,7 +122,13 @@ class SchemaValidatorContext {
     this.path_stack = [];
     this.notified_values = [];
     this.validator = validator;
-    this.target_value = target_value;
+    /*
+     * It is necessary to unprevent-undefined() before our trace() function
+     * examines the given value; it will cause an error when the value is
+     * passed to inspect() function which is actually a delegator function of
+     * JSON.stringify().
+     */
+    this.target_value = unprevent( target_value );
     this.value = null;
   }
   enter( id, validator ) {

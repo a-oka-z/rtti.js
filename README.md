@@ -882,6 +882,8 @@ AFTER: v3.0.4
   - Added schema.none() validator which always returns `false`. (not released)
   - Added some test suites to check some corner cases of and()/or() logical
     operators. (not released)
+  - (Tue, 21 May 2024 15:47:59 +0900)
+  - unprevent-undefined() before trace. (not released)
 
 
  Conclusion
