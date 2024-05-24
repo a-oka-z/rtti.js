@@ -884,8 +884,8 @@ AFTER: v3.0.4
     operators. (not released)
   - (Tue, 21 May 2024 15:47:59 +0900)
   - unprevent-undefined() before trace. (not released)
-  - (Fri, 24 May 2024 16:25:41 +0900)
-  - Added an experimental validator `nonexistent()` (not released)
+  - (Fri, 24 May 2024 17:56:03 +0900)
+  - Added an experimental validator `defined()` (not released)
 
 
  Conclusion

@@ -36,7 +36,8 @@ const VANILLA_SCHEMA_VALIDATOR_MODULES           = Symbol.for( 'vanilla-schema-v
 const VANILLA_SCHEMA_VALIDATOR_MODULE_VISITOR    = Symbol.for( VANILLA_SCHEMA_VALIDATOR_MODULE_VISITOR_ID );
 
 
-const VANILLA_SCHEMA_VALIDATOR_HOOK       = Symbol.for( 'VANILLA_SCHEMA_VALIDATOR_HOOK' );
+// const VANILLA_SCHEMA_VALIDATOR_HOOK       = Symbol.for( 'VANILLA_SCHEMA_VALIDATOR_HOOK' );
+const VANILLA_SCHEMA_VALIDATOR_HOOK       = 'VANILLA_SCHEMA_VALIDATOR_HOOK' ;
 
 /*
  * ADDED ON (Tue, 26 Dec 2023 15:39:16 +0900)
@@ -1281,17 +1282,18 @@ const standardValis = {
   "bigint"      : (...defs)=>name_validator("bigint"     ,(o)=>o !== undefined && o!==null && typeof o === "bigint"  ),
   "symbol"      : (...defs)=>name_validator("symbol"     ,(o)=>o !== undefined && o!==null && typeof o === "symbol"  ),
   "function"    : (...defs)=>name_validator("function"   ,(o)=>o !== undefined && o!==null && typeof o === "function"),
-  "nonexistent" : (...defs)=>{
-    const validator   = (o)=>typeof o === "undefined";
+  "defined" : (...defs)=>{
+    const sub_validator = defs[0] ?? (()=>true);
     const validator_hook = (o,k,v)=>{
       if ( k in o ) {
-        return false;
+        return sub_validator(o[k]);
       } else {
         o[k] = undefined;
-        return true;
+        return sub_validator(o[k]);
       }
-    }
-    name_validator( "nonexistent", validator );
+    };
+    const validator = (...args)=>sub_validator(...args);
+    name_validator( "defined", validator );
     set_validator_hook( validator, validator_hook );
     return validator;
   },
