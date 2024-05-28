@@ -1696,6 +1696,13 @@ describe( "comment" ,()=>{
     `;
     s.END_MODULE();
 
+    assert.equal( s.t_color.validator_comment ,
+`HELLO WORLD
+HELLO WORLD  !@#$%^&*()
+HELLO WORLD
+HELLO WORLD
+HELLO WORLD`.trim() );
+
     console.log( "validator_comment",    s.t_color.validator_comment );
     console.log( "validator_annotations",s.t_color.validator_annotations );
     console.log( "validator_annotations",s.t_person.validator_annotations );
