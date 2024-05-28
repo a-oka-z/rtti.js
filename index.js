@@ -403,18 +403,19 @@ function __parse(input) {
     });
   }
 
-  const KWD = '@'; // t_validator_type
-  const BGN = '('; // (
-  const END = ')'; // )
-  const PSP = ','; // , ... comma / parameter separator
-  const KSP = ';'; // ; ... colon / key-value separator
-
-
   const modified_input =
     check_all_valid_chars(
       remove_block_comment(
         remove_line_comment(
           escape_blocks( input  ))));
+
+  ///
+
+  const KWD = '@'; // t_validator_type
+  const BGN = '('; // (
+  const END = ')'; // )
+  const PSP = ','; // , ... comma / parameter separator
+  const KSP = ';'; // ; ... colon / key-value separator
 
   class Token {
     constructor({type,value,src}) {
