@@ -279,7 +279,8 @@ test('STATEMENT COMPILER test basic 1.1 ( with annotations )', ()=>{
      '            arr_test : array_of(\n' +
      '              not( number()),\n' +
      '            ),\n' +
-     '          )` , \n' +
+     '          )\n' +
+     '          ` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : false,   \n' +
@@ -402,7 +403,8 @@ test('STATEMENT COMPILER test basic 1.2 ( without annotations )', ()=>{
      '            arr_test : array_of(\n' +
      '              not( number()),\n' +
      '            ),\n' +
-     '          )` , \n' +
+     '          )\n' +
+     '          ` , \n' +
      '          enumerable   : false,   \n' +
      '          writable     : false,   \n' +
      '          configurable : false,   \n' +
@@ -1042,15 +1044,19 @@ describe( 'check context', ()=>{
       },
       arr_test : [ false, 'boo', 15 ],
     };
+    /*
+    COMMENT OUT
+    (Tue, 28 May 2024 15:46:31 +0900)
     console.log( 'trace_validator' );
     console.log( trace_validator( factory(), o ).report() );
+    */
     // const c = new SchemaValidatorContext();
     // const r = factory()(o ,c);
     // console.log( 'source', factory[SCHEMA_VALIDATOR_SOURCE], 'result', c.toString() );
   });
 });
 
-describe( 'new_standard_template_literal', ()=>{
+describe( 'new_standard_template_literal', {only:true},  ()=>{
   it('new_standard_template_literal as 0', ()=>{
     assert.throws( ()=>{
       const result = schema.compile`
@@ -1119,19 +1125,23 @@ describe( 'new_standard_template_literal', ()=>{
   });
 
 
-  it('new_standard_template_literal as 7',()=>{
+  it('new_standard_template_literal as 7',{only:true},()=>{
      const result = schema.compile`
       object(
         foo : and(
           number(),
           equals( << 1 >> ),
           // aaa
+          //
           /*
           foo(), // ee
           bar(),
           a
           */
           /*
+           * HOO * *
+           * HOO
+           * HOO
            */BAR(),
           // aaaa
           equals( << 1 >> ),
@@ -1176,7 +1186,7 @@ describe( 'new_standard_template_literal', ()=>{
 
 });
 
-describe( "new_standard_template_literal 2",()=>{
+describe( "new_standard_template_literal 2", ()=>{
   const s = schema.clone();
   s.define`
     t_color : or(
@@ -1207,6 +1217,9 @@ describe( "new_standard_template_literal 2",()=>{
     },
   }), true);
 
+  /*
+  COMMENT OUT
+  (Tue, 28 May 2024 15:46:31 +0900)
   console.log( trace_validator( s.t_person(),{
     name : 'hello',
     age : 20,
@@ -1215,6 +1228,7 @@ describe( "new_standard_template_literal 2",()=>{
       foo : 'foo',
     },
   }).report());
+  */
 });
 
 
@@ -1318,7 +1332,7 @@ test( 'nargs No.1', ()=>{
 
 });
 
-test( 'nargs No.2',()=>{
+test( 'nargs No.2', ()=>{
   const t_test_named_arguments = schema./*st*/compile`
     nargs(
       age: number(),

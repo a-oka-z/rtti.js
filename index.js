@@ -382,32 +382,52 @@ function __parse(input) {
     });
   }
 
-  function remove_line_comment( s ) {
+  function escape_line_comment( s ) {
     return s.replaceAll( /\/\/.*$/gm, function (match) {
       return add_escaped_block({ value:'', match: '//' +match, as_clousure : false});
     });
   }
+  function remove_line_comment( s ) {
+    return s.replaceAll( /\/\/.*$/gm, function (match) {
+      return ' ';
+    });
+  }
 
-  function remove_block_comment( s ) {
+  function escape_block_comment( s ) {
     return s.replaceAll( /\/\*[\s\S]*\*\//gm,
       function (match) {
         return add_escaped_block({value:'',match, as_clousure : false });
       }
     );
   }
+  function remove_block_comment( s ) {
+    return s.replaceAll( /\/\*[\s\S]*\*\//gm,
+      function (match) {
+        return ' ';
+      }
+    );
+  }
 
   function check_all_valid_chars( s ) {
-    const regexp = /[^\$a-zA-Z0-9_:,\(\)\s]/gm;
+    const regexp = /[^\$a-zA-Z0-9_:,\(\)\*\/\s]/gm;
     return s.replaceAll(regexp , function (match,offset,string,groups) {
       throw new CompileError({message: `invalid character '${ match }' in character ${ offset }\n${s}` });
     });
   }
 
+  // const modified_input =
+  //   check_all_valid_chars(
+  //     remove_line_comment(
+  //       remove_block_comment(
+  //         escape_blocks( input  ))));
+
+  console.log( '**************************',new Date() );
+
   const modified_input =
     check_all_valid_chars(
-      remove_block_comment(
-        remove_line_comment(
-          escape_blocks( input  ))));
+      remove_line_comment(
+          escape_blocks( input  )));
+
 
   ///
 
@@ -416,6 +436,9 @@ function __parse(input) {
   const END = ')'; // )
   const PSP = ','; // , ... comma / parameter separator
   const KSP = ';'; // ; ... colon / key-value separator
+  const CBB = '/*'; // /*
+  const CBE = '*/'; // */
+  const SPC = ' ';
 
   class Token {
     constructor({type,value,src}) {
@@ -437,8 +460,11 @@ function __parse(input) {
     }
   }
 
-  //                2                 3     4     5     6
-  const pattern = /(([0-9a-zA-Z\$_]+)|([(])|([)])|([,])|([:]))/g;
+  ////                  2                  3     4     5     6     7      8
+  //// const pattern = /(([0-9a-zA-Z\$_]+)|([(])|([)])|([,])|([:])|(\/\*)|(\*\/))/g;
+  //
+  //                2     3     4     5     6     7        8    9
+  const pattern = /(([(])|([)])|([,])|([:])|(\/\*)|(\*\/)|(\s+)|([^,:()\*\/\s]+))/g;
   const tokens = [];
   for(;;) {
     const m = pattern.exec( modified_input );
@@ -447,8 +473,9 @@ function __parse(input) {
     }
     if ( false ) {
     } else if ( typeof m[2] === 'string' ) {
+      console.log( m[2] );
       tokens.push( new Token({
-        type : KWD,
+        type : BGN,
         value : m[2],
         src :{
           input : m.input,
@@ -456,8 +483,9 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[3] === 'string' ) {
+      console.log( m[3] );
       tokens.push( new Token({
-        type : BGN,
+        type : END,
         value : m[3],
         src :{
           input : m.input,
@@ -465,8 +493,9 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[4] === 'string' ) {
+      console.log( m[4] );
       tokens.push( new Token({
-        type : END,
+        type : PSP,
         value : m[4],
         src :{
           input : m.input,
@@ -474,8 +503,9 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[5] === 'string' ) {
+      console.log( m[5] );
       tokens.push( new Token({
-        type : PSP,
+        type : KSP,
         value : m[5],
         src :{
           input : m.input,
@@ -483,9 +513,40 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[6] === 'string' ) {
+      console.log( m[6] );
       tokens.push( new Token({
-        type : KSP,
+        type : CBB,
         value : m[6],
+        src :{
+          input : m.input,
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[7] === 'string' ) {
+      console.log( m[7] );
+      tokens.push( new Token({
+        type : CBE,
+        value : m[7],
+        src :{
+          input : m.input,
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[8] === 'string' ) {
+      console.log( m[8] );
+      tokens.push( new Token({
+        type : SPC,
+        value : m[8],
+        src :{
+          input : m.input,
+          position: m.index,
+        },
+      }));
+    } else if ( typeof m[9] === 'string' ) {
+      console.log( m[9] );
+      tokens.push( new Token({
+        type : KWD,
+        value : m[9],
         src :{
           input : m.input,
           position: m.index,
@@ -525,9 +586,12 @@ function __parse(input) {
   }
 
   {
+    let mode = 'normal'; // 'normal' or 'inside_comment_block'
     let elem_stack = [ new Elem(null) ];
     let work_elem = null;
 
+    let current_comment_block   = null;
+    let last_comment_block = null;
 
     const notify_beginning_of_elem = (work_elem,current_token)=>{
       if ( work_elem !== null ) {
@@ -554,97 +618,156 @@ function __parse(input) {
     };
 
     for ( const current_token of tokens ) {
-      switch ( current_token.type ) {
-        case KWD : {
 
-          if ( work_elem === null ) {
-            notify_begin_of_elem( current_token );
-          }
+      switch ( mode ) {
+        /*
+         * <<< THE BEGINNING OF NORMAL MODE
+         */
+        case 'normal' : {
+          switch ( current_token.type ) {
+            case KWD : {
 
-          if ( work_elem.right_id !== null ) {
-            if ( work_elem.left_id === null ) {
-              // MODIFIED (Tue, 19 Mar 2024 18:39:51 +0900)
-              // throw new CompileError({message: 'missing colon' });
+              if ( work_elem === null ) {
+                notify_begin_of_elem( current_token );
+              }
+
+              if ( work_elem.right_id !== null ) {
+                if ( work_elem.left_id === null ) {
+                  // MODIFIED (Tue, 19 Mar 2024 18:39:51 +0900)
+                  // throw new CompileError({message: 'missing colon' });
+
+                  // Notify the end of the current element.
+                  notify_end_of_elem( work_elem, current_token );
+                  work_elem.is_annotation = true; // ADDED ON Tue, 19 Mar 2024 20:17:00 +0900
+                  work_elem = null;
+                  notify_begin_of_elem( current_token );
+                } else {
+                  throw new CompileError({message: 'missing comma' });
+                }
+              }
+
+              notify_beginning_of_elem( work_elem, current_token );
+
+              work_elem.right_id = current_token.value;
+
+              break;
+            };
+            case SPC : {
+              // IGNORE
+
+              break;
+            };
+            case BGN : {
+              if ( work_elem === null ) {
+                throw new CompileError({message: 'expected a keyword but missing' });
+              }
+              if ( work_elem.is_closed_element !== false ) {
+                throw new CompileError({message: `expected ')' or a new keyword but missing` });
+              }
+              elem_stack.push( work_elem );
+              work_elem = null;
+
+              break;
+            };
+
+            case END : {
+              if ( work_elem === null ) {
+                // This can be safely ignored.
+                // throw new CompileError({message: 'expected a keyword but missing' });
+              }
+              if ( elem_stack.length <= 0 ) {
+                throw new CompileError({message: 'an unmatched parenthes' });
+              }
+
+              notify_end_of_elem( work_elem, current_token );
+
+              work_elem = elem_stack.pop();
+              work_elem.is_closed_element = true;
+
+              break;
+            };
+
+            case PSP : {
+              if( work_elem === null ) {
+                throw new CompileError({message: 'missing keyword' });
+              }
 
               // Notify the end of the current element.
               notify_end_of_elem( work_elem, current_token );
-              work_elem.is_annotation = true; // ADDED ON Tue, 19 Mar 2024 20:17:00 +0900
+
               work_elem = null;
-              notify_begin_of_elem( current_token );
-            } else {
-              throw new CompileError({message: 'missing comma' });
-            }
-          }
 
-          notify_beginning_of_elem( work_elem, current_token );
+              break;
+            };
 
-          work_elem.right_id = current_token.value;
+            case KSP : {
+              if ( work_elem === null ) {
+                console.error( current_token, tokens );
+                throw new CompileError({message: 'no validator was specified' });
+              }
+              if ( work_elem.right_id === null ) {
+                throw new CompileError({message: 'no factory was specified' });
+              }
+              if ( work_elem.left_id !== null ) {
+                throw new CompileError({message: 'duplicate colon error' });
+              }
+              work_elem.left_id = work_elem.right_id;
+              work_elem.right_id = null;
 
-          break;
-        };
+              break;
+            };
 
-        case BGN : {
-          if ( work_elem === null ) {
-            throw new CompileError({message: 'expected a keyword but missing' });
-          }
-          if ( work_elem.is_closed_element !== false ) {
-            throw new CompileError({message: `expected ')' or a new keyword but missing` });
-          }
-          elem_stack.push( work_elem );
-          work_elem = null;
+            case CBB : {
+              // entering to comment block mode
+              mode = 'inside_comment_block';
+              current_comment_block = {
+                comment_content : '',
+              };
+              break;
+            };
 
-          break;
-        };
-
-        case END : {
-          if ( work_elem === null ) {
-            // This can be safely ignored.
-            // throw new CompileError({message: 'expected a keyword but missing' });
-          }
-          if ( elem_stack.length <= 0 ) {
-            throw new CompileError({message: 'an unmatched parenthes' });
-          }
-
-          notify_end_of_elem( work_elem, current_token );
-
-          work_elem = elem_stack.pop();
-          work_elem.is_closed_element = true;
+            default : {
+              throw new CompileError({message: 'internal error ' + input });
+            };
+          };
 
           break;
         };
+        /*
+         * >>> END OF NORMAL MODE
+         */
 
-        case PSP : {
-          if( work_elem === null ) {
-            throw new CompileError({message: 'missing keyword' });
+        /*
+         * <<< BEGINNING OF COMMENT BLOCK MODE
+         */
+        case 'inside_comment_block' : {
+          switch ( current_token.type ) {
+            case CBE : {
+              // back to normal
+              mode = 'normal';
+              last_comment_block = current_comment_block;
+              current_comment_block = null;
+              console.log({ last_comment_block });
+              break;
+            };
+            default : {
+              if ( current_comment_block.comment_content !== '' ) {
+                current_comment_block.comment_content += ' ';
+              }
+              current_comment_block.comment_content += current_token.value;
+              break;
+            };
           }
-
-          // Notify the end of the current element.
-          notify_end_of_elem( work_elem, current_token );
-
-          work_elem = null;
-
           break;
         };
+        /*
+         * >>> END OF COMMENT BLOCK MODE
+         */
 
-        case KSP : {
-          if ( work_elem === null ) {
-            throw new CompileError({message: 'no validator was specified' });
-          }
-          if ( work_elem.right_id === null ) {
-            throw new CompileError({message: 'no factory was specified' });
-          }
-          if ( work_elem.left_id !== null ) {
-            throw new CompileError({message: 'duplicate colon error' });
-          }
-          work_elem.left_id = work_elem.right_id;
-          work_elem.right_id = null;
-
-          break;
-        };
         default : {
           throw new CompileError({message: 'internal error ' + input });
         };
-      }
+      };
     }
     notify_end_of_elem( work_elem, 0<tokens.length ? tokens[ tokens.length -1 ] : null );
 
