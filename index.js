@@ -12,9 +12,10 @@ const SCHEMA_VALIDATOR_COMMAND        = 'validator_command';
 const SCHEMA_VALIDATOR_NAME           = 'validator_name';
 const SCHEMA_VALIDATOR_RAW_SOURCE     = 'validator_raw_source' ;
 const SCHEMA_VALIDATOR_SOURCE         = 'validator_source' ;
+const SCHEMA_VALIDATOR_COMMENT        = 'validator_comment' ;
 const SCHEMA_VALIDATOR_ANONYMOUS_TYPE = '__t_anonymous';
 const SCHEMA_VALIDATOR_DEFAULT_TYPE   = '__t_default';
-const FIELD_NAME_OF_ANNOTATIONS       = 'annotations';
+const SCHEMA_VALIDATOR_ANNOTATIONS    = 'validator_annotations';
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name
 // This is the property name of `Function.name` property.
@@ -421,12 +422,11 @@ function __parse(input) {
   //       remove_block_comment(
   //         escape_blocks( input  ))));
 
-  console.log( '**************************',new Date() );
+  // console.log( '**************************',new Date() );
 
   const modified_input =
-    check_all_valid_chars(
       remove_line_comment(
-          escape_blocks( input  )));
+          escape_blocks( input  ));
 
 
   ///
@@ -464,7 +464,7 @@ function __parse(input) {
   //// const pattern = /(([0-9a-zA-Z\$_]+)|([(])|([)])|([,])|([:])|(\/\*)|(\*\/))/g;
   //
   //                2     3     4     5     6     7        8    9
-  const pattern = /(([(])|([)])|([,])|([:])|(\/\*)|(\*\/)|(\s+)|([^,:()\*\/\s]+))/g;
+  const pattern = /(([(])|([)])|([,])|([:])|(\/\*)|(\*\/)|(\s+)|([^,:()\s]+))/g;
   const tokens = [];
   for(;;) {
     const m = pattern.exec( modified_input );
@@ -473,7 +473,6 @@ function __parse(input) {
     }
     if ( false ) {
     } else if ( typeof m[2] === 'string' ) {
-      console.log( m[2] );
       tokens.push( new Token({
         type : BGN,
         value : m[2],
@@ -483,7 +482,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[3] === 'string' ) {
-      console.log( m[3] );
       tokens.push( new Token({
         type : END,
         value : m[3],
@@ -493,7 +491,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[4] === 'string' ) {
-      console.log( m[4] );
       tokens.push( new Token({
         type : PSP,
         value : m[4],
@@ -503,7 +500,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[5] === 'string' ) {
-      console.log( m[5] );
       tokens.push( new Token({
         type : KSP,
         value : m[5],
@@ -513,7 +509,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[6] === 'string' ) {
-      console.log( m[6] );
       tokens.push( new Token({
         type : CBB,
         value : m[6],
@@ -523,7 +518,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[7] === 'string' ) {
-      console.log( m[7] );
       tokens.push( new Token({
         type : CBE,
         value : m[7],
@@ -533,7 +527,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[8] === 'string' ) {
-      console.log( m[8] );
       tokens.push( new Token({
         type : SPC,
         value : m[8],
@@ -543,7 +536,6 @@ function __parse(input) {
         },
       }));
     } else if ( typeof m[9] === 'string' ) {
-      console.log( m[9] );
       tokens.push( new Token({
         type : KWD,
         value : m[9],
@@ -567,6 +559,7 @@ function __parse(input) {
       this.children = [];
       this.is_closed_element = false;
       this.is_annotation = false;
+      this.comment_content = null;
     }
     range() {
       const s = this.token_at_begining ?.src?.position ?? null;
@@ -615,6 +608,10 @@ function __parse(input) {
       // begin a new definition
       work_elem = new Elem( current_token );
       elem_stack[ elem_stack.length-1 ].children.push( work_elem );
+      if ( last_comment_block ) {
+        work_elem.comment_content = remove_leading_asterisks( last_comment_block.comment_content );
+        last_comment_block = null;
+      }
     };
 
     for ( const current_token of tokens ) {
@@ -631,6 +628,9 @@ function __parse(input) {
                 notify_begin_of_elem( current_token );
               }
 
+              /*
+               * Process annotations
+               */
               if ( work_elem.right_id !== null ) {
                 if ( work_elem.left_id === null ) {
                   // MODIFIED (Tue, 19 Mar 2024 18:39:51 +0900)
@@ -788,7 +788,15 @@ function __parse(input) {
 }
 
 function escape_backticks( source ) {
+  if ( typeof source !== 'string' ) {
+    console.error ({source});
+    throw new Error( 'an invalid type of the specified value' );
+  }
   return '\u0060' + source.replaceAll( /[\u0060]/gm, '\\\u0060' ) + '\u0060';
+}
+
+function remove_leading_asterisks(s) {
+  return s.replace( /^\s*\* ?/gm, (m)=>'' );
 }
 
 function minimum_indentation(s){
@@ -905,6 +913,21 @@ function get_validator_source_function(parsed,elem) {
             })
           `);
 }
+
+function get_validator_comment(parsed,elem) {
+  if ( elem?.comment_content ) {
+    console.log( elem?.comment_content );
+    return (`
+            function validator_comment() {
+              return (
+                ${escape_backticks( elem.comment_content )}
+              )
+            }`);
+  } else {
+    return (`function validator_comment() { return null } ` );
+  }
+}
+
 
 
 
@@ -1055,11 +1078,16 @@ function __compile( parsed ) {
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
     output( `        },`);
-    output( `        "${FIELD_NAME_OF_ANNOTATIONS}" : {`);
+    output( `        "${SCHEMA_VALIDATOR_ANNOTATIONS}" : {`);
     output( `          value        : [ ${ annotations_elem_stack.map( elem=>'"'+elem.right_id + '"' ) } ],`);
     output( `          enumerable   : false,   `);
     output( `          writable     : false,   `);
     output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_COMMENT}" : {`);
+    output( `          get: ${get_validator_comment(parsed, elem)}, `);
+    output( `          enumerable   : false,   `);
+    output( `          configurable : false,   `);
     output( `        },`);
     output( `      });` );
     output( `      return validator;` );
@@ -1090,6 +1118,17 @@ function __compile( parsed ) {
     output( `        },`);
     output( `        "${SCHEMA_VALIDATOR_SOURCE}" : {`);
     output( `          get: ${get_validator_source_function(parsed, elem)}, `);
+    output( `          enumerable   : false,   `);
+    output( `          configurable : false,   `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_ANNOTATIONS}" : {`);
+    output( `          value        : [ ${ annotations_elem_stack.map( elem=>'"'+elem.right_id + '"' ) } ],`);
+    output( `          enumerable   : false,   `);
+    output( `          writable     : false,   `);
+    output( `          configurable : true,    `);
+    output( `        },`);
+    output( `        "${SCHEMA_VALIDATOR_COMMENT}" : {`);
+    output( `          get: ${get_validator_comment(parsed, elem)}, `);
     output( `          enumerable   : false,   `);
     output( `          configurable : false,   `);
     output( `        },`);
