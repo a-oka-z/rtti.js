@@ -351,6 +351,7 @@ const check_if_proper_vali = func=>{
 const join_strings_and_values = ( strings, values )=>strings.map((s,i)=>(s + ((i in values ) ? values[i] : '' ) )  ).join('');
 
 const create_static_value_interpolator_id = (c)=>'t__static_value_' + ( c ) + '_interpolator';
+const create_regexp_static_value_interpolator = ()=>/\bt__static_value_([0-9]+)_interpolator\b\(\)/gm;
 
 
 function __parse(input) {
@@ -362,30 +363,37 @@ function __parse(input) {
     }
   }
   const escaped_blocks = [];
+  const add_escaped_block = ({value,match,as_clousure})=>{
+    /*
+     * value   : a value on the compiled source code.
+     * match : a value on the source code on the documentation.
+     */
+    const c = escaped_blocks.length;
+    const key = create_static_value_interpolator_id( c );
+    escaped_blocks.push({ key, value, match, as_clousure });
+    return key + '()';
+  };
+
+
 
   function escape_blocks( s ) {
     return s.replaceAll( /<<(.*?)>>/g, function(match,p1) {
-      const c = escaped_blocks.length;
-      const id = create_static_value_interpolator_id( c );
-      escaped_blocks.push({
-        key : id,
-        value: p1,
-        match,
-      });
-      return id + '()';
+      return add_escaped_block({value:p1,match, as_clousure : true });
     });
   }
 
   function remove_line_comment( s ) {
     return s.replaceAll( /\/\/.*$/gm, function (match) {
-      return ' ';
+      return add_escaped_block({ value:'', match: '//' +match, as_clousure : false});
     });
   }
 
   function remove_block_comment( s ) {
-    return s.replaceAll( /\/\*[\s\S]*\*\//gm, function (match) {
-      return ' ';
-    });
+    return s.replaceAll( /\/\*[\s\S]*\*\//gm,
+      function (match) {
+        return add_escaped_block({value:'',match, as_clousure : false });
+      }
+    );
   }
 
   function check_all_valid_chars( s ) {
@@ -715,10 +723,13 @@ function change_indentation( source, level ) {
 }
 
 
+
+
 function get_source( parsed, elem ) {
   let source = elem.source();
-  source = source.replace( /\bt__static_value_([0-9]+)_interpolator\b\(\)/gm , (match,p1)=>{
-    return ' ' + parsed.escaped_blocks[ Number(p1) ].match.trim() + ' ';
+  source = source.replace( create_regexp_static_value_interpolator() , (match,p1)=>{
+    const a_escaped_block = parsed.escaped_blocks[ Number(p1) ];
+    return a_escaped_block.match.trim() + ' ';
   });
 
   // source = source + 'hello';
@@ -822,9 +833,11 @@ function __compile( parsed ) {
       return s;
     }
   };
-  for ( const {key,value} of parsed.escaped_blocks ) {
 
-    output( `const ${key} = ()=>(${check_escaped_block(value)});` );
+  for ( const {key,value,as_clousure} of parsed.escaped_blocks ) {
+    if ( as_clousure ) {
+      output( `const ${key} = ()=>(${check_escaped_block(value)});` );
+    }
   }
 
   function output_elem( parent_elem, elem, indent_level ) {
@@ -970,7 +983,22 @@ function __compile( parsed ) {
   output( `return result;` );
 
   const clean_source = (s)=>{
-    return s.replaceAll( /\(\s*\)/gm, '()' );
+
+    /*
+     * remove comment blocks from the compiled code
+     */
+    s = s.replace( create_regexp_static_value_interpolator() , (match,p1)=>{
+      const a_escaped_block = parsed.escaped_blocks[ Number(p1) ];
+      if ( ! a_escaped_block.as_clousure ) {
+        return a_escaped_block.match.trim() + ' ';
+        // return match;
+      } else {
+        return match;
+      }
+    });
+
+    s = s.replaceAll( /\(\s*\)/gm, '()' );
+    return s;
   };
 
   const compiled_source = clean_source( compiled_buf.join('\n')) ;
