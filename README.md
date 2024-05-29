@@ -886,6 +886,9 @@ AFTER: v3.0.4
   - unprevent-undefined() before trace. (not released)
   - (Fri, 24 May 2024 17:56:03 +0900)
   - Added an experimental validator `defined()` (not released)
+  - (Wed, 29 May 2024 13:49:15 +0900)
+  - Added Markdown documentation converter to VSV documentation tool (not
+    released)
 
 
  Conclusion
