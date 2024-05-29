@@ -227,9 +227,8 @@ async function build(nargs) {
 
 
 async function build_doc(nargs) {
-  build_html(nargs);
-  build_md(nargs);
-
+  await build_html(nargs);
+  await build_md(nargs);
   return;
 }
 

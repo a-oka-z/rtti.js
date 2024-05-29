@@ -64,7 +64,7 @@ import { build, build_doc, build_html, build_md } from "vanilla-schema-validator
       }
     })
     .command({
-      command : 'build-doc',
+      command : 'build-html',
       desc : 'read the specified JavaScript module and generate a html documentation of all validators defined in it',
       builder : (yargs) =>{
         yargs.option( 'input-dir', {
