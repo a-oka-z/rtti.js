@@ -17,8 +17,8 @@
       "require": "./lib/transpiler.cjs"
     }
   },
-  "bin" : {
-    "vsv" : "bin/vsv.mjs"
+  "bin": {
+    "vsv": "bin/vsv.mjs"
   },
   "scripts": {
     "test-esm": "node --test-reporter='spec' --test-name-pattern='.*' lib/index.test.mjs",
@@ -28,8 +28,8 @@
     "make": "node ./make.js",
     "test2": "npm run make ; node ./lib/transpiler.mjs transpile --input='./tests/transpiler-test/dir_a/dir_b/test.mjs'",
     "test1": "npm run make ; mkdir -p ./transpiler-test-output; vsv build --input-dir='./tests/transpiler-test/' --output-dir='./transpiler-test-output'",
-    "test-transpiler":  "{ DIR='./tmp/transpiler-out'; npm run make; mkdir -p \"$DIR\"; vsv build --input-dir='./tests/transpiler-test/' --output-dir=\"$DIR\"; } ",
-    "test" : "npm run test-all"
+    "test-transpiler": "{ DIR='./tmp/transpiler-out'; npm run make; mkdir -p \"$DIR\"; vsv build --input-dir='./tests/transpiler-test/' --output-dir=\"$DIR\"; } ",
+    "test": "npm run test-all"
   },
   "files": [
     "README.md",
