@@ -1391,7 +1391,13 @@ function VISIT_MODULE( validator_factory, nargs ) {
   switch (command) {
     case 'notify_validator_factory': {
       if ( is_module_data_available ) {
-        current_module.validator_list.push( validator_factory );
+        current_module.validator_list.push({ type: 'validator_factory' , value: validator_factory });
+      }
+      return value;
+    }
+    case 'notify_description': {
+      if ( is_module_data_available ) {
+        current_module.validator_list.push({ type: 'description' , value: value });
       }
       return value;
     }
@@ -1426,6 +1432,11 @@ function VISIT_MODULE( validator_factory, nargs ) {
   }
 
   return validator_factory;
+}
+
+function notify_description(strings,...values) {
+  const input = join_strings_and_values( strings, values );
+  this.VISIT_MODULE( null, { command:'notify_description', value:input } );
 }
 
 
@@ -1867,6 +1878,7 @@ const standardValis = {
   "BEGIN_MODULE"   : BEGIN_MODULE,
   "END_MODULE"     : END_MODULE,
   "VISIT_MODULE"   : VISIT_MODULE,
+  "description"    : notify_description,
   "clone"          : cloneSchema,
 };
 
