@@ -143,6 +143,10 @@ function module_to_source( module ) {
   return s;
 }
 
+const noescape_markdown = (s)=>{
+  s = s.replace( /_/gm, '\\_' );
+  return s;
+}
 const escape_markdown = (s)=>{
   s = s.replace( /_/gm, '\\_' );
   return s;
@@ -192,7 +196,7 @@ function module_to_html( module ) {
           break;
         case 'description':
           return (
-            `<div class='vsv-descriptions'>${escape_markdown( e?.value ?? '' )}</div>\n`+
+            `<div class='vsv-descriptions'>${escape_markdown( e?.value?.template_output ?? '' )}</div>\n`+
             `\n`
           );
           break;
@@ -245,7 +249,7 @@ function module_to_markdown( module ) {
           case 'description':
             return (
               `\n` +
-              `${escape_markdown( e?.value ?? '' )}\n` +
+              `${escape_markdown( e?.value?.template_output ?? '' )}\n` +
               `\n`
             );
           break;

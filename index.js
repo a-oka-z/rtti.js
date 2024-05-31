@@ -867,11 +867,20 @@ function normalize_indentation( s, length, replacer ) {
   return lines.join( '\n' );
 }
 
+/*
+ * You have to trim the input string.
+ * const s = `
+ *     foo
+ *     bar
+ *     bum
+ *  `;
+ * Such case is very common.
+ */
+
 function change_indentation( source, level ) {
+  source = '\n' + source.trim() + '\n';
   return normalize_indentation( source, minimum_indentation( source ), ' '.repeat(level) );
 }
-
-
 
 
 function get_source( parsed, elem ) {
@@ -901,7 +910,10 @@ function get_validator_command_function(parsed,elem) {
    */
   return (`
             (function (nargs) {
-              return this.VISIT_MODULE( validator_factory, nargs )
+              return this.VISIT_MODULE({
+                ...nargs,
+                validator_factory,
+              })
             }).bind( self )
           `);
 }
@@ -1346,17 +1358,39 @@ function END_MODULE() {
   this[VANILLA_SCHEMA_VALIDATOR_MODULES].push( current_module );
 }
 
+
+const set_validator_name = (validator_factory, validator_name)=>{
+    Object.defineProperties( validator_factory, {
+      [FUNCTION_NAME] : {
+        value        :  validator_name,
+        enumerable   : false,
+        writable     : false,
+        configurable : true,
+      },
+      [SCHEMA_VALIDATOR_NAME] : {
+        value        :  validator_name,
+        enumerable   : false,
+        writable     : false,
+        configurable : true,
+      },
+    });
+};
+
+
 /*
  * `this` would be a schema object.
  */
-function VISIT_MODULE( validator_factory, nargs ) {
-  if ( DEBUG ) {
-    console.log( 'VISIT_MODULE', 'validator_factory', validator_factory, nargs );
-  }
+function VISIT_MODULE( nargs ) {
   const schema = this;
+  if ( DEBUG ) {
+    console.log( 'VISIT_MODULE', nargs );
+  }
   const {
     command,
+    type,
     value,
+    validator_factory,
+    description_object,
   } = nargs;
 
   const current_module = get_current_module( schema );
@@ -1370,52 +1404,108 @@ function VISIT_MODULE( validator_factory, nargs ) {
     return true;
   })();
 
-  const set_validator_name = (validator_name)=>{
-      Object.defineProperties( validator_factory, {
-        [FUNCTION_NAME] : {
-          value        :  validator_name,
-          enumerable   : false,
-          writable     : false,
-          configurable : true,
-        },
-        [SCHEMA_VALIDATOR_NAME] : {
-          value        :  validator_name,
-          enumerable   : false,
-          writable     : false,
-          configurable : true,
-        },
-      });
-  };
-
-
   switch (command) {
     case 'notify_validator_factory': {
+      /*
+       * The `notify_validator_factory` command is a callback function which is
+       * called when a validator factory is created. This callback function is
+       * currently not used since the adding the current validator factory is
+       * now duty of `notify_typesafety` command.
+       *
+       * (Fri, 31 May 2024 16:06:29 +0900)
+       */
       if ( is_module_data_available ) {
+        // <<< commented out (Fri, 31 May 2024 16:06:29 +0900)
         current_module.validator_list.push({ type: 'validator_factory' , value: validator_factory });
+        // >>>
       }
       return value;
-    }
+    };
+
     case 'notify_description': {
-      if ( is_module_data_available ) {
-        current_module.validator_list.push({ type: 'description' , value: value });
+      switch ( type ) {
+        case 'created' : {
+          if ( is_module_data_available ) {
+
+            current_module.validator_list.push({ type: 'description' , value: description_object });
+          }
+          break;
+        };
       }
       return value;
-    }
-    case 'notify_typesafe_input':{
-      if ( DEBUG ) {
-        console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_input' );
+    };
+
+    case 'notify_typesafety' : {
+      switch ( type ) {
+        // case 'method' : {
+        //   if ( is_module_data_available ) {
+        //     current_module.validator_list.push({ type: 'description' , value: `
+        //         ${value}
+        //       -------------
+        //     `.replace( /^\s*/gm,'') });
+        //   }
+        //   break;
+        // };
+        case 'description' : {
+          description_object.bind_template_parameter( { method_name : value });
+          break;
+        };
+        case 'input' : {
+          if ( DEBUG ) {
+            console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_input' );
+          }
+          set_validator_name( validator_factory, `t_typesafety_input_of_${value}` );
+
+          // /*
+          //  * Add the current validator factory to the validator list.
+          //  */
+          // if ( is_module_data_available ) {
+          //   current_module.validator_list.push({ type: 'validator_factory' , value: validator_factory });
+          // }
+
+          return validator_factory;
+
+        };
+        case 'output' : {
+          if ( DEBUG ) {
+            console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_output' );
+          }
+          set_validator_name( validator_factory, `t_typesafety_output_of_${value}` );
+
+          // /*
+          //  * Add the current validator factory to the validator list.
+          //  */
+          // if ( is_module_data_available ) {
+          //   current_module.validator_list.push({ type: 'validator_factory' , value: validator_factory });
+          // e
+
+          return validator_factory;
+        };
+        default : {
+          throw new Error(`unknown type ${type}`);
+        };
       }
-      set_validator_name( `t_vtype_input_of_${value}` );
       return validator_factory;
-    }
-    case 'notify_typesafe_output': {
-      if ( DEBUG ) {
-        console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_output' );
-      }
-      set_validator_name( `t_vtype_output_of_${value}` );
-      return validator_factory;
-    }
-    case 'name':
+    };
+
+    // case 'notify_typesafe_input':{
+    //   if ( DEBUG ) {
+    //     console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_input' );
+    //   }
+    //   set_validator_name( validator_factory, `t_vtype_input_of_${value}` );
+    //   return validator_factory;
+    // };
+
+    // case 'notify_typesafe_output': {
+    //   if ( DEBUG ) {
+    //     console.debug( 'WUHxGUtDSZnJcPxml', 'notify_typesafe_output' );
+    //   }
+    //   set_validator_name( validator_factory, `t_vtype_output_of_${value}` );
+    //   return validator_factory;
+    // };
+
+
+    case 'name': {
       Object.defineProperties( validator_factory, {
         'name' : {
           value        : value,
@@ -1425,18 +1515,57 @@ function VISIT_MODULE( validator_factory, nargs ) {
         },
       });
       return validator_factory;
-    case 'self':
+    };
+    case 'self': {
       return validator_factory;
-    default :
+    };
+    default : {
       return undefined;
+    };
   }
 
   return validator_factory;
 }
 
 function notify_description(strings,...values) {
-  const input = join_strings_and_values( strings, values );
-  this.VISIT_MODULE( null, { command:'notify_description', value:input } );
+  const self = this;
+  const __input = join_strings_and_values( strings, values );
+  const input = change_indentation( __input , 0 );
+
+  const description_object = {
+    [SCHEMA_VALIDATOR_COMMAND] : (function validator_command(nargs) {
+      self.VISIT_MODULE({
+        ...nargs,
+        description_object:this,
+      })
+    }),
+    bind_template_parameter(nargs) {
+      this.template_arguments = {
+        ...this.template_arguments,
+        ...nargs,
+      };
+    },
+    template_string    : (self.description_template?.( input ) ?? input),
+    template_arguments : {},
+    get template_output () {
+
+      const result = this.template_string.replace( /\$(\S+)/gm, (s,s1)=>{
+        if ( s1 in this.template_arguments ) {
+          return this.template_arguments[s1];
+        } else {
+        } return s1;
+      });
+
+      return result;
+
+    },
+  };
+
+  description_object[SCHEMA_VALIDATOR_COMMAND]({command:'notify_description', type:'created', value: null });
+
+  return {
+    "description" : description_object,
+  };
 }
 
 
@@ -1879,6 +2008,7 @@ const standardValis = {
   "END_MODULE"     : END_MODULE,
   "VISIT_MODULE"   : VISIT_MODULE,
   "description"    : notify_description,
+  "description_template" : (s)=>`## \$method_name\n${s}`,
   "clone"          : cloneSchema,
 };
 
