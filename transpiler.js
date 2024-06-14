@@ -116,12 +116,13 @@ function module_to_source( module ) {
       (e,i)=>{
         switch ( e.type ) {
           case 'validator_factory' :
+            // console.error( e.value[SCHEMA_VALIDATOR_SOURCE] );
             return (
-              (`${e?.value?.[SCHEMA_VALIDATOR_SOURCE]}` ).map(
+              (`${e?.value?.[SCHEMA_VALIDATOR_SOURCE]}` ).split('\n').map(
                 e=>{
-                  return e.replace(/(\s*,\s*)+$/,'')
+                  return e.replaceAll( /(\s*,\s*)+/gm, ',' )
                 }
-              ).join(',\n')
+              ).join('\n')
             );
             break;
           case 'description':
@@ -132,7 +133,9 @@ function module_to_source( module ) {
             break;
         }
       }
-    )
+    ).filter(e=>e!==null&&e!==undefined).map(e=>{
+      return e.replace( /\s*,\s*$/, '\n' );
+    })
   );
   output( '`' );
 
@@ -190,7 +193,7 @@ function module_to_html( module ) {
           return (
             `<h3>${e?.value?.name??''}</h3>\n`+
             `<div class='vsv-descriptions'>${escape_markdown( e?.value?.[SCHEMA_VALIDATOR_COMMENT]??'')}</div>\n`+
-            `<pre><code class="language-javascript">${e?.value?.[SCHEMA_VALIDATOR_SOURCE]??''}</code></pre>\n`+
+            `<pre><code class="language-javascript">${e?.value?.[SCHEMA_VALIDATOR_SOURCE_FOR_DOC]??''}</code></pre>\n`+
             `\n`
           );
           break;
@@ -241,7 +244,7 @@ function module_to_markdown( module ) {
               `${escape_markdown( e?.value?.[SCHEMA_VALIDATOR_COMMENT]??'')}\n` +
               `\n`+
               `\`\`\`javascript\n` +
-              `${e?.value?.[SCHEMA_VALIDATOR_SOURCE]??''}\n` +
+              `${e?.value?.[SCHEMA_VALIDATOR_SOURCE_FOR_DOC]??''}\n` +
               `\`\`\`\n`+
               ``
             )

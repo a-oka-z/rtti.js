@@ -5,7 +5,7 @@ const yargs = require( 'yargs' );
 const { hideBin } = require( 'yargs/helpers' );
 const fs = require('fs/promises');
 const path = require('path');
-const  { schema, trace_validator, typecast, SCHEMA_VALIDATOR_SOURCE, SCHEMA_VALIDATOR_NAME, SCHEMA_VALIDATOR_COMMENT, SCHEMA_VALIDATOR_COMMENT_SOURCE } = require( 'vanilla-schema-validator' );
+const  { schema, trace_validator, typecast, SCHEMA_VALIDATOR_RAW_SOURCE, SCHEMA_VALIDATOR_SOURCE, SCHEMA_VALIDATOR_SOURCE_FOR_DOC, SCHEMA_VALIDATOR_NAME, SCHEMA_VALIDATOR_COMMENT, SCHEMA_VALIDATOR_COMMENT_SOURCE } = require( 'vanilla-schema-validator' );
 const { rip_comments, rip_directives } = require( 'rip_comments' );
 const child_process = require( 'node:child_process' );
 
